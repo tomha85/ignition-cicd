@@ -108,6 +108,7 @@ jobs:
           IGNITION_AGENT_CA_FILE: ${{ vars.IGNITION_AGENT_CA_FILE }}
           IGNITION_AGENT_API_TOKEN: ${{ secrets.IGNITION_AGENT_API_TOKEN }}
           IGNITION_AGENT_GWBK: ${{ vars.IGNITION_AGENT_GWBK }}
+          IGNITION_E2E_BROWSER: ${{ vars.IGNITION_E2E_BROWSER || 'auto' }}
           RELEASE_SHA: ${{ github.sha }}
         run: python scripts/direct_agent_lab.py
       - uses: actions/upload-artifact@v4
