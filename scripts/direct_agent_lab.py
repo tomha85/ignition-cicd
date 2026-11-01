@@ -12,7 +12,6 @@ import shutil
 import ssl
 import subprocess
 import tarfile
-import tempfile
 import time
 import uuid
 import zipfile
@@ -108,14 +107,19 @@ def scan_api(url, token, context, method="GET"):
     return data
 
 
-def wait_scan(url, token, context):
-    deadline = time.monotonic() + 90
+def wait_scan(url, token, context, baseline_timestamp=None):
+    """Never treat a pre-existing idle scan as completion of this release."""
+    deadline = time.monotonic() + 120
     while time.monotonic() < deadline:
         data = scan_api(url, token, context)
-        if data["scanActive"] is False:
+        timestamp = data.get("lastScanTimestamp")
+        advanced = (baseline_timestamp is None or
+                    (isinstance(timestamp, (int, float)) and
+                     timestamp > baseline_timestamp))
+        if data["scanActive"] is False and advanced:
             return data
         time.sleep(2)
-    raise RuntimeError("FAIL: project scan timeout")
+    raise RuntimeError("FAIL: project scan did not complete with a new timestamp")
 
 
 def make_browser():
@@ -194,7 +198,19 @@ def main():
     context = ssl.create_default_context(cafile=str(ca))
     token = os.environ["IGNITION_AGENT_API_TOKEN"]
     # Authenticated Agent API and both containers must pass before any mutation.
-    scan_api(url, token, context)
+    initial_scan = scan_api(url, token, context)
+    if initial_scan["scanActive"]:
+        raise RuntimeError("HOLD: Agent project scan already active")
+    if not isinstance(initial_scan.get("lastScanTimestamp"), (int, float)):
+        raise RuntimeError("HOLD: Agent scan baseline timestamp missing")
+    # Qualify the browser BEFORE changing any Gateway project files.
+    # Failure here is a preflight HOLD, not a deployment requiring rollback.
+    browser_name, browser_probe = make_browser()
+    try:
+        browser_probe.set_page_load_timeout(15)
+    finally:
+        browser_probe.quit()
+
     for container in (AGENT, CTRL):
         state = subprocess.check_output(
             ["docker", "inspect", "--format", "{{.State.Health.Status}}", container], text=True
@@ -217,6 +233,7 @@ def main():
     REPORT.parent.mkdir(exist_ok=True)
     swapped = False
     old_version = None
+    old_hashes = None
     try:
         # Preserve official full Gateway backup and container project trees first.
         shutil.copy2(gateway_backup, backup / "agent-gateway-before-release.gwbk")
@@ -235,6 +252,8 @@ def main():
         old_version = version_in_tree(json.loads(old_json))
         report["previous_version"] = old_version
         report["previous_browser"] = browser_version(old_version)
+        report["preflight_browser"] = browser_name
+        old_hashes = remote_hashes(files, dst)
         listed = subprocess.check_output(["docker", "exec", AGENT, "find",
             dst, "-type", "f", "-printf", "%P\\n"], text=True).splitlines()
         if set(listed) != set(files):
@@ -250,7 +269,8 @@ def main():
             raise RuntimeError("FAIL: on-disk release hash mismatch")
         report["agent_files"] = "MATCH"
         report["scan_request"] = scan_api(url, token, context, method="POST")
-        report["scan_final"] = wait_scan(url, token, context)
+        report["scan_final"] = wait_scan(
+            url, token, context, baseline_timestamp=initial_scan["lastScanTimestamp"])
         # Only the independently rendered Perspective version authorizes PASS.
         report["runtime"] = browser_version(expected)
         report["e2e"] = "PASS"
@@ -265,8 +285,13 @@ def main():
                     run("docker", "exec", AGENT, "mv", dst, failed)
                 if exists(prior):
                     run("docker", "exec", AGENT, "mv", prior, dst)
+                if old_hashes is None or remote_hashes(files, dst) != old_hashes:
+                    raise RuntimeError("FAIL: rollback file hashes differ from pre-deployment state")
+                rollback_baseline = scan_api(url, token, context)
                 scan_api(url, token, context, method="POST")
-                report["rollback_scan"] = wait_scan(url, token, context)
+                report["rollback_scan"] = wait_scan(
+                    url, token, context,
+                    baseline_timestamp=rollback_baseline.get("lastScanTimestamp"))
                 report["rollback_runtime"] = browser_version(old_version)
                 report["rollback"] = "VERIFIED"
             except Exception as rollback_exc:
@@ -274,6 +299,10 @@ def main():
                 report["rollback_error"] = str(rollback_exc)
         raise
     finally:
+        # Remove only the unused pre-swap staging directory. On failure, preserve
+        # prior/failed directories and the backup for forensic recovery.
+        if not swapped and exists(tmp):
+            run("docker", "exec", AGENT, "rm", "-rf", tmp)
         REPORT.write_text(json.dumps(report, indent=2) + "\n")
         (backup / "release-evidence.json").write_text(json.dumps(report, indent=2) + "\n")
 
