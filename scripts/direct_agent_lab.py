@@ -274,8 +274,8 @@ def main():
         # Only the independently rendered Perspective version authorizes PASS.
         report["runtime"] = browser_version(expected)
         report["e2e"] = "PASS"
-        # Project tar and full Gateway backup remain available after success.
-        run("docker", "exec", AGENT, "rm", "-rf", prior)
+        # Keep prior project intact for explicit engineer-approved recovery.
+        report["prior_project_path"] = prior
     except Exception as exc:
         report["error"] = str(exc)
         if swapped:
