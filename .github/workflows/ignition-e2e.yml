@@ -4,6 +4,13 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      action:
+        description: "validate only or stage project on TEST Controller (EAM remains HOLD)"
+        required: true
+        type: choice
+        options: [validate, stage-controller]
+        default: validate
 permissions:
   contents: read
 jobs:
@@ -14,13 +21,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Verify genuine Ignition project and run tests
+      - name: Validate source and configuration
         run: |
           python -m unittest discover -s tests -v
           python scripts/validate.py ignition-project/DeploymentSmokeTest
-  deploy-test:
+          python scripts/stage_controller.py --check-config
+  stage-controller:
     needs: validate
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'stage-controller' && github.ref == 'refs/heads/main'
     runs-on: [self-hosted, linux, ignition-lab]
     environment: ignition-test
     concurrency:
@@ -28,19 +36,18 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
-      - name: Stage and trigger EAM (TEST ONLY)
+      - name: Stage TEST project, with backup; NEVER invoke EAM
         env:
           IGNITION_LAB_ONLY: 'YES'
-          CONTROLLER_PROJECTS_DIR: ${{ vars.CONTROLLER_PROJECTS_DIR }}
-          AGENT_PROJECTS_DIR: ${{ vars.AGENT_PROJECTS_DIR }}
-          CONTROLLER_TRIGGER_DIR: ${{ vars.CONTROLLER_TRIGGER_DIR }}
-          DEPLOY_BACKUP_DIR: ${{ vars.DEPLOY_BACKUP_DIR }}
+          IGNITION_CONTROLLER_CONTAINER: ${{ vars.IGNITION_CONTROLLER_CONTAINER }}
+          IGNITION_AGENT_CONTAINER: ${{ vars.IGNITION_AGENT_CONTAINER }}
+          IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR }}
           RELEASE_SHA: ${{ github.sha }}
-        run: python3 scripts/deploy_test.py
-      - name: Upload deployment evidence
+        run: python3 scripts/stage_controller.py --stage
+      - name: Upload staging evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ignition-deployment-evidence
-          path: evidence/*.json
+          name: ignition-controller-staging-evidence
+          path: evidence/controller-stage.json
           if-no-files-found: warn
