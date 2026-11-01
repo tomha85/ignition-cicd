@@ -118,17 +118,47 @@ def wait_scan(url, token, context):
     raise RuntimeError("FAIL: project scan timeout")
 
 
-def browser_version(expected):
-    # Independent Perspective client rendering check, not an on-disk version check.
-    # Browser is restricted to the local isolated TEST Agent.
+def make_browser():
+    """Choose a browser installed on the runner, not the developer's workstation."""
     from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options as ChromeOptions
+    from selenium.webdriver.edge.options import Options as EdgeOptions
+    from selenium.webdriver.firefox.options import Options as FirefoxOptions
+
+    choice = os.getenv("IGNITION_E2E_BROWSER", "auto").strip().lower()
+    aliases = {"chromium": "chrome", "google-chrome": "chrome", "msedge": "edge"}
+    choice = aliases.get(choice, choice)
+    if choice not in ("auto", "chrome", "edge", "firefox"):
+        raise RuntimeError("HOLD: unsupported IGNITION_E2E_BROWSER")
+    options_by_name = {
+        "chrome": (ChromeOptions, webdriver.Chrome),
+        "edge": (EdgeOptions, webdriver.Edge),
+        "firefox": (FirefoxOptions, webdriver.Firefox),
+    }
+    # Try supported browsers without assuming Firefox or Linux-specific paths.
+    order = ("chrome", "edge", "firefox") if choice == "auto" else (choice,)
+    errors = {}
+    for name in order:
+        option_type, factory = options_by_name[name]
+        opts = option_type()
+        opts.add_argument("--headless" if name != "firefox" else "-headless")
+        if name in ("chrome", "edge"):
+            opts.add_argument("--no-sandbox")
+            opts.add_argument("--disable-dev-shm-usage")
+        opts.accept_insecure_certs = False
+        try:
+            return name, factory(options=opts)
+        except Exception as exc:
+            errors[name] = type(exc).__name__ + ": " + str(exc)[:220]
+    raise RuntimeError("HOLD: no browser WebDriver could start: " + json.dumps(errors))
+
+
+def browser_version(expected):
+    # Real rendered-client proof; browser is selected on the runner.
     from selenium.webdriver.common.by import By
-    from selenium.webdriver.firefox.options import Options
     from selenium.webdriver.support.ui import WebDriverWait
-    opts = Options()
-    opts.add_argument("-headless")
-    opts.accept_insecure_certs = False
-    driver = webdriver.Firefox(options=opts)
+
+    browser, driver = make_browser()
     try:
         driver.set_page_load_timeout(40)
         driver.get("http://localhost:9288/data/perspective/client/DeploymentSmokeTest")
@@ -138,10 +168,11 @@ def browser_version(expected):
         def reload_until_visible(d):
             if visible(d):
                 return True
-            d.refresh()  # Perspective may load an older cached view immediately after scan.
+            d.refresh()
             return False
         WebDriverWait(driver, 60, poll_frequency=3).until(reload_until_visible)
-        return {"verified_visible_text": expected, "browser_title": driver.title}
+        return {"browser": browser, "verified_visible_text": expected,
+                "browser_title": driver.title}
     finally:
         driver.quit()
 
@@ -160,8 +191,6 @@ def verify_full_gateway_backup():
 def main():
     sha, url, ca, backups = check_env()
     gateway_backup = verify_full_gateway_backup()
-    if not shutil.which("firefox") or not shutil.which("geckodriver"):
-        raise RuntimeError("HOLD: Firefox + geckodriver required for real Perspective verification")
     context = ssl.create_default_context(cafile=str(ca))
     token = os.environ["IGNITION_AGENT_API_TOKEN"]
     # Authenticated Agent API and both containers must pass before any mutation.
