@@ -24,14 +24,18 @@ class DirectAgentCandidateTests(unittest.TestCase):
     def test_backups_before_replacement(self):
         code = (ROOT / "scripts/direct_agent_lab.py").read_text()
         self.assertLess(code.index("project_backups"), code.index('run("docker", "cp",'))
-        self.assertIn("IGNITION_DIRECT_RUNTIME_VERIFIER_QUALIFIED", code)
-        self.assertIn("HOLD: native Perspective runtime verification not qualified", code)
+        self.assertIn("verify_full_gateway_backup()", code)
+        self.assertIn("browser_version(expected)", code)
+        self.assertIn("rollback_runtime", code)
+        self.assertNotIn("HOLD: native Perspective runtime verification not qualified", code)
 
     def test_no_auto_push_release(self):
         wf = (ROOT / ".github/workflows/ignition-e2e.yml").read_text()
         self.assertIn("inputs.action == 'deploy-agent-direct'", wf)
         self.assertIn("IGNITION_AGENT_API_TOKEN", wf)
         self.assertIn("ignition-direct-agent-evidence", wf)
+        self.assertIn("IGNITION_AGENT_GWBK", wf)
+        self.assertIn("IGNITION_TEST_AUTO_DIRECT", wf)
 
 
 if __name__ == "__main__":
