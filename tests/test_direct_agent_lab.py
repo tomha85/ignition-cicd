@@ -35,7 +35,9 @@ class DirectAgentCandidateTests(unittest.TestCase):
         self.assertIn("IGNITION_AGENT_API_TOKEN", wf)
         self.assertIn("ignition-direct-agent-evidence", wf)
         self.assertIn("IGNITION_AGENT_GWBK", wf)
-        self.assertIn("IGNITION_TEST_AUTO_DIRECT", wf)
+        self.assertIn("default: deploy-agent-direct", wf)
+        self.assertIn("github.ref == 'refs/heads/main'", wf)
+        self.assertNotIn("IGNITION_TEST_AUTO_DIRECT", wf)
 
 
 if __name__ == "__main__":
