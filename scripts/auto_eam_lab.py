@@ -73,6 +73,9 @@ def main():
     manifest=json.loads((ROOT/"manifests/ignition-test.json").read_text())
     if manifest.get("project")!=PROJECT or manifest.get("target_agent")!="EAM-Agent" or manifest.get("eam_task")!=TASK or manifest.get("production_approved") is not False:
         raise RuntimeError("Manifest not authorized")
+    # Never stage or dispatch without a native, independently verified Controller-only timer.
+    from check_controller_timer import validate as validate_native_controller_timer
+    validate_native_controller_timer()
     if manifest.get("automatic_eam_enabled") is not True:
         raise RuntimeError("HOLD: manifest auto EAM switch is not enabled")
     if not manifest.get("requires_gateway_scan") or not manifest.get("requires_runtime_smoke"):
