@@ -6,10 +6,10 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: "validate only or stage project on TEST Controller (EAM remains HOLD)"
         required: true
         type: choice
-        options: [validate, stage-controller]
+        description: "TEST-only automation; deploy-eam requires one-time Gateway trigger and runtime attestation"
+        options: [validate, stage-controller, deploy-eam]
         default: validate
 permissions:
   contents: read
@@ -21,8 +21,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Validate source and configuration
-        run: |
+      - run: |
           python -m unittest discover -s tests -v
           python scripts/validate.py ignition-project/DeploymentSmokeTest
           python scripts/stage_controller.py --check-config
@@ -36,7 +35,7 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
-      - name: Stage TEST project, with backup; NEVER invoke EAM
+      - name: Stage TEST Controller only
         env:
           IGNITION_LAB_ONLY: 'YES'
           IGNITION_CONTROLLER_CONTAINER: ${{ vars.IGNITION_CONTROLLER_CONTAINER }}
@@ -44,10 +43,35 @@ jobs:
           IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR }}
           RELEASE_SHA: ${{ github.sha }}
         run: python3 scripts/stage_controller.py --stage
-      - name: Upload staging evidence
+      - uses: actions/upload-artifact@v4
         if: always()
-        uses: actions/upload-artifact@v4
         with:
           name: ignition-controller-staging-evidence
           path: evidence/controller-stage.json
+          if-no-files-found: warn
+  deploy-eam:
+    needs: validate
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'deploy-eam' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, linux, ignition-lab]
+    environment: ignition-test
+    concurrency:
+      group: ignition-eam-test
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Backup, stage, scan, gated EAM task and verify Agent files
+        env:
+          IGNITION_LAB_ONLY: 'YES'
+          IGNITION_CONTROLLER_CONTAINER: ${{ vars.IGNITION_CONTROLLER_CONTAINER }}
+          IGNITION_AGENT_CONTAINER: ${{ vars.IGNITION_AGENT_CONTAINER }}
+          IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR }}
+          IGNITION_GATEWAY_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
+          IGNITION_CONTROLLER_RUNTIME_VERIFIED_SHA: ${{ vars.IGNITION_CONTROLLER_RUNTIME_VERIFIED_SHA }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: python3 scripts/auto_eam_lab.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ignition-eam-automation-evidence
+          path: evidence/auto-eam.json
           if-no-files-found: warn
