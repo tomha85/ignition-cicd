@@ -14,11 +14,11 @@ if Files.exists(request) and not Files.exists(processing):
         Files.move(request, processing)
         obj = json.loads(str(Files.readString(processing, StandardCharsets.UTF_8)))
         sha = obj.get('sha', '')
-        if obj.get('project') != 'DeploymentSmokeTest' or obj.get('task') != 'Lab_Send_Project':
+        if obj.get('project') != 'DeploymentSmokeTest' or obj.get('task') != 'CICD-AUTO-DeploymentSmokeTest':
             raise Exception('Unexpected project or task')
         if len(sha) != 40 or any(c not in '0123456789abcdef' for c in sha):
             raise Exception('Invalid release SHA')
-        result = system.eam.runTask('Lab_Send_Project')
+        result = system.eam.runTask('CICD-AUTO-DeploymentSmokeTest')
         if result.getErrors() or result.getWarns():
             raise Exception('EAM returned warnings or errors: ' + str(result))
         receipt = base.resolve('started-' + sha + '.json')

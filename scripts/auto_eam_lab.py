@@ -13,13 +13,14 @@ import subprocess
 import time
 from datetime import datetime, timezone
 from urllib.request import Request, urlopen
+import ssl
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = "/usr/local/bin/ignition/data"
 PROJECT = "DeploymentSmokeTest"
 CTRL = "ignition-eam-controller"
 AGENT = "ignition-eam-agent"
-TASK = "Lab_Send_Project"
+TASK = "CICD-AUTO-DeploymentSmokeTest"
 REQUESTS = DATA + "/eam-requests"
 EVIDENCE = ROOT / "evidence" / "auto-eam.json"
 
@@ -48,13 +49,18 @@ def api_scan():
     token = os.getenv("IGNITION_GATEWAY_API_TOKEN")
     if not token:
         raise RuntimeError("Missing IGNITION_GATEWAY_API_TOKEN")
-    req = Request("http://127.0.0.1:9188/data/api/v1/scan/projects",
+    ca = Path(os.environ.get("IGNITION_CONTROLLER_CA_FILE", str(Path.home() / "ignition-eam-lab/certs/lab-root-ca.crt")))
+    if not ca.is_file():
+        raise RuntimeError("Trusted Controller CA missing")
+    context = ssl.create_default_context(cafile=str(ca))
+    req = Request("https://localhost:9143/data/api/v1/scan/projects",
                   data=b"", method="POST",
                   headers={"X-Ignition-API-Token":token})
-    with urlopen(req,timeout=30) as response:
+    with urlopen(req,timeout=30,context=context) as response:
         if not 200 <= response.status < 300:
             raise RuntimeError("Gateway project scan rejected")
     # HTTP 2xx confirms scan accepted, NOT that Ignition loaded this release.
+    # No EAM task may run until independent runtime evidence is supplied.
 
 def main():
     if os.environ.get("IGNITION_LAB_ONLY") != "YES":
@@ -67,6 +73,11 @@ def main():
     manifest=json.loads((ROOT/"manifests/ignition-test.json").read_text())
     if manifest.get("project")!=PROJECT or manifest.get("target_agent")!="EAM-Agent" or manifest.get("eam_task")!=TASK or manifest.get("production_approved") is not False:
         raise RuntimeError("Manifest not authorized")
+    # Never stage or dispatch without a native, independently verified Controller-only timer.
+    from check_controller_timer import validate as validate_native_controller_timer
+    validate_native_controller_timer()
+    if manifest.get("automatic_eam_enabled") is not True:
+        raise RuntimeError("HOLD: manifest auto EAM switch is not enabled")
     if not manifest.get("requires_gateway_scan") or not manifest.get("requires_runtime_smoke"):
         raise RuntimeError("Verification gates disabled")
     src=ROOT/"ignition-project"/PROJECT
