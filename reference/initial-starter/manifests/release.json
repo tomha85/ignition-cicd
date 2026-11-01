@@ -1,0 +1,21 @@
+{
+  "release_id": "ManufacturingSCADA-LAB-0.1.0",
+  "project_name": "ManufacturingSCADA",
+  "edition": "Ignition Standard",
+  "minimum_ignition_version": "8.3.0",
+  "environment": "ISOLATED_LAB_ONLY",
+  "target_agent": "TEST_AGENT_LAB",
+  "project_export": "exports/ManufacturingSCADA.zip",
+  "dependencies": [
+    "Perspective",
+    "Enterprise Administration"
+  ],
+  "gateway_resources_not_in_project_zip": [
+    "memory tags",
+    "tag providers",
+    "database connections",
+    "PLC device connections",
+    "UDT definitions"
+  ],
+  "production_approved": false
+}
