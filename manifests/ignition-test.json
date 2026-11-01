@@ -6,9 +6,9 @@
   "controller_container": "ignition-eam-controller",
   "agent_container": "ignition-eam-agent",
   "target_agent": "EAM-Agent",
-  "eam_task": "Lab_Send_Project",
+  "eam_task": "CICD-AUTO-DeploymentSmokeTest",
   "production_approved": false,
-  "automatic_eam_enabled": false,
+  "automatic_eam_enabled": true,
   "requires_gateway_scan": true,
   "requires_runtime_smoke": true
 }
