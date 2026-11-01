@@ -8,7 +8,7 @@
   "target_agent": "EAM-Agent",
   "eam_task": "CICD-AUTO-DeploymentSmokeTest",
   "production_approved": false,
-  "automatic_eam_enabled": true,
+  "automatic_eam_enabled": false,
   "requires_gateway_scan": true,
   "requires_runtime_smoke": true
 }
