@@ -62,7 +62,7 @@ class DirectAgentCandidateTests(unittest.TestCase):
         wf = (ROOT / ".github/workflows/ignition-e2e.yml").read_text()
         self.assertIn("inputs.action == 'deploy-agent-direct'", wf)
         self.assertIn("IGNITION_AGENT_API_TOKEN", wf)
-        self.assertIn("ignition-direct-agent-evidence", wf)
+        self.assertIn("ignition-test-direct-evidence", wf)
         self.assertIn("IGNITION_AGENT_GWBK", wf)
         self.assertIn("IGNITION_E2E_BROWSER", wf)
         self.assertIn("default: deploy-agent-direct", wf)
