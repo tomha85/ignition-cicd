@@ -1,0 +1,6 @@
+{
+  "title": "CICDController",
+  "description": "Controller-only management project (TEST). Never distribute to EAM Agent.",
+  "enabled": true,
+  "inheritable": false
+}
