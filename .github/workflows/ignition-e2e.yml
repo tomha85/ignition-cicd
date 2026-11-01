@@ -1,0 +1,46 @@
+name: Ignition EAM E2E TEST
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify genuine Ignition project and run tests
+        run: |
+          python -m unittest discover -s tests -v
+          python scripts/validate.py ignition-project/DeploymentSmokeTest
+  deploy-test:
+    needs: validate
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, linux, ignition-lab]
+    environment: ignition-test
+    concurrency:
+      group: ignition-eam-test
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stage and trigger EAM (TEST ONLY)
+        env:
+          IGNITION_LAB_ONLY: 'YES'
+          CONTROLLER_PROJECTS_DIR: ${{ vars.CONTROLLER_PROJECTS_DIR }}
+          AGENT_PROJECTS_DIR: ${{ vars.AGENT_PROJECTS_DIR }}
+          CONTROLLER_TRIGGER_DIR: ${{ vars.CONTROLLER_TRIGGER_DIR }}
+          DEPLOY_BACKUP_DIR: ${{ vars.DEPLOY_BACKUP_DIR }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: python3 scripts/deploy_test.py
+      - name: Upload deployment evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ignition-deployment-evidence
+          path: evidence/*.json
+          if-no-files-found: warn

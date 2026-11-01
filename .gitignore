@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+evidence/
+*.gwbk
+.env
+*.key
+*.pem
