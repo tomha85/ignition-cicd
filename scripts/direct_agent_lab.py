@@ -135,7 +135,12 @@ def browser_version(expected):
         def visible(d):
             return any(e.is_displayed() for e in d.find_elements(
                 By.XPATH, "//*[normalize-space(text())='%s']" % expected))
-        WebDriverWait(driver, 60, poll_frequency=2).until(visible)
+        def reload_until_visible(d):
+            if visible(d):
+                return True
+            d.refresh()  # Perspective may load an older cached view immediately after scan.
+            return False
+        WebDriverWait(driver, 60, poll_frequency=3).until(reload_until_visible)
         return {"verified_visible_text": expected, "browser_title": driver.title}
     finally:
         driver.quit()
