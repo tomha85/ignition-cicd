@@ -85,7 +85,8 @@ jobs:
     if: >-
       github.event_name == 'workflow_dispatch' &&
       inputs.action == 'deploy-agent-direct' &&
-      github.ref == 'refs/heads/main'
+      (github.ref == 'refs/heads/main' ||
+       github.ref == 'refs/heads/feat/direct-agent-gitops-lab')
     runs-on: [self-hosted, linux, ignition-lab]
     environment: ignition-test
     concurrency:
