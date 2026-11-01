@@ -9,7 +9,7 @@ on:
         required: true
         type: choice
         description: "TEST-only automation; deploy-eam requires one-time Gateway trigger and runtime attestation"
-        options: [validate, stage-controller, deploy-eam]
+        options: [validate, stage-controller, deploy-eam, deploy-agent-direct]
         default: validate
 permissions:
   contents: read
@@ -78,4 +78,32 @@ jobs:
         with:
           name: ignition-eam-automation-evidence
           path: evidence/auto-eam.json
+          if-no-files-found: warn
+
+  deploy-agent-direct:
+    needs: validate
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'deploy-agent-direct' && github.ref == 'refs/heads/main'
+    runs-on: [self-hosted, linux, ignition-lab]
+    environment: ignition-test
+    concurrency:
+      group: ignition-eam-test
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - name: Direct TEST Agent preflight, backup, stage, scan and evidence
+        env:
+          IGNITION_LAB_ONLY: 'YES'
+          IGNITION_CONTROLLER_CONTAINER: ${{ vars.IGNITION_CONTROLLER_CONTAINER }}
+          IGNITION_AGENT_CONTAINER: ${{ vars.IGNITION_AGENT_CONTAINER }}
+          IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR }}
+          IGNITION_AGENT_SCAN_URL: 'https://localhost:9243/data/api/v1/scan/projects'
+          IGNITION_AGENT_CA_FILE: ${{ vars.IGNITION_AGENT_CA_FILE }}
+          IGNITION_AGENT_API_TOKEN: ${{ secrets.IGNITION_AGENT_API_TOKEN }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: python3 scripts/direct_agent_lab.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ignition-direct-agent-evidence
+          path: evidence/direct-agent.json
           if-no-files-found: warn
