@@ -93,7 +93,7 @@ def main():
         state = subprocess.check_output(["docker", "inspect", "--format", "{{.State.Health.Status}}", container], text=True).strip()
         if state != "healthy":
             raise RuntimeError("HOLD: unhealthy " + container)
-    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    # No mutation until a separate, qualified runtime verifier is configured.\n    # This gate must not be bypassed by merely supplying a commit SHA.\n    if os.getenv("IGNITION_DIRECT_RUNTIME_VERIFIER_QUALIFIED") != "true":\n        raise RuntimeError("HOLD: direct Agent runtime verifier is not qualified")\n    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     backup = backups / (stamp + "-" + sha[:12] + "-agent-direct")
     backup.mkdir(mode=0o700)
     report = {"sha": sha, "project": PROJECT, "mode": "DIRECT_AGENT_TEST", "backup": str(backup), "e2e": "HOLD"}
