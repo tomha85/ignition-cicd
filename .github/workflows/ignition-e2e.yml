@@ -8,9 +8,9 @@ on:
       action:
         required: true
         type: choice
-        description: "TEST-only automation; deploy-eam requires one-time Gateway trigger and runtime attestation"
+        description: "Choose Deploy TEST after PR is reviewed and merged into main"
         options: [validate, stage-controller, deploy-eam, deploy-agent-direct]
-        default: validate
+        default: deploy-agent-direct
 permissions:
   contents: read
 jobs:
@@ -83,10 +83,9 @@ jobs:
   deploy-agent-direct:
     needs: validate
     if: >-
-      (github.event_name == 'workflow_dispatch' && inputs.action == 'deploy-agent-direct' &&
-       (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/direct-agent-gitops-lab')) ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
-       vars.IGNITION_TEST_AUTO_DIRECT == 'true')
+      github.event_name == 'workflow_dispatch' &&
+      inputs.action == 'deploy-agent-direct' &&
+      github.ref == 'refs/heads/main'
     runs-on: [self-hosted, linux, ignition-lab]
     environment: ignition-test
     concurrency:
