@@ -1,0 +1,6 @@
+{
+  "title": "DeploymentSmokeTest",
+  "description": "Isolated CI/CD EAM smoke test - no PLC, no tags",
+  "enabled": true,
+  "inheritable": false
+}

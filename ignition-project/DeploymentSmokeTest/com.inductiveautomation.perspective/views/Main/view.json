@@ -1,0 +1,68 @@
+{
+  "custom": {},
+  "params": {},
+  "props": {
+    "defaultSize": {
+      "width": 750,
+      "height": 420
+    }
+  },
+  "root": {
+    "type": "ia.container.flex",
+    "meta": {
+      "name": "root"
+    },
+    "props": {
+      "direction": "column",
+      "justify": "center",
+      "alignItems": "center",
+      "style": {
+        "backgroundColor": "#f4f7fb",
+        "padding": 24
+      }
+    },
+    "children": [
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "Title"
+        },
+        "props": {
+          "text": "IGNITION EAM CI/CD SMOKE TEST",
+          "style": {
+            "fontSize": "28px",
+            "fontWeight": "bold",
+            "color": "#20334e"
+          }
+        }
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "BuildVersion"
+        },
+        "props": {
+          "text": "SMOKE VERSION V1",
+          "style": {
+            "fontSize": "24px",
+            "color": "#176e49",
+            "marginTop": 24
+          }
+        }
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "DeploymentResult"
+        },
+        "props": {
+          "text": "If this appears on TEST Agent, Perspective resource transfer succeeded.",
+          "style": {
+            "fontSize": "16px",
+            "marginTop": 14
+          }
+        }
+      }
+    ]
+  }
+}
