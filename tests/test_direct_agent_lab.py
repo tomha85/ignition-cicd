@@ -1,5 +1,7 @@
 """Safety checks for direct Agent TEST deployment candidate."""
 import subprocess
+import importlib.util
+from unittest.mock import patch
 import sys
 import unittest
 from pathlib import Path
@@ -33,6 +35,28 @@ class DirectAgentCandidateTests(unittest.TestCase):
         self.assertNotIn('shutil.which("firefox")', code)
         self.assertIn("rollback_runtime", code)
         self.assertNotIn("HOLD: native Perspective runtime verification not qualified", code)
+
+    def test_scan_wait_requires_new_completed_timestamp(self):
+        spec = importlib.util.spec_from_file_location(
+            "direct_agent_lab", ROOT / "scripts/direct_agent_lab.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        responses = iter([
+            {"scanActive": False, "lastScanTimestamp": 100},
+            {"scanActive": True, "lastScanTimestamp": 100},
+            {"scanActive": False, "lastScanTimestamp": 101},
+        ])
+        with patch.object(module, "scan_api", side_effect=lambda *a: next(responses)):
+            with patch.object(module.time, "sleep", return_value=None):
+                result = module.wait_scan("test", "masked", None, baseline_timestamp=100)
+        self.assertEqual(result["lastScanTimestamp"], 101)
+
+    def test_rollback_hashes_and_browser_preflight_exist(self):
+        code = (ROOT / "scripts/direct_agent_lab.py").read_text()
+        self.assertLess(code.index("browser_probe = make_browser()"),
+                        code.index('run("docker", "cp",'))
+        self.assertIn("remote_hashes(files, dst) != old_hashes", code)
+        self.assertIn("baseline_timestamp=initial_scan", code)
 
     def test_no_auto_push_release(self):
         wf = (ROOT / ".github/workflows/ignition-e2e.yml").read_text()
