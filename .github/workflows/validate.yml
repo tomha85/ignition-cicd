@@ -35,6 +35,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: |
+          python scripts/sync_workflow_choices.py --check
           python -m compileall -q framework reusable_cicd scripts tests
           python framework/cli/check_repo.py
           python -m unittest discover -s tests -v
