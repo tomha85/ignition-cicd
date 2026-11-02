@@ -1,0 +1,59 @@
+name: EAM TEST - Factory A Agent Readiness (No Deployment)
+
+on:
+  push:
+    branches:
+      - feat/reusable-multifactory-framework-v1
+    paths:
+      - .github/workflows/eam-e2e-readiness.yml
+
+permissions:
+  contents: read
+
+jobs:
+  hosted-validation:
+    name: Source, target and EAM commissioning safety tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run safety regression suite
+        run: |
+          python -m compileall -q framework scripts tests
+          python -m unittest discover -s tests -v
+          python framework/cli/check_repo.py
+
+  inspect-lab:
+    name: Read-only local Controller/Agent inspection; HOLD unless commissioned
+    needs: hosted-validation
+    runs-on: [self-hosted, linux, ignition-lab]
+    environment: ignition-test
+    concurrency:
+      group: eam-lab-factory_a
+      cancel-in-progress: false
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check LAB identities, Controller source, Agent state and EAM commissioning
+        env:
+          IGNITION_EAM_BRIDGE_COMMISSIONED: ${{ vars.IGNITION_EAM_BRIDGE_COMMISSIONED || 'NO' }}
+          IGNITION_FACTORY_A_SMOKE_TASK_COMMISSIONED: ${{ vars.IGNITION_FACTORY_A_SMOKE_TASK_COMMISSIONED || 'NO' }}
+        run: |
+          python scripts/eam_e2e_lab_preflight.py --sha "$GITHUB_SHA" --inspect-lab
+      - name: Upload read-only LAB readiness evidence (even on HOLD)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eam-factory-a-readiness-evidence
+          path: evidence/eam-factory-a-preflight.json
+          if-no-files-found: warn
