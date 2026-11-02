@@ -1,0 +1,43 @@
+name: Standard V3 - Validate Ignition Factory Source
+
+on:
+  pull_request:
+    paths:
+      - 'framework/**'
+      - 'factories/**'
+      - 'shared/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - '.github/workflows/**'
+  push:
+    branches: [feat/reusable-multifactory-framework-v1]
+    paths:
+      - '.github/workflows/validate.yml'
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  source:
+    name: Structure, native source, security and integration (Python 3.12/3.13)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: |
+          python -m compileall -q framework reusable_cicd scripts tests
+          python framework/cli/check_repo.py
+          python -m unittest discover -s tests -v
+          python framework/cli/validate_factory.py \
+            --factory lab-warehouse --gateway warehouse-main \
+            --project FactoryASmoke --sha "$GITHUB_SHA"

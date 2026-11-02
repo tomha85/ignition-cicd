@@ -1,0 +1,69 @@
+name: Standard V3 - Build Immutable Native Ignition Source Release
+
+on:
+  pull_request:
+    paths:
+      - 'factories/**'
+      - 'framework/**'
+      - 'scripts/build_release_v3.py'
+      - '.github/workflows/build-release.yml'
+  push:
+    branches: [feat/reusable-multifactory-framework-v1]
+    paths:
+      - '.github/workflows/build-release.yml'
+  workflow_dispatch:
+    inputs:
+      factory:
+        type: choice
+        required: true
+        options: [lab-warehouse, lab-assembly]
+        default: lab-warehouse
+      gateway:
+        type: string
+        required: true
+        default: warehouse-main
+      project:
+        type: string
+        required: true
+        default: FactoryASmoke
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Build zip + source-hash evidence; NO GATEWAY DEPLOY
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate architecture and immutable source
+        run: |
+          python framework/cli/check_repo.py
+          python -m unittest discover -s tests -v
+      - name: Package exact factory native project and source SHA
+        env:
+          CHOSEN_FACTORY: ${{ inputs.factory || 'lab-warehouse' }}
+          CHOSEN_GATEWAY: ${{ inputs.gateway || 'warehouse-main' }}
+          CHOSEN_PROJECT: ${{ inputs.project || 'FactoryASmoke' }}
+        run: |
+          python scripts/build_release_v3.py \
+            --factory "$CHOSEN_FACTORY" \
+            --gateway "$CHOSEN_GATEWAY" \
+            --project "$CHOSEN_PROJECT" \
+            --sha "$GITHUB_SHA" \
+            --output "dist/ignition-native-release.zip" > "dist-release.json"
+          cat dist-release.json
+      - name: Upload source release (never production credentials)
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-ignition-release
+          path: |
+            dist/ignition-native-release.zip
+            dist-release.json
+          if-no-files-found: error
