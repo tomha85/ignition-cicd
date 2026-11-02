@@ -1,0 +1,56 @@
+name: EAM TEST - OpenAPI and Controller Task Diagnostics
+
+on:
+  push:
+    branches:
+      - feat/reusable-multifactory-framework-v1
+    paths:
+      - .github/workflows/eam-openapi-diagnostics.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    name: Validate diagnostic read-only safety
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          python -m compileall -q scripts/eam_openapi_diagnostics.py
+          python -m unittest discover -s tests -v
+          python framework/cli/check_repo.py
+
+  inspect-test-lab:
+    needs: validate
+    runs-on: [self-hosted, linux, ignition-lab]
+    environment: ignition-test
+    timeout-minutes: 8
+    concurrency:
+      group: eam-lab-factory_a
+      cancel-in-progress: false
+    name: Diagnose real Ignition Controller EAM OpenAPI in read-only mode
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Read Controller OpenAPI and check whether Send Project task is documented
+        env:
+          IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
+          IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
+          no_proxy: 'localhost,127.0.0.1,::1'
+        run: |
+          python scripts/eam_openapi_diagnostics.py
+      - name: Upload sanitized diagnostic evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eam-controller-openapi-diagnostics
+          path: evidence/eam-openapi-diagnostics.json
+          if-no-files-found: error
