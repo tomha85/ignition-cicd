@@ -50,6 +50,14 @@ def exists(container, path):
 
 
 def hashes_equal(container, base, expected):
+    # A passing subset of file hashes is not enough: unexpected files or
+    # symlinks must also invalidate the installed project tree.
+    actual = output("docker", "exec", container, "find", base,
+                    "(", "-type", "f", "-o", "-type", "l", ")",
+                    "-printf", "%P\\n")
+    found = set(actual.splitlines()) if actual else set()
+    require(found == set(expected),
+            "Controller project tree differs from immutable native source")
     for rel, checksum in expected.items():
         got = output("docker", "exec", container, "sha256sum",
                      base + "/" + rel).split()[0]
