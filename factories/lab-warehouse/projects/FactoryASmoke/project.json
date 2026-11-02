@@ -1,6 +1,6 @@
 {
   "title": "FactoryASmoke",
-  "description": "Controller-only native Factory A smoke test; no PLC connections",
+  "description": "Factory A TEST Controller | GitHub CI/CD staged update V2 | Agent task managed manually",
   "enabled": true,
   "inheritable": false
 }
