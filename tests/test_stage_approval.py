@@ -109,8 +109,10 @@ class ApprovalVerificationTests(unittest.TestCase):
     def test_legacy_unreviewed_write_actions_removed(self):
         from pathlib import Path
         text = Path(".github/workflows/ignition-eam-multi-factory.yml").read_text()
-        self.assertNotIn("options:", text)
-        self.assertEqual(text.split("permissions:",1)[0].count("        type: string"), 2)
+        header = text.split("permissions:",1)[0]
+        self.assertEqual(header.count("        type: choice"), 2)
+        self.assertIn("# BEGIN GENERATED FACTORY OPTIONS", header)
+        self.assertIn("# BEGIN GENERATED PROJECT OPTIONS", header)
         self.assertNotIn("options: [framework-validate, framework-stage-controller]", text)
         self.assertIn("needs: validate", text)
         self.assertIn("environment: ignition-test", text)
