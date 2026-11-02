@@ -8,7 +8,7 @@ on:
         description: Validate plan or request gated EAM TEST deployment
         type: choice
         required: true
-        options: [validate, deploy-test]
+        options: [validate, stage-controller, deploy-test]
         default: validate
       factory:
         description: Approved TEST factory
@@ -53,6 +53,24 @@ jobs:
       - name: Validate target plan
         run: |
           python scripts/eam_multi_factory.py --factory "${{ inputs.factory }}" --sha "${{ github.sha }}"
+      - name: Stage Factory A source on EAM Controller (backup first)
+        if: inputs.action == 'stage-controller' && inputs.factory == 'factory_a'
+        env:
+          FACTORY_A_TEST_CONFIRM: 'YES'
+        run: |
+          bash scripts/stage_factory_a_controller_test.sh "$PWD"
+      - name: Controller project scan after stage
+        if: inputs.action == 'stage-controller' && inputs.factory == 'factory_a'
+        env:
+          IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
+          IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
+        run: |
+          python scripts/eam_controller_scan_test.py
+      - name: Reject uncommissioned staging target
+        if: inputs.action == 'stage-controller' && inputs.factory != 'factory_a'
+        run: |
+          echo "HOLD: only existing Factory A Controller staging is commissioned for this TEST" >&2
+          exit 2
       - name: EAM TEST deployment (commissioned Controller bridge required)
         if: inputs.action == 'deploy-test'
         env:
