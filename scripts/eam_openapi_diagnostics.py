@@ -1,0 +1,141 @@
+#!/usr/bin/env python3
+"""Read-only LAB Ignition 8.3 EAM root-cause diagnostic.
+
+Does not write Gateway config, call EAM tasks, restart services, install scripts,
+create Agent projects, inspect secrets, or use undocumented mutation endpoints.
+"""
+import json
+import os
+import re
+import ssl
+import subprocess
+import sys
+import urllib.error
+import urllib.request
+from pathlib import Path
+from datetime import datetime, timezone
+
+ROOT = Path(__file__).resolve().parents[1]
+EVIDENCE = ROOT / "evidence/eam-openapi-diagnostics.json"
+CONTROLLER = "ignition-eam-controller"
+AGENT = "ignition-eam-agent"
+PROJECT = "FactoryASmoke"
+P = "/usr/local/bin/ignition/data/projects/" + PROJECT
+URL = "https://localhost:9143/openapi.json"
+
+
+def cmd(*args):
+    try:
+        return subprocess.run(["docker", *args], capture_output=True, text=True,
+                              timeout=20, check=False)
+    except Exception:
+        return None
+
+
+def inspect_gateway(name):
+    proc = cmd("inspect", "--format",
+               "{{.State.Running}}|{{if .State.Health}}{{.State.Health.Status}}{{else}}unknown{{end}}",
+               name)
+    if proc is None or proc.returncode:
+        return {"running": False, "health": "NOT_AVAILABLE"}
+    terms = proc.stdout.strip().split("|")
+    return {"running": terms[0] == "true", "health": terms[1] if len(terms) > 1 else "UNKNOWN"}
+
+
+def project_status(container):
+    proc = cmd("exec", container, "test", "-d", P)
+    if proc is None:
+        return "UNAVAILABLE"
+    if proc.returncode == 1:
+        return "ABSENT"
+    if proc.returncode != 0:
+        return "INACCESSIBLE"
+    return "PRESENT"
+
+
+def inspect_openapi(result, token, ca):
+    if not ca or not Path(ca).is_file():
+        result["openapi"] = {"status": "NO_TRUSTED_CA"}
+        return
+    if not token:
+        result["openapi"] = {"status": "NO_AUTHORIZED_API_TOKEN"}
+        return
+    ctx = ssl.create_default_context(cafile=ca)
+    req = urllib.request.Request(URL, headers={"X-Ignition-API-Token": token, "Accept":"application/json"})
+    try:
+        with urllib.request.urlopen(req, context=ctx, timeout=20) as fd:
+            if fd.status != 200:
+                result["openapi"] = {"status": "HTTP_NOT_200", "http": fd.status}
+                return
+            spec = json.load(fd)
+    except urllib.error.HTTPError as exc:
+        result["openapi"] = {"status": "HTTP_DENIED_OR_MISSING", "http": exc.code}
+        return
+    except Exception as exc:
+        # Only exception type, no token, response headers or URL query values.
+        result["openapi"] = {"status": "UNAVAILABLE", "error_type": type(exc).__name__}
+        return
+    if not isinstance(spec, dict) or not isinstance(spec.get("paths"),dict):
+        result["openapi"] = {"status":"INVALID_SCHEMA"}
+        return
+    ops = []
+    for path, methods in sorted(spec["paths"].items()):
+        if re.search("eam|enterprise|agent.task|send.project",path,re.I):
+            for method in ("get","post","put","patch","delete"):
+                if isinstance(methods,dict) and method in methods:
+                    op=methods[method]
+                    desc=(str(op.get("summary") or "")+" "+str(op.get("operationId") or ""))
+                    ops.append({"path":path, "method":method.upper(), "label":desc[:150]})
+    # Do not claim task exists from OpenAPI route presence.
+    result["openapi"]={"status":"AVAILABLE", "eam_related_operations":ops[:100],
+                       "eam_operations_total":len(ops)}
+    read_routes=[]
+    for path, methods in spec["paths"].items():
+        if re.search("agent.task|eam.*task",path,re.I) and "{" not in path and isinstance(methods,dict) and "get" in methods:
+            read_routes.append(path)
+    # GET only, only explicitly documented no-parameter EAM task routes.
+    result["openapi"]["documented_task_read_routes"]=read_routes[:20]
+    for path in read_routes[:5]:
+        safe_req=urllib.request.Request("https://localhost:9143"+path,
+                        headers={"X-Ignition-API-Token":token, "Accept":"application/json"})
+        try:
+            with urllib.request.urlopen(safe_req,context=ctx,timeout=15) as fd:
+                d=json.load(fd)
+            # Only inspect for explicitly allowlisted smoke task, no broad task data.
+            serialized=json.dumps(d)
+            result["openapi"].setdefault("task_inspection",[]).append({
+                 "path":path, "http":200,
+                 "smoke_task_name_visible": "CICD-SEND-FactoryASmoke-A" in serialized,
+                 "legacy_factory_a_task_name_visible": "CICD-SEND-WarehouseHMI-A" in serialized,
+                 "format":type(d).__name__})
+        except urllib.error.HTTPError as exc:
+            result["openapi"].setdefault("task_inspection",[]).append({"path":path,"http":exc.code})
+        except Exception as exc:
+            result["openapi"].setdefault("task_inspection",[]).append({"path":path,"error_type":type(exc).__name__})
+
+
+def main():
+    r={
+      "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+      "mode":"READ_ONLY_LAB_DIAGNOSTICS",
+      "factory":"lab-warehouse", "project":PROJECT, "environment":"test",
+      "status":"HOLD_NOT_DEPLOYED",
+      "e2e_agent_deployment":"NOT_RUN",
+      "perspective_browser":"NOT_TESTED",
+      "containers": {name:inspect_gateway(name) for name in (CONTROLLER,AGENT)},
+      "controller_project":project_status(CONTROLLER),
+      "agent_project":project_status(AGENT),
+      "gateway_bridge":"NOT_VERIFIED",
+      "eam_task":"NOT_VERIFIED",
+    }
+    # Gateway's openapi.json is the official discovery mechanism for 8.3.
+    inspect_openapi(r, os.environ.get("IGNITION_CONTROLLER_API_TOKEN"),
+                    os.environ.get("IGNITION_CONTROLLER_CA_FILE"))
+    EVIDENCE.parent.mkdir(exist_ok=True)
+    EVIDENCE.write_text(json.dumps(r,indent=2)+"\n",encoding="utf-8")
+    print(json.dumps(r,indent=2))
+    print("EAM_AGENT_DEPLOYMENT=NOT_RUN; DIAGNOSTICS_ONLY")
+    return 0
+
+if __name__=="__main__":
+    raise SystemExit(main())
