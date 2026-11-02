@@ -1,6 +1,6 @@
 name: Factory A Framework - TEST Controller Smoke
 # One-shot verified update to FactoryASmoke description on EAM TEST Controller.
-# Approval-gate test: validate, then HOLD unless tomha85 approves the ignition-test environment.
+# Native GitHub review gate: validate, then WAIT when configured; otherwise stage SKIPPED.
 # Factory A example 2026-11-02: verify updated source description on TEST Controller.
 # Limited to this feature branch and the isolated local TEST EAM Controller.
 # V2 post-refactor smoke: repeat Controller-only source identity and backup verification.
@@ -35,10 +35,38 @@ jobs:
           python scripts/factory_a_controller_smoke.py --validate-only --sha "$GITHUB_SHA"
           python -m unittest discover -s tests -v
 
+  reviewer-readiness:
+    name: Check required-reviewer configuration (no failure, no deployment)
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: check
+        name: Check GitHub ignition-test reviewer configuration
+        env:
+          GH_REVIEWER_READ_TOKEN: ${{ github.token }}
+        run: python3 scripts/check_environment_reviewers.py
+      - name: Publish reviewer setup status
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: factory-a-approval-readiness
+          path: evidence/ignition-test-review-readiness.json
+          if-no-files-found: warn
+
   stage-controller:
     name: APPROVAL REQUIRED — backup and stage FactoryASmoke on TEST Controller
-    needs: validate
+    needs: [validate, reviewer-readiness]
     if: >-
+      needs.reviewer-readiness.outputs.ready == 'true' &&
       github.event_name == 'push' &&
       github.repository == 'tomha85/ignition-cicd' &&
       github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1'
