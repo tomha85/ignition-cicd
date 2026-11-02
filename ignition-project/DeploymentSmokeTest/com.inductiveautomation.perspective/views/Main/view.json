@@ -25,6 +25,22 @@
       {
         "type": "ia.display.label",
         "meta": {
+          "name": "HelloTomHaTitle"
+        },
+        "props": {
+          "text": "Hello TOM HA",
+          "style": {
+            "fontSize": "58px",
+            "fontWeight": "bold",
+            "color": "#142D54",
+            "textAlign": "center",
+            "marginBottom": "30px"
+          }
+        }
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
           "name": "Title"
         },
         "props": {
@@ -42,7 +58,7 @@
           "name": "BuildVersion"
         },
         "props": {
-          "text": "SMOKE VERSION V1",
+          "text": "SMOKE VERSION V2",
           "style": {
             "fontSize": "24px",
             "color": "#176e49",

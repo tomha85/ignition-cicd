@@ -1,81 +1,76 @@
-name: Ignition EAM E2E TEST
+name: Ignition TEST - Validate and One-Click Deploy
+
 on:
   pull_request:
   push:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       action:
+        description: 'Deploy isolated Ignition TEST Agent (no production)'
         required: true
         type: choice
-        description: "TEST-only automation; deploy-eam requires one-time Gateway trigger and runtime attestation"
-        options: [validate, stage-controller, deploy-eam]
-        default: validate
+        options:
+          - deploy-agent-direct
+          - validate
+        default: deploy-agent-direct
+
 permissions:
   contents: read
+
 jobs:
   validate:
+    name: Validate native Perspective project
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: |
+      - name: Unit and project validation
+        run: |
+          python -m compileall -q scripts tests
           python -m unittest discover -s tests -v
           python scripts/validate.py ignition-project/DeploymentSmokeTest
           python scripts/stage_controller.py --check-config
-  stage-controller:
-    needs: validate
-    if: github.event_name == 'workflow_dispatch' && inputs.action == 'stage-controller' && github.ref == 'refs/heads/main'
-    runs-on: [self-hosted, linux, ignition-lab]
-    environment: ignition-test
-    concurrency:
-      group: ignition-eam-test
-      cancel-in-progress: false
-    steps:
-      - uses: actions/checkout@v4
-      - name: Stage TEST Controller only
-        env:
-          IGNITION_LAB_ONLY: 'YES'
-          IGNITION_CONTROLLER_CONTAINER: ${{ vars.IGNITION_CONTROLLER_CONTAINER }}
-          IGNITION_AGENT_CONTAINER: ${{ vars.IGNITION_AGENT_CONTAINER }}
-          IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR }}
-          RELEASE_SHA: ${{ github.sha }}
-        run: python3 scripts/stage_controller.py --stage
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: ignition-controller-staging-evidence
-          path: evidence/controller-stage.json
-          if-no-files-found: warn
-  deploy-eam:
+
+  deploy-agent-direct:
+    name: Backup, deploy, scan and verify TEST Agent
     needs: validate
     if: >-
-      github.ref == 'refs/heads/main' &&
-      ((github.event_name == 'workflow_dispatch' && inputs.action == 'deploy-eam') ||
-       (github.event_name == 'push' && vars.IGNITION_TEST_AUTO_DEPLOY == 'true'))
+      github.event_name == 'workflow_dispatch' &&
+      inputs.action == 'deploy-agent-direct' &&
+      (github.ref == 'refs/heads/main' ||
+       github.ref == 'refs/heads/feat/direct-agent-gitops-lab')
     runs-on: [self-hosted, linux, ignition-lab]
     environment: ignition-test
     concurrency:
-      group: ignition-eam-test
+      group: ignition-test-deploy
       cancel-in-progress: false
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Backup, stage, scan, gated EAM task and verify Agent files
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Backup, stage, scan and verify native TEST deployment
         env:
           IGNITION_LAB_ONLY: 'YES'
-          IGNITION_CONTROLLER_CONTAINER: ${{ vars.IGNITION_CONTROLLER_CONTAINER }}
           IGNITION_AGENT_CONTAINER: ${{ vars.IGNITION_AGENT_CONTAINER }}
+          IGNITION_CONTROLLER_CONTAINER: ${{ vars.IGNITION_CONTROLLER_CONTAINER }}
           IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR }}
-          IGNITION_GATEWAY_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
-          IGNITION_CONTROLLER_CA_FILE: /home/tomha/ignition-eam-lab/certs/lab-root-ca.crt
-          IGNITION_CONTROLLER_RUNTIME_VERIFIED_SHA: ${{ vars.IGNITION_CONTROLLER_RUNTIME_VERIFIED_SHA }}
+          IGNITION_AGENT_SCAN_URL: 'https://localhost:9243/data/api/v1/scan/projects'
+          IGNITION_AGENT_CA_FILE: ${{ vars.IGNITION_AGENT_CA_FILE }}
+          IGNITION_AGENT_GWBK: ${{ vars.IGNITION_AGENT_GWBK }}
+          IGNITION_AGENT_API_TOKEN: ${{ secrets.IGNITION_AGENT_API_TOKEN }}
+          no_proxy: 'localhost,127.0.0.1,::1'
           RELEASE_SHA: ${{ github.sha }}
-        run: python3 scripts/auto_eam_lab.py
-      - uses: actions/upload-artifact@v4
+        run: python scripts/direct_agent_lab.py
+      - name: Upload TEST deployment evidence
         if: always()
+        uses: actions/upload-artifact@v4
         with:
-          name: ignition-eam-automation-evidence
-          path: evidence/auto-eam.json
+          name: ignition-test-direct-evidence
+          path: evidence/direct-agent.json
           if-no-files-found: warn
