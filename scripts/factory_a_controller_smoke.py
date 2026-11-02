@@ -103,6 +103,8 @@ def main():
     staged=DATA+"/.framework-stage-"+stamp
     rejected=DATA+"/.framework-rejected-"+stamp
     created=False
+    replaced=False
+    prior=DATA+"/.framework-prior-"+stamp
     try:
         for container in (CTRL,AGENT):
             archive=backup/(container+"-projects.tar")
@@ -111,34 +113,55 @@ def main():
             with tarfile.open(archive) as tar:
                 must(bool(tar.getmembers()),"empty gateway backup")
         evidence["backup_verified"]=True
-        must(not present(staged) and not present(rejected),"staging collision")
-        if present(dst):
-            verify_hashes(dst,expected)
+        must(not present(staged) and not present(rejected) and not present(prior),
+             "staging collision")
+        source=ROOT/"factories/lab-warehouse/projects"/PROJECT
+        existing=present(dst)
+        identical=False
+        if existing:
+            try:
+                verify_hashes(dst,expected)
+                identical=True
+            except (RuntimeError,subprocess.CalledProcessError):
+                identical=False
+        if identical:
             evidence["staging"]="PASS_ALREADY_IDENTICAL"
         else:
-            source=ROOT/"factories/lab-warehouse/projects"/PROJECT
+            # Before changing any installed TEST project, both Controller and
+            # Agent project trees were archived above and validated.
             run("docker","cp",str(source),CTRL+":"+staged)
             run("docker","exec","-u","0",CTRL,"chown","-R","ignition:ignition",staged)
             verify_hashes(staged,expected)
-            must(not present(dst),"project path appeared: no overwrite allowed")
+            if existing:
+                must(present(dst) and not present(prior),"project changed during stage")
+                run("docker","exec",CTRL,"mv",dst,prior)
+                replaced=True
+            else:
+                must(not present(dst),"project path appeared unexpectedly")
             run("docker","exec",CTRL,"mv",staged,dst)
             created=True
-            evidence["staging"]="PASS_CREATED_NEW_PROJECT"
+            evidence["staging"]="PASS_UPDATED_EXISTING_PROJECT" if replaced else "PASS_CREATED_NEW_PROJECT"
         verify_hashes(dst,expected)
         scan(token,ctx)
         verify_hashes(dst,expected)
         evidence["controller_scan"]="HTTP_ACCEPTED_AND_IDLE"
+        if replaced:
+            evidence["previous_version_preserved_at"]=prior
         evidence["status"]="CONTROLLER_STAGED_AND_SCANNED_NO_EAM"
         print("FRAMEWORK_FACTORY_A_CONTROLLER_STAGE_PASS")
         print("EAM_SEND_PROJECT=NOT_RUN")
     except Exception as e:
         evidence["error"]=str(e)
-        if created:
+        if created or replaced:
             try:
                 if present(dst):
                     run("docker","exec",CTRL,"mv",dst,rejected)
-                    scan(token,ctx)
-                    evidence["rollback"]="NEW_SMOKE_PROJECT_MOVED_OUT_OF_DISCOVERY_AND_RESCANNED"
+                if replaced and present(prior):
+                    run("docker","exec",CTRL,"mv",prior,dst)
+                    evidence["rollback"]="PRIOR_TEST_PROJECT_RESTORED"
+                else:
+                    evidence["rollback"]="NEW_TEST_PROJECT_REMOVED_FROM_DISCOVERY"
+                scan(token,ctx)
             except Exception as rollback:
                 evidence["rollback"]="ENGINEER_REQUIRED"
                 evidence["rollback_error"]=str(rollback)
