@@ -14,6 +14,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from reusable_cicd.core import plan_release, validate_catalog
+from scripts.verify_stage_approval import verify as verify_github_approval
 CTRL = "ignition-eam-controller"
 AGENT = "ignition-eam-agent"
 PROJECT = "FactoryASmoke"
@@ -82,6 +83,10 @@ def main():
     must(os.getenv("GITHUB_EVENT_NAME") in ("push", "workflow_dispatch"),
          "only explicit workflow dispatch or existing LAB smoke push allowed")
     must(os.getenv("GITHUB_SHA")==a.sha,"release SHA gate")
+    # Even if someone misconfigures the GitHub Environment, Controller writes
+    # require a real required-reviewer approval for this exact run and branch.
+    approval = verify_github_approval(os.environ, os.getenv("GH_APPROVAL_READ_TOKEN"))
+    evidence["github_stage_approval"] = approval["status"]
     must(os.getenv("IGNITION_CONTROLLER_CONTAINER")==CTRL,"Controller allowlist")
     must(os.getenv("IGNITION_AGENT_CONTAINER")==AGENT,"Agent allowlist")
     backup_path=os.getenv("IGNITION_BACKUP_DIR")
