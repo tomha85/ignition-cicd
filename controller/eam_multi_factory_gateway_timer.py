@@ -10,7 +10,7 @@ ROOT = Paths.get("/usr/local/bin/ignition/data/eam-multi-factory-requests")
 REQUEST = ROOT.resolve("request.json")
 PROCESSING = ROOT.resolve("request.processing")
 ALLOWED = {
-    "factory_a": ("WarehouseHMI", "EAM-Factory-A", "CICD-SEND-WarehouseHMI-A"),
+    "factory_a": ("WarehouseHMI", "EAM-Agent", "CICD-SEND-WarehouseHMI-A"),
     "factory_b": ("ConveyorHMI", "EAM-Factory-B", "CICD-SEND-ConveyorHMI-B"),
     "factory_c": ("PackagingHMI", "EAM-Factory-C", "CICD-SEND-PackagingHMI-C"),
 }
