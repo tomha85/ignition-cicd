@@ -3,6 +3,7 @@
 # Does NOT copy anything to Agent or invoke EAM Send Project.
 set -euo pipefail
 test "${FACTORY_A_TEST_CONFIRM:-}" = "YES" || { echo "HOLD: set FACTORY_A_TEST_CONFIRM=YES"; exit 2; }
+test -n "${GITHUB_SHA:-}" && test -n "${GITHUB_RUN_ID:-}" || { echo "HOLD: GitHub provenance required"; exit 2; }
 ROOT="${1:-$HOME/ignition-cicd}"
 cd "$ROOT"
 test -f ignition-project/WarehouseHMI/project.json || { echo "HOLD: WarehouseHMI source missing"; exit 2; }
@@ -20,6 +21,10 @@ for c in ignition-eam-controller ignition-eam-agent; do
   tar -tf "$OUT/$c-projects.tar" >/dev/null
 done
 echo "BACKUPS_VERIFIED=$OUT"
+PREPARED="$OUT/WarehouseHMI"
+cp -a ignition-project/WarehouseHMI "$PREPARED"
+python3 scripts/eam_stamp_project_description.py --project-dir "$PREPARED" --factory factory_a --sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID" > "$OUT/controller-stage-provenance.json"
+cat "$OUT/controller-stage-provenance.json"
 DST="/usr/local/bin/ignition/data/projects/WarehouseHMI"
 # Preserve the previous project outside Ignition's watched projects directory.
 DATA="/usr/local/bin/ignition/data"
@@ -31,17 +36,19 @@ for P in "$STAGED" "$PRIOR"; do
     exit 2
   fi
 done
-docker cp ignition-project/WarehouseHMI ignition-eam-controller:"$STAGED"
+docker cp "$PREPARED" ignition-eam-controller:"$STAGED"
 docker exec -u 0 ignition-eam-controller chown -R ignition:ignition "$STAGED"
 if docker exec ignition-eam-controller test -e "$DST"; then
   docker exec ignition-eam-controller mv "$DST" "$PRIOR"
   echo "CONTROLLER_PREVIOUS_COPY=$PRIOR"
 fi
 docker exec ignition-eam-controller mv "$STAGED" "$DST"
+export PREPARED
 python3 - <<'PY'
 from pathlib import Path
 import subprocess,hashlib
-p=Path("ignition-project/WarehouseHMI")
+import os
+p=Path(os.environ["PREPARED"])
 dst="/usr/local/bin/ignition/data/projects/WarehouseHMI"
 for f in sorted(p.rglob("*")):
     if not f.is_file():continue
