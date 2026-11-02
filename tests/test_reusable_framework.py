@@ -17,7 +17,7 @@ SHA = "a" * 40
 
 class ReusableFrameworkTests(unittest.TestCase):
     def test_real_catalog_is_discovered_and_valid(self):
-        self.assertEqual(validate_catalog(CATALOG), ["lab-assembly", "lab-warehouse"])
+        self.assertEqual(validate_catalog(CATALOG), ["lab-assembly", "lab-packaging", "lab-warehouse"])
 
     def test_no_factory_hardcoded_into_engine(self):
         self.assertNotIn("factory_a", (ROOT / "reusable_cicd/core.py").read_text())
