@@ -45,10 +45,37 @@ jobs:
             --gateway "$SELECTED_GATEWAY" \
             --project "$SELECTED_PROJECT" --sha "$GITHUB_SHA"
 
+  reviewer-readiness:
+    name: Check native GitHub reviewer protection (no deployment)
+    needs: select-and-validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      ready: ${{ steps.check.outputs.ready }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: check
+        name: Check ignition-test Required reviewers before scheduling staging
+        env:
+          GH_REVIEWER_READ_TOKEN: ${{ github.token }}
+        run: python3 scripts/check_environment_reviewers.py
+      - name: Publish reviewer setup status
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reusable-approval-readiness
+          path: evidence/ignition-test-review-readiness.json
+          if-no-files-found: warn
+
   stage-controller:
     name: APPROVAL REQUIRED — backup, stage and verify isolated EAM TEST Controller
-    needs: select-and-validate
-    if: github.repository == 'tomha85/ignition-cicd' && github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1' && github.event_name == 'workflow_dispatch'
+    needs: [select-and-validate, reviewer-readiness]
+    if: needs.reviewer-readiness.outputs.ready == 'true' && github.repository == 'tomha85/ignition-cicd' && github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1' && github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, linux, ignition-lab]
     # Required reviewers configured in GitHub Settings, not in YAML.
     environment: ignition-test
