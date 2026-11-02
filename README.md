@@ -11,6 +11,19 @@
 > The LAB README below remains the legacy system reference; Agent/production deployment is HOLD.
 
 
+## New: Owner approval required before TEST Controller staging
+
+After **Validate PASS**, the staging job requires approval by GitHub user
+`tomha85` through the protected `ignition-test` Environment. It will check
+the actual current-run approval using GitHub's API and will **HOLD without
+touching the Controller** when the approval is missing. To see the **Review
+deployments → Approve and deploy** button, an administrator must first enable
+**Required reviewers: tomha85** under **Settings → Environments →
+ignition-test**, with **Prevent self-review OFF** if you approve your own run.
+
+Read **[GitHub approval setup & walkthrough](docs/APPROVAL_WORKFLOW.md)**.
+EAM Agent tasks remain manual; Factory B/C remain validate/build-only.
+
 ## Standard V3 source layout (feature branch only)
 
 The requested standard directory families are now present:
