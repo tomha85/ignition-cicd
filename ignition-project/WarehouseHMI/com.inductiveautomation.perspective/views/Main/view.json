@@ -1,0 +1,69 @@
+{
+  "custom": {},
+  "params": {},
+  "props": {
+    "defaultSize": {
+      "width": 900,
+      "height": 470
+    }
+  },
+  "root": {
+    "type": "ia.container.flex",
+    "meta": {
+      "name": "root"
+    },
+    "props": {
+      "direction": "column",
+      "justify": "center",
+      "alignItems": "center",
+      "style": {
+        "padding": 30,
+        "backgroundColor": "#f4f7fb"
+      }
+    },
+    "children": [
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "FactoryTitle"
+        },
+        "props": {
+          "text": "HELLO FACTORY A",
+          "style": {
+            "fontSize": "56px",
+            "fontWeight": "bold",
+            "color": "#173052"
+          }
+        }
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "ProjectTitle"
+        },
+        "props": {
+          "text": "Factory A - Warehouse",
+          "style": {
+            "fontSize": "27px",
+            "color": "#30567b",
+            "marginTop": 20
+          }
+        }
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "BuildVersion"
+        },
+        "props": {
+          "text": "SMOKE VERSION V1",
+          "style": {
+            "fontSize": "22px",
+            "color": "#11734c",
+            "marginTop": 18
+          }
+        }
+      }
+    ]
+  }
+}
