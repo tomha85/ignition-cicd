@@ -4,14 +4,28 @@ on:
   workflow_dispatch:
     inputs:
       factory:
-        description: "Factory ID in factories/<id>/factory.json"
-        type: string
+        description: "Select Factory (registered in factories/)"
+        type: choice
         required: true
+        # BEGIN GENERATED FACTORY OPTIONS
+        options:
+          - lab-warehouse
+          - lab-assembly
+          - lab-packaging
+        # END GENERATED FACTORY OPTIONS
         default: lab-warehouse
       project:
-        description: "Ignition project from this factory's manifest"
-        type: string
+        description: "Select Project (validated against chosen Factory)"
+        type: choice
         required: true
+        # BEGIN GENERATED PROJECT OPTIONS
+        options:
+          - WarehouseHMI
+          - ConveyorHMI
+          - FactoryASmoke
+          - PackagingHMI
+          - PackagingLineHMI
+        # END GENERATED PROJECT OPTIONS
         default: WarehouseHMI
 
 permissions:
