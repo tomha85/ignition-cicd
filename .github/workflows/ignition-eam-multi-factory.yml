@@ -131,46 +131,12 @@ jobs:
             --sha "$GITHUB_SHA"
 
   framework-stage-controller:
-    name: Manual create-only staging for commissioned Factory A TEST probe
+    name: Selected Factory - Backed-up TEST Controller staging (reusable V3)
     needs: [validate, framework-validate]
     if: github.event_name == 'workflow_dispatch' && inputs.action == 'framework-stage-controller' && github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1'
-    runs-on: [self-hosted, linux, ignition-lab]
-    environment: ignition-test
-    timeout-minutes: 15
-    concurrency:
-      group: eam-lab-factory_a
-      cancel-in-progress: false
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Backup and stage approved TEST project, then scan and verify SHA
-        env:
-          TARGET_FACTORY: ${{ inputs.factory }}
-          TARGET_GATEWAY: ${{ inputs.gateway_id }}
-          TARGET_PROJECT: ${{ inputs.project_name }}
-          FACTORY_A_SMOKE_CONFIRM: 'YES'
-          IGNITION_CONTROLLER_CONTAINER: 'ignition-eam-controller'
-          IGNITION_AGENT_CONTAINER: 'ignition-eam-agent'
-          IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR || '/home/tomha/ignition-eam-lab/backups' }}
-          IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
-          IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
-          no_proxy: 'localhost,127.0.0.1,::1'
-        run: |
-          python scripts/manual_factory_dispatch.py --action stage-controller \
-            --factory "$TARGET_FACTORY" \
-            --gateway "$TARGET_GATEWAY" \
-            --project "$TARGET_PROJECT" \
-            --sha "$GITHUB_SHA"
-      - name: Upload manual Factory A TEST Controller evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: manual-factory-controller-evidence
-          path: evidence/factory-a-controller-smoke.json
-          if-no-files-found: warn
+    uses: ./.github/workflows/deploy-test.yml
+    with:
+      factory: ${{ inputs.factory }}
+      gateway: ${{ inputs.gateway_id }}
+      project: ${{ inputs.project_name }}
+    secrets: inherit
