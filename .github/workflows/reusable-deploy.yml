@@ -48,7 +48,7 @@ jobs:
   stage-controller:
     name: Stage and verify EAM TEST Controller
     needs: select-and-validate
-    if: github.repository == 'tomha85/ignition-cicd' && github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1' && github.event_name == 'workflow_dispatch'
+    if: github.repository == 'tomha85/ignition-cicd' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1') && github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, linux, ignition-lab]
     # Required reviewers configured in GitHub Settings, not in YAML.
     environment: ignition-test

@@ -10,6 +10,7 @@ name: Factory A Framework - TEST Controller Smoke
 on:
   push:
     branches:
+      - main
       - feat/reusable-multifactory-framework-v1
     paths:
       - .github/workflows/factory-a-controller-smoke.yml
@@ -42,7 +43,7 @@ jobs:
     if: >-
       github.event_name == 'push' &&
       github.repository == 'tomha85/ignition-cicd' &&
-      github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1'
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1')
     runs-on: [self-hosted, linux, ignition-lab]
     # Required reviewers must be configured in GitHub Settings -> Environments -> ignition-test.
     # The stage job is paused by GitHub before being assigned a runner.

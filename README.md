@@ -16,6 +16,9 @@
 The Factory A workflow shows **only two jobs**: `Validate Factory A` and
 `Stage FactoryASmoke on EAM TEST Controller`.
 
+After merging, the same TEST-only reviewed staging path accepts `main` and
+`feat/reusable-multifactory-framework-v1`; it never authorizes production.
+
 After validation succeeds, GitHub holds the Stage job in **Waiting**, because
 the `ignition-test` Environment has Required reviewer `tomha85`.
 Choose **Review deployments → Approve and deploy** to start Stage. The stage

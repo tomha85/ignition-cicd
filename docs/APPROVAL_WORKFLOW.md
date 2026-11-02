@@ -31,7 +31,9 @@ Run workflow / push Factory A source
 
 ## Exactly two GitHub jobs
 
-The first job `Validate` runs automatically. The second `Stage` declares
+The first job `Validate` runs automatically.
+After merging, both `main` and the feature branch can use this TEST-only
+workflow while keeping the same Required reviewer and factory allowlist. The second `Stage` declares
 `needs: validate` and `environment: ignition-test`.
 
 GitHub's native Required reviewer protection makes **Stage WAIT** until

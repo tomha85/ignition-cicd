@@ -17,7 +17,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "evidence/factory-a-approval.json"
 REPOSITORY = "tomha85/ignition-cicd"
-BRANCH = "refs/heads/feat/reusable-multifactory-framework-v1"
+STAGING_REFS = frozenset(("refs/heads/main", "refs/heads/feat/reusable-multifactory-framework-v1"))
 ENVIRONMENT = "ignition-test"
 REVIEWER = "tomha85"
 ALLOWED_EVENTS = ("push", "workflow_dispatch")
@@ -34,7 +34,7 @@ def require(condition, reason):
 
 def validate_context(context):
     require(context.get("GITHUB_REPOSITORY") == REPOSITORY, "wrong GitHub repository")
-    require(context.get("GITHUB_REF") == BRANCH, "staging restricted to reviewed feature branch")
+    require(context.get("GITHUB_REF") in STAGING_REFS, "staging restricted to main or reviewed feature branch")
     require(context.get("GITHUB_EVENT_NAME") in ALLOWED_EVENTS, "unexpected event")
     require(re.fullmatch(r"[0-9a-f]{40}", context.get("GITHUB_SHA", "")), "invalid release SHA")
     number = context.get("GITHUB_RUN_ID", "")

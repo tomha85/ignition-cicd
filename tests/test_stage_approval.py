@@ -47,10 +47,28 @@ class ApprovalVerificationTests(unittest.TestCase):
         with self.assertRaisesRegex(a.ApprovalHold,"fresh workflow run"):
             a.validate_context(ctx)
 
-    def test_wrong_branch_production_forbidden(self):
-        ctx=dict(CTX,GITHUB_REF="refs/heads/main")
+    def test_production_branch_still_forbidden(self):
+        ctx=dict(CTX,GITHUB_REF="refs/heads/production")
         with self.assertRaises(a.ApprovalHold):
             a.validate_context(ctx)
+
+    def test_main_allowed_with_fresh_run_approval(self):
+        ctx=dict(CTX,GITHUB_REF="refs/heads/main")
+        self.assertEqual(a.validate_context(ctx),"1234")
+
+    def test_main_workflows_still_require_review(self):
+        from pathlib import Path
+        for path in (".github/workflows/factory-a-controller-smoke.yml",
+                     ".github/workflows/reusable-deploy.yml",
+                     ".github/workflows/ignition-eam-multi-factory.yml"):
+            text=Path(path).read_text()
+            self.assertIn("refs/heads/main",text)
+        for path in (".github/workflows/factory-a-controller-smoke.yml",
+                     ".github/workflows/reusable-deploy.yml"):
+            content=Path(path).read_text()
+            self.assertIn("environment: ignition-test",content)
+            self.assertIn("scripts/verify_stage_approval.py",content)
+
 
     def test_wrong_repo_forbidden(self):
         with self.assertRaises(a.ApprovalHold):

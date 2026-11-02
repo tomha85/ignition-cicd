@@ -77,7 +77,7 @@ jobs:
   framework-stage-controller:
     name: Selected Factory - Backed-up TEST Controller staging (reusable V3)
     needs: [validate, framework-validate]
-    if: github.event_name == 'workflow_dispatch' && inputs.action == 'framework-stage-controller' && github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1'
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'framework-stage-controller' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1')
     uses: ./.github/workflows/deploy-test.yml
     with:
       factory: ${{ inputs.factory }}
