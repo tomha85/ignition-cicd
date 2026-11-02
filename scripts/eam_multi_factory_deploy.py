@@ -138,7 +138,8 @@ def deploy(factory, sha):
             if present(agent, dest):
                 try:
                     if hashes(agent, dest, plan["file_hashes"]) == plan["file_hashes"]:
-                        plan["agent_verification"] = "FILES_MATCH"\n                        plan["eam_task_status"] = "AGENT_CONTENT_VERIFIED"
+                        plan["agent_verification"] = "FILES_MATCH"
+                        plan["eam_task_status"] = "AGENT_CONTENT_VERIFIED"
                         plan["deployment"] = "PASS"
                         break
                 except subprocess.CalledProcessError:
