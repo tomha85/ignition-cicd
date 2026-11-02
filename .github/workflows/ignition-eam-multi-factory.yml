@@ -61,7 +61,7 @@ jobs:
           IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
           IGNITION_EAM_BRIDGE_COMMISSIONED: ${{ vars.IGNITION_EAM_BRIDGE_COMMISSIONED || 'NO' }}
           IGNITION_EAM_CONTROLLER_CONTAINER: ${{ vars.IGNITION_CONTROLLER_CONTAINER }}
-          IGNITION_EAM_AGENT_CONTAINER: ${{ inputs.factory == 'factory_a' && vars.IGNITION_FACTORY_A_CONTAINER || inputs.factory == 'factory_b' && vars.IGNITION_FACTORY_B_CONTAINER || vars.IGNITION_FACTORY_C_CONTAINER }}
+          IGNITION_EAM_AGENT_CONTAINER: ${{ inputs.factory == 'factory_a' && 'ignition-eam-agent' || inputs.factory == 'factory_b' && vars.IGNITION_FACTORY_B_CONTAINER || vars.IGNITION_FACTORY_C_CONTAINER }}
           IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR }}
         run: |
           python scripts/eam_multi_factory_deploy.py --factory "${{ inputs.factory }}" --sha "${{ github.sha }}"

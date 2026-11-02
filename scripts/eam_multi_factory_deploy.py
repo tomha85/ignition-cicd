@@ -25,7 +25,7 @@ DATA = "/usr/local/bin/ignition/data"
 CTRL = "ignition-eam-controller"
 REQUESTS = DATA + "/eam-multi-factory-requests"
 REPORT = ROOT / "evidence/eam-multi-factory-deploy.json"
-CONTAINERS = {"factory_a": "ignition-factory-a-test",
+CONTAINERS = {"factory_a": "ignition-eam-agent",
               "factory_b": "ignition-factory-b-test",
               "factory_c": "ignition-factory-c-test"}
 
