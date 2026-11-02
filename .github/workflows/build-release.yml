@@ -16,7 +16,7 @@ on:
       factory:
         type: choice
         required: true
-        options: [lab-warehouse, lab-assembly]
+        options: [lab-warehouse, lab-assembly, lab-packaging]
         default: lab-warehouse
       gateway:
         type: string

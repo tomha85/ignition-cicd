@@ -41,3 +41,9 @@ jobs:
           python framework/cli/validate_factory.py \
             --factory lab-warehouse --gateway warehouse-main \
             --project FactoryASmoke --sha "$GITHUB_SHA"
+          python framework/cli/validate_factory.py \
+            --factory lab-assembly --gateway assembly-main \
+            --project ConveyorHMI --sha "$GITHUB_SHA"
+          python framework/cli/validate_factory.py \
+            --factory lab-packaging --gateway packaging-main \
+            --project PackagingLineHMI --sha "$GITHUB_SHA"

@@ -29,9 +29,10 @@ jobs:
           python scripts/reusable_factory.py --check-catalog
           python scripts/reusable_factory.py --factory lab-warehouse --gateway warehouse-main --environment test --sha "$GITHUB_SHA" > /tmp/warehouse-plan.json
           python scripts/reusable_factory.py --factory lab-assembly --gateway assembly-main --environment test --sha "$GITHUB_SHA" > /tmp/assembly-plan.json
+          python scripts/reusable_factory.py --factory lab-packaging --gateway packaging-main --environment test --sha "$GITHUB_SHA" > /tmp/packaging-plan.json
           python - <<'PY'
           import json
-          for path in ("/tmp/warehouse-plan.json", "/tmp/assembly-plan.json"):
+          for path in ("/tmp/warehouse-plan.json", "/tmp/assembly-plan.json", "/tmp/packaging-plan.json"):
               d = json.load(open(path))
               assert d["status"] == "VALIDATED_NOT_DEPLOYED"
               assert d["deployment_authorized"] is False

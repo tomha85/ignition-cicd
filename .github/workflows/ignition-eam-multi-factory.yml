@@ -14,10 +14,10 @@ on:
         description: Select legacy factory or framework factory
         type: choice
         required: true
-        options: [factory_a, factory_b, factory_c, lab-warehouse, lab-assembly]
+        options: [factory_a, factory_b, factory_c, lab-warehouse, lab-assembly, lab-packaging]
         default: factory_a
       gateway_id:
-        description: "Framework: Gateway ID (warehouse-main, assembly-main, utilities-main)"
+        description: "Framework: Gateway ID (warehouse-main, assembly-main, utilities-main, packaging-main)"
         type: string
         required: false
         default: warehouse-main
