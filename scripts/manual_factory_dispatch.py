@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from reusable_cicd.core import FrameworkError, plan_release, validate_catalog
+from framework.deployment.planner import resolve_project_gateway
 
 APPROVED_STAGE = ("lab-warehouse", "warehouse-main", "FactoryASmoke")
 
@@ -19,6 +20,7 @@ def select(factory, gateway, project, sha):
         raise FrameworkError("invalid project name")
     catalog = ROOT / "factories"
     validate_catalog(catalog)
+    gateway = gateway if gateway is not None else resolve_project_gateway(ROOT, factory, project)
     plan = plan_release(catalog, factory, gateway, "test", sha)
     matches = [p for p in plan["projects"] if p["name"] == project]
     if len(matches) != 1:
@@ -47,14 +49,23 @@ def main():
     parser = argparse.ArgumentParser(description="Manual factory TEST selector")
     parser.add_argument("--action", choices=["validate", "stage-controller"], required=True)
     parser.add_argument("--factory", required=True)
-    parser.add_argument("--gateway", required=True)
+    parser.add_argument("--gateway", default=None, help="legacy explicit Gateway (optional)")
+    parser.add_argument("--github-output", default=None, help="validated GitHub job output file")
     parser.add_argument("--project", required=True)
     parser.add_argument("--sha", required=True)
     args = parser.parse_args()
     try:
         plan = select(args.factory, args.gateway, args.project, args.sha)
         if args.action == "validate":
+            eligible = (plan["factory_id"], plan["gateway_id"], plan["project"]) == APPROVED_STAGE
+            if args.github_output:
+                with open(args.github_output, "a", encoding="utf-8") as output:
+                    output.write("gateway_id=" + plan["gateway_id"] + "\n")
+                    output.write("stage_eligible=" + str(eligible).lower() + "\n")
             print(json.dumps(plan, indent=2))
+            print("RESOLVED_TEST_GATEWAY=" + plan["gateway_id"])
+            if not eligible:
+                print("TEST_CONTROLLER_STAGE=NOT_COMMISSIONED_VALIDATE_ONLY")
             return 0
         authorize_stage(args.factory, args.gateway, args.project)
         # The smoke adapter enforces GitHub branch/event, local LAB containers,
