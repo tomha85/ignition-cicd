@@ -36,6 +36,18 @@
       "controller_stage_approved": false,
       "eam_send_commissioned": false,
       "production_approved": false
+    },
+    {
+      "target_id": "lab-packaging-test-agent",
+      "factory_id": "lab-packaging",
+      "gateway_id": "packaging-main",
+      "environment": "test",
+      "controller_id": null,
+      "agent_id": null,
+      "approved_project": null,
+      "controller_stage_approved": false,
+      "eam_send_commissioned": false,
+      "production_approved": false
     }
   ]
 }

@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "factory_id": "lab-packaging",
+  "ignition_version": "8.3",
+  "gateways": [
+    {
+      "gateway_id": "packaging-main",
+      "projects": [
+        {
+          "name": "PackagingLineHMI",
+          "source": "projects/PackagingLineHMI"
+        }
+      ],
+      "environments": {
+        "test": {
+          "github_environment": "lab-packaging-test",
+          "deployment_method": "eam",
+          "target_id": "lab-packaging-test-agent",
+          "secret_refs": [
+            "IGNITION_EAM_API_TOKEN"
+          ],
+          "deployment_enabled": false
+        },
+        "production": {
+          "github_environment": "lab-packaging-production",
+          "deployment_method": "eam",
+          "target_id": "lab-packaging-production-agent",
+          "secret_refs": [
+            "IGNITION_EAM_API_TOKEN"
+          ],
+          "deployment_enabled": false,
+          "approval_required": true
+        }
+      }
+    }
+  ]
+}

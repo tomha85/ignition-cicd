@@ -26,17 +26,18 @@ class ArchitectureV2Tests(unittest.TestCase):
     def test_full_structure(self):
         d=qualify_repository(ROOT)
         self.assertEqual(d["status"],"STRUCTURE_VALIDATED_DEPLOYMENT_NOT_AUTHORIZED")
-        self.assertEqual(d["factories"],["lab-assembly","lab-warehouse"])
+        self.assertEqual(d["factories"],["lab-assembly","lab-packaging","lab-warehouse"])
         self.assertFalse(d["production_approved"])
         self.assertEqual(d["eam_agent_transfer"],"NOT_TESTED")
 
     def test_environment_mapping(self):
-        self.assertEqual(check_environments(ROOT)["environment_documents"],6)
+        self.assertEqual(check_environments(ROOT)["environment_documents"],9)
 
     def test_curated_gateway_config(self):
         for f,g in (("lab-warehouse","warehouse-main"),
                     ("lab-assembly","assembly-main"),
-                    ("lab-assembly","utilities-main")):
+                    ("lab-assembly","utilities-main"),
+                    ("lab-packaging","packaging-main")):
             d=inspect_gateway(ROOT,f,g)
             self.assertEqual(d["resource_count"],0)
             self.assertFalse(d["deployment_enabled"])
@@ -95,7 +96,7 @@ class ArchitectureV2Tests(unittest.TestCase):
 
     def test_test_target_registry_deny_eam(self):
         d=check_target_registry(ROOT)
-        self.assertEqual(d["registered_test_targets"],3)
+        self.assertEqual(d["registered_test_targets"],4)
         self.assertFalse(d["eam_send_commissioned"])
         self.assertFalse(d["production_approved"])
 
@@ -152,14 +153,14 @@ class ArchitectureV2Tests(unittest.TestCase):
     def test_fat_requirements_explicitly_not_tested(self):
         from framework.validation.requirements import check_requirements
         result=check_requirements(ROOT)
-        self.assertEqual(len(result["factory_requirements"]),2)
+        self.assertEqual(len(result["factory_requirements"]),3)
         self.assertTrue(all(x["fat_status"]=="NOT_TESTED" for x in result["factory_requirements"]))
 
     def test_false_fat_pass_is_rejected(self):
         from framework.validation.requirements import check_requirements
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp)
-            for factory in ("lab-warehouse","lab-assembly"):
+            for factory in ("lab-warehouse","lab-assembly","lab-packaging"):
                 dest=root/"factories"/factory/"tests"
                 dest.mkdir(parents=True)
                 source=ROOT/"factories"/factory/"tests/requirements.json"

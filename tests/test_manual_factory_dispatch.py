@@ -25,6 +25,12 @@ class ManualFactoryDispatchTests(unittest.TestCase):
         plan = select("lab-assembly", "utilities-main", "PackagingHMI", SHA)
         self.assertEqual(plan["gateway_id"], "utilities-main")
 
+    def test_factory_c_validate_only(self):
+        plan=select("lab-packaging","packaging-main","PackagingLineHMI",SHA)
+        self.assertEqual(plan["status"],"VALIDATED_NOT_DEPLOYED")
+        with self.assertRaisesRegex(FrameworkError,"VALIDATE ONLY"):
+            authorize_stage("lab-packaging","packaging-main","PackagingLineHMI")
+
     def test_wrong_factory_project_rejected(self):
         with self.assertRaises(FrameworkError):
             select("lab-assembly", "utilities-main", "ConveyorHMI", SHA)
@@ -41,7 +47,8 @@ class ManualFactoryDispatchTests(unittest.TestCase):
         authorize_stage("lab-warehouse", "warehouse-main", "FactoryASmoke")
         for args in (("lab-warehouse","warehouse-main","WarehouseHMI"),
                      ("lab-assembly","assembly-main","ConveyorHMI"),
-                     ("lab-assembly","utilities-main","PackagingHMI")):
+                     ("lab-assembly","utilities-main","PackagingHMI"),
+                     ("lab-packaging","packaging-main","PackagingLineHMI")):
             with self.subTest(args=args), self.assertRaisesRegex(FrameworkError,"VALIDATE ONLY"):
                 authorize_stage(*args)
 
@@ -49,7 +56,8 @@ class ManualFactoryDispatchTests(unittest.TestCase):
         for fac,gw,project in (
             ("lab-warehouse","warehouse-main","FactoryASmoke"),
             ("lab-assembly","assembly-main","ConveyorHMI"),
-            ("lab-assembly","utilities-main","PackagingHMI")
+            ("lab-assembly","utilities-main","PackagingHMI"),
+            ("lab-packaging","packaging-main","PackagingLineHMI")
         ):
             proc = subprocess.run([sys.executable,"scripts/manual_factory_dispatch.py",
                 "--action","validate","--factory",fac,"--gateway",gw,

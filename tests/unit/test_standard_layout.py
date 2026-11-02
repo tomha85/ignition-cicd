@@ -24,7 +24,7 @@ class StandardRepositoryLayoutTest(unittest.TestCase):
     def test_docs_and_existing_factories(self):
         for name in ("architecture.md","add-factory.md","developer-guide.md","deployment-guide.md"):
             self.assertTrue((ROOT/"docs"/name).is_file())
-        for name in ("lab-warehouse","lab-assembly"):
+        for name in ("lab-warehouse","lab-assembly","lab-packaging"):
             for section in ("factory.json","projects","gateways","environments","tests/requirements.json"):
                 self.assertTrue((ROOT/"factories"/name/section).exists(),name+"/"+section)
 

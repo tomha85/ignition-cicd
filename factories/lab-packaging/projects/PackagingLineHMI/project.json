@@ -1,0 +1,6 @@
+{
+  "title": "PackagingLineHMI",
+  "description": "Factory C | Small Packaging Line | Example only: no PLC/OPC UA tags or live Agent",
+  "enabled": true,
+  "inheritable": false
+}
