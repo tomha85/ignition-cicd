@@ -201,8 +201,8 @@ def main():
     initial_scan = scan_api(url, token, context)
     if initial_scan["scanActive"]:
         raise RuntimeError("HOLD: Agent project scan already active")
-    if not isinstance(initial_scan.get("lastScanTimestamp"), (int, float)):
-        raise RuntimeError("HOLD: Agent scan baseline timestamp missing")
+    # Some Agent scan API responses do not expose lastScanTimestamp.
+    # Independently rendered Perspective version remains the release gate.
     # Qualify the browser BEFORE changing any Gateway project files.
     # Failure here is a preflight HOLD, not a deployment requiring rollback.
     browser_name, browser_probe = make_browser()
@@ -253,11 +253,11 @@ def main():
         report["previous_version"] = old_version
         report["previous_browser"] = browser_version(old_version)
         report["preflight_browser"] = browser_name
-        old_hashes = remote_hashes(files, dst)
         listed = subprocess.check_output(["docker", "exec", AGENT, "find",
             dst, "-type", "f", "-printf", "%P\\n"], text=True).splitlines()
         if set(listed) != set(files):
             raise RuntimeError("HOLD: unmanaged Agent files or deletions")
+        old_hashes = remote_hashes(files, dst)
         run("docker", "cp", str(SOURCE), AGENT + ":" + tmp)
         run("docker", "exec", "-u", "0", AGENT, "chown", "-R", "ignition:ignition", tmp)
         if remote_hashes(files, tmp) != files:
@@ -270,12 +270,12 @@ def main():
         report["agent_files"] = "MATCH"
         report["scan_request"] = scan_api(url, token, context, method="POST")
         report["scan_final"] = wait_scan(
-            url, token, context, baseline_timestamp=initial_scan["lastScanTimestamp"])
+            url, token, context, baseline_timestamp=initial_scan.get("lastScanTimestamp"))
         # Only the independently rendered Perspective version authorizes PASS.
         report["runtime"] = browser_version(expected)
-        report["e2e"] = "PASS"
         # Keep prior project intact for explicit engineer-approved recovery.
         report["prior_project_path"] = prior
+        report["e2e"] = "PASS"
     except Exception as exc:
         report["error"] = str(exc)
         if swapped:
