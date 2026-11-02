@@ -40,7 +40,8 @@ jobs:
     name: Factory-specific EAM release request (fail closed)
     needs: validate
     if: github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, ignition-lab]
+    environment: ignition-test
     concurrency:
       group: eam-lab-${{ inputs.factory }}
       cancel-in-progress: false
@@ -49,16 +50,27 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Compute immutable project release plan
+      - name: Validate target plan
         run: |
-          python scripts/eam_multi_factory.py \
-            --factory "${{ inputs.factory }}" \
-            --sha "${{ github.sha }}" \
-            ${{ inputs.action == 'deploy-test' && '--deploy' || '' }}
+          python scripts/eam_multi_factory.py --factory "${{ inputs.factory }}" --sha "${{ github.sha }}"
+      - name: EAM TEST deployment (commissioned Controller bridge required)
+        if: inputs.action == 'deploy-test'
+        env:
+          IGNITION_EAM_LAB_ONLY: 'YES'
+          IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
+          IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
+          IGNITION_EAM_BRIDGE_COMMISSIONED: ${{ vars.IGNITION_EAM_BRIDGE_COMMISSIONED || 'NO' }}
+          IGNITION_EAM_CONTROLLER_CONTAINER: ${{ vars.IGNITION_CONTROLLER_CONTAINER }}
+          IGNITION_EAM_AGENT_CONTAINER: ${{ inputs.factory == 'factory_a' && vars.IGNITION_FACTORY_A_CONTAINER || inputs.factory == 'factory_b' && vars.IGNITION_FACTORY_B_CONTAINER || vars.IGNITION_FACTORY_C_CONTAINER }}
+          IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR }}
+        run: |
+          python scripts/eam_multi_factory_deploy.py --factory "${{ inputs.factory }}" --sha "${{ github.sha }}"
       - name: Upload target-scoped evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: eam-multi-factory-evidence
-          path: evidence/eam-multi-factory.json
+          path: |
+            evidence/eam-multi-factory.json
+            evidence/eam-multi-factory-deploy.json
           if-no-files-found: warn
