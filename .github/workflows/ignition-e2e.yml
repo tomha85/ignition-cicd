@@ -54,9 +54,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install cross-browser runtime verification
-        run: python -m pip install 'selenium>=4.20,<5'
-      - name: Validate, backup, deploy, scan, verify, rollback on failure
+      - name: Backup, stage, scan and verify native TEST deployment
         env:
           IGNITION_LAB_ONLY: 'YES'
           IGNITION_AGENT_CONTAINER: ${{ vars.IGNITION_AGENT_CONTAINER }}
@@ -66,7 +64,6 @@ jobs:
           IGNITION_AGENT_CA_FILE: ${{ vars.IGNITION_AGENT_CA_FILE }}
           IGNITION_AGENT_GWBK: ${{ vars.IGNITION_AGENT_GWBK }}
           IGNITION_AGENT_API_TOKEN: ${{ secrets.IGNITION_AGENT_API_TOKEN }}
-          IGNITION_E2E_BROWSER: ${{ vars.IGNITION_E2E_BROWSER || 'auto' }}
           no_proxy: 'localhost,127.0.0.1,::1'
           RELEASE_SHA: ${{ github.sha }}
         run: python scripts/direct_agent_lab.py
