@@ -164,6 +164,7 @@ class ArchitectureV2Tests(unittest.TestCase):
                 dest.mkdir(parents=True)
                 source=ROOT/"factories"/factory/"tests/requirements.json"
                 dest.joinpath("requirements.json").write_text(source.read_text())
+                (dest.parent/"factory.json").write_text((ROOT/"factories"/factory/"factory.json").read_text())
             bad=root/"factories/lab-warehouse/tests/requirements.json"
             obj=json.loads(bad.read_text())
             obj["fat_status"]="PASS"
