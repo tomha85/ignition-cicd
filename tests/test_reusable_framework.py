@@ -26,7 +26,7 @@ class ReusableFrameworkTests(unittest.TestCase):
     def test_small_and_complex_releases(self):
         a = plan_release(CATALOG, "lab-warehouse", "warehouse-main", "test", SHA)
         b = plan_release(CATALOG, "lab-assembly", "assembly-main", "test", SHA)
-        self.assertEqual(len(a["projects"]), 1)
+        self.assertEqual({p["name"] for p in a["projects"]}, {"WarehouseHMI", "FactoryASmoke"})
         self.assertEqual(len(b["projects"]), 2)
         self.assertEqual(a["status"], "VALIDATED_NOT_DEPLOYED")
         self.assertEqual(b["fat"], "NOT_TESTED")
