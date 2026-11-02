@@ -1,11 +1,9 @@
 name: EAM Factory A - Native TEST Send Project E2E
 
+# Explicitly archived after TEST-only investigative execution.
+# Operator owns EAM task creation/execution. No automatic Agent Send Project.
 on:
-  push:
-    branches:
-      - feat/reusable-multifactory-framework-v1
-    paths:
-      - .github/workflows/eam-native-factory-a-e2e.yml
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -31,7 +29,8 @@ jobs:
   test-eam-agent:
     name: Backup TEST Gateways, native OnDemand EAM Send Project and verify Agent
     needs: validate
-    if: github.repository == 'tomha85/ignition-cicd' && github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1'
+    # Unconditionally disabled until independently reviewed commissioning.
+    if: ${{ false }}
     runs-on: [self-hosted, linux, ignition-lab]
     environment: ignition-test
     timeout-minutes: 15
