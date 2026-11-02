@@ -79,7 +79,8 @@ def main():
     must(os.getenv("FACTORY_A_SMOKE_CONFIRM")=="YES","explicit LAB gate")
     must(os.getenv("GITHUB_REPOSITORY")=="tomha85/ignition-cicd","repository gate")
     must(os.getenv("GITHUB_REF")=="refs/heads/feat/reusable-multifactory-framework-v1","branch gate")
-    must(os.getenv("GITHUB_EVENT_NAME")=="push","push event required")
+    must(os.getenv("GITHUB_EVENT_NAME") in ("push", "workflow_dispatch"),
+         "only explicit workflow dispatch or existing LAB smoke push allowed")
     must(os.getenv("GITHUB_SHA")==a.sha,"release SHA gate")
     must(os.getenv("IGNITION_CONTROLLER_CONTAINER")==CTRL,"Controller allowlist")
     must(os.getenv("IGNITION_AGENT_CONTAINER")==AGENT,"Agent allowlist")
