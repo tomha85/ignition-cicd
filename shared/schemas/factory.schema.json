@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ignition multi-factory project manifest V1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "factory_id",
+    "ignition_version",
+    "gateways"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "factory_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+    },
+    "ignition_version": {
+      "const": "8.3"
+    },
+    "gateways": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "gateway_id",
+          "projects",
+          "environments"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "gateway_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+          },
+          "projects": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "name",
+                "source"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+                },
+                "source": {
+                  "type": "string",
+                  "pattern": "^projects/[A-Za-z0-9_.-]+$"
+                }
+              }
+            }
+          },
+          "environments": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": false,
+            "properties": {
+              "dev": {
+                "$ref": "#/$defs/environmentTarget"
+              },
+              "test": {
+                "$ref": "#/$defs/environmentTarget"
+              },
+              "production": {
+                "$ref": "#/$defs/productionTarget"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "environmentTarget": {
+      "type": "object",
+      "required": [
+        "github_environment",
+        "deployment_method",
+        "target_id",
+        "deployment_enabled"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "github_environment": {
+          "type": "string"
+        },
+        "deployment_method": {
+          "enum": [
+            "eam",
+            "direct-test"
+          ]
+        },
+        "target_id": {
+          "type": "string"
+        },
+        "deployment_enabled": {
+          "const": false
+        },
+        "secret_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          }
+        }
+      }
+    },
+    "productionTarget": {
+      "type": "object",
+      "required": [
+        "github_environment",
+        "deployment_method",
+        "target_id",
+        "deployment_enabled",
+        "approval_required"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "github_environment": {
+          "type": "string"
+        },
+        "deployment_method": {
+          "const": "eam"
+        },
+        "target_id": {
+          "type": "string"
+        },
+        "deployment_enabled": {
+          "const": false
+        },
+        "approval_required": {
+          "const": true
+        },
+        "secret_refs": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "factory_id": "lab-assembly",
+  "environment": "test",
+  "gateways": {
+    "assembly-main": {
+      "target_id": "lab-assembly-main-test-agent",
+      "github_environment": "lab-assembly-main-test"
+    },
+    "utilities-main": {
+      "target_id": "lab-assembly-utilities-test-agent",
+      "github_environment": "lab-assembly-utilities-test"
+    }
+  },
+  "deployment_enabled": false,
+  "approval_required": false
+}

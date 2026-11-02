@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "factory_id": "lab-warehouse",
+  "environment": "production",
+  "gateways": {
+    "warehouse-main": {
+      "target_id": "lab-warehouse-production-agent",
+      "github_environment": "lab-warehouse-production"
+    }
+  },
+  "deployment_enabled": false,
+  "approval_required": true
+}

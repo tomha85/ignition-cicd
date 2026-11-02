@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "factory_id": "lab-assembly",
+  "gateway_id": "utilities-main",
+  "resources": [],
+  "deployment_enabled": false,
+  "site_device_sources": "NOT_PROVIDED",
+  "tag_mapping_source": "NOT_PROVIDED",
+  "gateway_configuration": "CURATED_EXPORT_NOT_PROVIDED"
+}

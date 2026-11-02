@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "factory_id": "lab-assembly",
+  "environment": "production",
+  "gateways": {
+    "assembly-main": {
+      "target_id": "lab-assembly-main-production-agent",
+      "github_environment": "lab-assembly-main-production"
+    }
+  },
+  "deployment_enabled": false,
+  "approval_required": true
+}

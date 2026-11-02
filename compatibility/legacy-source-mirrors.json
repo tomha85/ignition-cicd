@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "mirrors": [
+    {
+      "canonical": "factories/lab-warehouse/projects/WarehouseHMI",
+      "legacy": "ignition-project/WarehouseHMI"
+    },
+    {
+      "canonical": "factories/lab-assembly/projects/ConveyorHMI",
+      "legacy": "ignition-project/ConveyorHMI"
+    },
+    {
+      "canonical": "factories/lab-assembly/projects/PackagingHMI",
+      "legacy": "ignition-project/PackagingHMI"
+    }
+  ]
+}

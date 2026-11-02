@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Curated Gateway config metadata V1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "factory_id",
+    "gateway_id",
+    "resources",
+    "deployment_enabled",
+    "site_device_sources",
+    "tag_mapping_source",
+    "gateway_configuration"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "factory_id": {
+      "type": "string"
+    },
+    "gateway_id": {
+      "type": "string"
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "deployment_enabled": {
+      "const": false
+    },
+    "site_device_sources": {
+      "type": "string"
+    },
+    "tag_mapping_source": {
+      "type": "string"
+    },
+    "gateway_configuration": {
+      "type": "string"
+    }
+  }
+}
