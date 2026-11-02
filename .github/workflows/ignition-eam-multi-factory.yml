@@ -8,14 +8,14 @@ on:
         description: Legacy EAM or new manual framework TEST action
         type: choice
         required: true
-        options: [validate, framework-validate, framework-stage-controller]
-        default: validate
+        options: [framework-validate, framework-stage-controller]
+        default: framework-validate
       factory:
         description: Select legacy factory or framework factory
         type: choice
         required: true
-        options: [factory_a, factory_b, factory_c, lab-warehouse, lab-assembly, lab-packaging]
-        default: factory_a
+        options: [lab-warehouse, lab-assembly, lab-packaging]
+        default: lab-warehouse
       gateway_id:
         description: "Framework: Gateway ID (warehouse-main, assembly-main, utilities-main, packaging-main)"
         type: string
@@ -46,38 +46,6 @@ jobs:
           for p in WarehouseHMI ConveyorHMI PackagingHMI; do
             python scripts/validate.py "ignition-project/$p"
           done
-  plan-or-gated-deploy:
-    name: Legacy factory plan — READ ONLY (Agent task is user-managed)
-    needs: validate
-    if: github.event_name == 'workflow_dispatch' && inputs.action == 'validate'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Validate legacy factory source without Gateway writes
-        env:
-          SELECTED_LEGACY_FACTORY: ${{ inputs.factory }}
-        run: |
-          python scripts/eam_multi_factory.py \
-            --factory "$SELECTED_LEGACY_FACTORY" --sha "$GITHUB_SHA"
-
-  reject-obsolete-deploy-actions:
-    name: HOLD legacy write actions — use framework-stage-controller with approval
-    needs: validate
-    if: github.event_name == 'workflow_dispatch' && (inputs.action == 'stage-controller' || inputs.action == 'deploy-test')
-    runs-on: ubuntu-latest
-    steps:
-      - run: |
-          echo 'HOLD: legacy direct Controller/Agent deployment is disabled in V3.' >&2
-          echo 'Choose framework-stage-controller and approve the ignition-test environment.' >&2
-          exit 2
-
   framework-validate:
     name: Validate manually selected factory, Gateway and TEST project
     needs: validate
