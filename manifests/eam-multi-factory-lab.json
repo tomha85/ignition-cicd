@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "environment": "ignition-test",
+  "production_approved": false,
+  "targets": {
+    "factory_a": {
+      "project": "WarehouseHMI",
+      "agent": "EAM-Factory-A",
+      "task": "CICD-SEND-WarehouseHMI-A",
+      "source_path": "ignition-project/WarehouseHMI"
+    },
+    "factory_b": {
+      "project": "ConveyorHMI",
+      "agent": "EAM-Factory-B",
+      "task": "CICD-SEND-ConveyorHMI-B",
+      "source_path": "ignition-project/ConveyorHMI"
+    },
+    "factory_c": {
+      "project": "PackagingHMI",
+      "agent": "EAM-Factory-C",
+      "task": "CICD-SEND-PackagingHMI-C",
+      "source_path": "ignition-project/PackagingHMI"
+    }
+  }
+}
