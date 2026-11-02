@@ -135,6 +135,25 @@ def perspective_http_check():
             "rendered_view_verified": False}
 
 
+def release_project_metadata(source, sha, expected, mode, deployed_at):
+    """Generate metadata for a staged project without modifying checked-out source."""
+    project = json.loads((source / "project.json").read_text())
+    if not isinstance(project, dict):
+        raise RuntimeError("HOLD: invalid source project metadata")
+    original_description = project.get("description", "")
+    if not isinstance(original_description, str):
+        raise RuntimeError("HOLD: invalid description")
+    project["description"] = (
+        "CI/CD Managed TEST Project\n"
+        + "Version: " + expected.removeprefix("SMOKE VERSION ") + "\n"
+        + "Git Commit: " + sha + "\n"
+        + "Deployed At (UTC): " + deployed_at + "\n"
+        + "Deployment Type: " + mode + "\n"
+        + "Source: tomha85/ignition-cicd"
+    )
+    return (json.dumps(project, indent=2) + "\n").encode("utf-8")
+
+
 def verify_full_gateway_backup():
     value = os.getenv("IGNITION_AGENT_GWBK", "")
     path = Path(value).expanduser().resolve() if value else Path("/nonexistent")
@@ -168,6 +187,7 @@ def main():
     if len(files) < 2:
         raise RuntimeError("HOLD: unexpectedly small native project")
     expected = version_in_tree(json.loads((SOURCE / "com.inductiveautomation.perspective/views/Main/view.json").read_text()))
+    deployed_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:10]
     backup = backups / (stamp + "-" + sha[:12] + "-agent-direct")
     backup.mkdir(mode=0o700)
@@ -202,15 +222,24 @@ def main():
             report["previous_project_present"] = True
         else:
             report["previous_project_present"] = False
+        metadata = release_project_metadata(
+            SOURCE, sha, expected, report["install_mode"], deployed_at)
+        staged_files = dict(files)
+        staged_files["project.json"] = hashlib.sha256(metadata).hexdigest()
+        local_metadata = backup / "project-deployment-metadata.json"
+        local_metadata.write_bytes(metadata)
+        report["deployed_at_utc"] = deployed_at
+        report["project_description"] = json.loads(metadata)["description"]
         run("docker", "cp", str(SOURCE), AGENT + ":" + tmp)
+        run("docker", "cp", str(local_metadata), AGENT + ":" + tmp + "/project.json")
         run("docker", "exec", "-u", "0", AGENT, "chown", "-R", "ignition:ignition", tmp)
-        if remote_hashes(files, tmp) != files:
+        if remote_hashes(staged_files, tmp) != staged_files:
             raise RuntimeError("FAIL: staging content mismatch")
         if target_exists:
             run("docker", "exec", AGENT, "mv", dst, prior)
         swapped = True
         run("docker", "exec", AGENT, "mv", tmp, dst)
-        if remote_hashes(files, dst) != files:
+        if remote_hashes(staged_files, dst) != staged_files:
             raise RuntimeError("FAIL: on-disk release hash mismatch")
         report["agent_files"] = "MATCH"
         report["scan_request"] = scan_api(url, token, context, method="POST")
@@ -218,9 +247,14 @@ def main():
             url, token, context, baseline_timestamp=initial_scan.get("lastScanTimestamp"))
         if not exists(dst):
             raise RuntimeError("FAIL: project disappeared after Gateway scan")
-        if remote_hashes(files, dst) != files:
+        if remote_hashes(staged_files, dst) != staged_files:
             raise RuntimeError("FAIL: project changed after Gateway scan")
         report["post_scan_agent_files"] = "MATCH"
+        actual_meta = json.loads(subprocess.check_output(
+            ["docker", "exec", AGENT, "cat", dst + "/project.json"], text=True))
+        if actual_meta.get("description") != report["project_description"]:
+            raise RuntimeError("FAIL: deployment Description not persisted")
+        report["description_verified"] = True
         # Test Gateway serves the project entry point; browser render is a
         # separate qualification, never misreported as a completed E2E proof.
         report["perspective_http"] = perspective_http_check()
