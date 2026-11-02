@@ -1,5 +1,6 @@
 name: Factory A Framework - TEST Controller Smoke
 # One-shot verified update to FactoryASmoke description on EAM TEST Controller.
+# Approval-gate test: validate, then HOLD unless tomha85 approves the ignition-test environment.
 # Factory A example 2026-11-02: verify updated source description on TEST Controller.
 # Limited to this feature branch and the isolated local TEST EAM Controller.
 # V2 post-refactor smoke: repeat Controller-only source identity and backup verification.
