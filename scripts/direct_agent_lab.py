@@ -16,6 +16,7 @@ import time
 import uuid
 import zipfile
 from urllib.request import Request, urlopen
+from urllib.parse import urlsplit
 from datetime import datetime, timezone
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -161,6 +162,7 @@ def browser_version(expected):
     # Real rendered-client proof; browser is selected on the runner.
     from selenium.webdriver.common.by import By
     from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.common.exceptions import TimeoutException
 
     browser, driver = make_browser()
     try:
@@ -174,7 +176,22 @@ def browser_version(expected):
                 return True
             d.refresh()
             return False
-        WebDriverWait(driver, 60, poll_frequency=3).until(reload_until_visible)
+        try:
+            WebDriverWait(driver, 60, poll_frequency=3).until(reload_until_visible)
+        except TimeoutException as exc:
+            current = urlsplit(driver.current_url)
+            # Never include URL credentials/query parameters or page HTML in CI logs.
+            diagnostic = {
+                "browser": browser,
+                "expected": expected,
+                "current_origin": current.scheme + "://" + current.netloc,
+                "current_path": current.path,
+                "title": driver.title[:150],
+                "body_contains_expected": expected in driver.find_element(By.TAG_NAME, "body").text,
+                "login_page_detected": "login" in current.path.lower(),
+            }
+            raise RuntimeError("HOLD: Perspective browser verification timeout: "
+                               + json.dumps(diagnostic)) from exc
         return {"browser": browser, "verified_visible_text": expected,
                 "browser_title": driver.title}
     finally:
