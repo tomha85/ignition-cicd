@@ -52,14 +52,17 @@ def main():
     try:
         plan = select(args.factory, args.gateway, args.project, args.sha)
         if args.action == "validate":
-            eligible = resolve_controller_stage_target(
+            target = resolve_controller_stage_target(
                 ROOT, plan["factory_id"], plan["gateway_id"], plan["project"],
                 require_approved=False,
-            ) is not None
+            )
+            eligible = target is not None
             if args.github_output:
                 with open(args.github_output, "a", encoding="utf-8") as output:
                     output.write("gateway_id=" + plan["gateway_id"] + "\n")
                     output.write("stage_eligible=" + str(eligible).lower() + "\n")
+                    output.write("controller_id=" + (target["controller_id"] if target else "") + "\n")
+                    output.write("agent_id=" + (target["agent_id"] if target else "") + "\n")
             print(json.dumps(plan, indent=2))
             print("RESOLVED_TEST_GATEWAY=" + plan["gateway_id"])
             if not eligible:
