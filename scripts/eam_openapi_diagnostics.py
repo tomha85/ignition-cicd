@@ -224,6 +224,38 @@ def inspect_openapi(result, token, ca):
         and "{" not in path and isinstance(methods,dict) and "get" in methods
     ][:35]
 
+
+    # Backups and exact target identity must be checked before any TEST mutation.
+    if "legacy_task_definition" in result["openapi"]:
+        # Re-fetch the GET task definition without recording raw bytes.
+        try:
+            with urllib.request.urlopen(task_req,context=ctx,timeout=15) as response:
+                taskraw=json.load(response)
+            settings=taskraw.get("config",{}).get("settings",{})
+            health=taskraw.get("healthchecks",{}).get("scheduledTaskState",{}).get("result",{})
+            owner=health.get("details",{}).get("owner")
+            result["openapi"]["legacy_task_exact_target"]={
+                "project_warehouse":settings.get("sourceProject")=="WarehouseHMI",
+                "target_EAM_Agent_only":settings.get("targetGateways")==["EAM-Agent"],
+                "no_agent_groups":settings.get("targetGroups")==[],
+                "selected_gateway_local":str(settings.get("selectedGateway","")).lower() in ("local system","local","localsystem"),
+                "selected_gateway_value":str(settings.get("selectedGateway",""))[:100],
+                "task_owner_value":str(owner)[:100],
+                "collection_value":str(taskraw.get("collection",""))[:100],
+                "profile_is_ondemand":taskraw.get("config",{}).get("profile",{}).get("scheduleMode")=="OnDemand",
+            }
+        except Exception as exc:
+            result["openapi"]["legacy_task_exact_target"]={"error_type":type(exc).__name__}
+    # Read-only enumeration of GCU backup command candidates inside allowlisted LAB containers.
+    candidates=("/usr/local/bin/ignition/gwcmd.sh","/usr/local/bin/ignition/gwcmd","/usr/local/bin/gwcmd")
+    found={}
+    for container in (CONTROLLER,AGENT):
+        found[container]=[]
+        for p in candidates:
+            c=cmd("exec",container,"test","-f",p)
+            if c is not None and c.returncode==0:found[container].append(p)
+    result["openapi"]["gateway_backup_candidates"]=found
+
     # Direct documented read for registered EAM task names (do not expose all names).
     task_names="/data/api/v1/resources/names/com.inductiveautomation.eam/eam-tasks"
     req=urllib.request.Request("https://localhost:9143"+task_names,
