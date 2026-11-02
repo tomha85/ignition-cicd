@@ -45,10 +45,11 @@ jobs:
             --project "$SELECTED_PROJECT" --sha "$GITHUB_SHA"
 
   stage-controller:
-    name: Backup, stage and verify isolated EAM TEST Controller (NO Agent Task)
+    name: APPROVAL REQUIRED — backup, stage and verify isolated EAM TEST Controller
     needs: select-and-validate
     if: github.repository == 'tomha85/ignition-cicd' && github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1' && github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, linux, ignition-lab]
+    # Required reviewers configured in GitHub Settings, not in YAML.
     environment: ignition-test
     concurrency:
       group: eam-lab-factory_a
@@ -56,10 +57,15 @@ jobs:
     timeout-minutes: 15
     permissions:
       contents: read
+      actions: read
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Require tomha85 approval for this exact run before any Controller writes
+        env:
+          GH_APPROVAL_READ_TOKEN: ${{ github.token }}
+        run: python3 scripts/verify_stage_approval.py
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -74,6 +80,7 @@ jobs:
           IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR || '/home/tomha/ignition-eam-backups' }}
           IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
           IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
+          GH_APPROVAL_READ_TOKEN: ${{ github.token }}
           no_proxy: 'localhost,127.0.0.1,::1'
         run: |
           python scripts/manual_factory_dispatch.py \
@@ -86,5 +93,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: standard-controller-stage-evidence
-          path: evidence/factory-a-controller-smoke.json
+          path: |
+            evidence/factory-a-controller-smoke.json
+            evidence/factory-a-approval.json
           if-no-files-found: warn
