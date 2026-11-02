@@ -20,7 +20,7 @@ Run workflow / push Factory A source
        |                      |
      STOP                 Backup first
                                |
-                        Stage FactoryASmoke
+                        Stage selected native project
                         on EAM TEST Controller
                                |
                         Verify source SHA256
@@ -33,7 +33,7 @@ Run workflow / push Factory A source
 
 The first job `Validate` runs automatically.
 The standard manual workflow runs from `main` with exactly two inputs:
-Factory and Project. The Project dropdown lists registered example project names;
+Factory and Project. The Factory and Project text fields are validated from factory.json;
 validation confirms that the selected project actually belongs to the factory.
 The second `Stage` declares `needs: validate` and
 `environment: ignition-test`.
@@ -69,7 +69,8 @@ and GitHub plan. If GitHub does not expose the Required reviewers setting,
 ## Running the two-field standard workflow
 
 1. Go to Actions → **Ignition EAM - Select Factory & Project (TEST)**.
-2. Choose branch **main**, Factory **lab-warehouse**, Project **FactoryASmoke**.
+2. Choose branch **main**, Factory **lab-warehouse**, Project **WarehouseHMI**
+   (or **FactoryASmoke**).
 3. Click **Run workflow**; Gateway `warehouse-main` is resolved from
    `factories/lab-warehouse/factory.json`, not requested from you.
 4. Validate must PASS, then Stage shows **Waiting**.
@@ -90,7 +91,10 @@ Gateway associations fail validation. The user manages Agent tasks later.
   approval produces **HOLD**.
 - Only the first attempt of a run is eligible. For a failed run, launch a
   **fresh workflow run** rather than reusing old review history.
-- Only `lab-warehouse / warehouse-main / FactoryASmoke` may stage.
+- Any project registered under a commissioned and explicitly approved
+  isolated TEST Gateway may stage after review. The current registered
+  TEST Gateway is `lab-warehouse/warehouse-main` (both native projects).
+- Other factories stay validate-only until real independent TEST commissioning.
 - Factory B/C remain source validation/build only, regardless of approval.
 - Before mutation, staging takes TEST Controller and Agent **project directory
   archives**. These are not independently qualified full-Gateway backups.
