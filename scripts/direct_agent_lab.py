@@ -172,15 +172,15 @@ def main():
     backup = backups / (stamp + "-" + sha[:12] + "-agent-direct")
     backup.mkdir(mode=0o700)
     dst = DATA + "/projects/" + PROJECT
-    tmp = DATA + "/projects/.direct-stage-" + stamp
-    prior = DATA + "/projects/.direct-prior-" + stamp
+    # Stage and preserve old project OUTSIDE the monitored projects directory.
+    tmp = DATA + "/.direct-stage-" + stamp
+    prior = DATA + "/.direct-prior-" + stamp
     report = {"sha": sha, "project": PROJECT, "mode": "DIRECT_AGENT_TEST",
               "expected": expected, "backup": str(backup),
               "full_gateway_backup": str(gateway_backup), "deployment": "HOLD", "e2e": "NOT_TESTED"}
     REPORT.parent.mkdir(exist_ok=True)
     swapped = False
     old_version = None
-    old_hashes = None
     try:
         # Preserve official full Gateway backup and container project trees first.
         shutil.copy2(gateway_backup, backup / "agent-gateway-before-release.gwbk")
@@ -192,22 +192,22 @@ def main():
                 if not tf.getmembers():
                     raise RuntimeError("FAIL: empty project backup " + container)
         report["project_backups"] = "PASS"
-        if not exists(dst) or exists(tmp) or exists(prior):
-            raise RuntimeError("HOLD: missing target or staging collision")
-        old_json = subprocess.check_output(["docker", "exec", AGENT, "cat",
-            dst + "/com.inductiveautomation.perspective/views/Main/view.json"], text=True)
-        old_version = version_in_tree(json.loads(old_json))
-        report["previous_version"] = old_version
-        listed = subprocess.check_output(["docker", "exec", AGENT, "find",
-            dst, "-type", "f", "-printf", "%P\\n"], text=True).splitlines()
-        if set(listed) != set(files):
-            raise RuntimeError("HOLD: unmanaged Agent files or deletions")
-        old_hashes = remote_hashes(files, dst)
+        target_exists = exists(dst)
+        report["install_mode"] = "UPDATE" if target_exists else "INSTALL"
+        if exists(tmp) or exists(prior):
+            raise RuntimeError("HOLD: staging collision outside projects")
+        if target_exists:
+            # Preserve even a corrupted/old installation; do not depend on its
+            # file list or BuildVersion matching the desired GitHub project.
+            report["previous_project_present"] = True
+        else:
+            report["previous_project_present"] = False
         run("docker", "cp", str(SOURCE), AGENT + ":" + tmp)
         run("docker", "exec", "-u", "0", AGENT, "chown", "-R", "ignition:ignition", tmp)
         if remote_hashes(files, tmp) != files:
             raise RuntimeError("FAIL: staging content mismatch")
-        run("docker", "exec", AGENT, "mv", dst, prior)
+        if target_exists:
+            run("docker", "exec", AGENT, "mv", dst, prior)
         swapped = True
         run("docker", "exec", AGENT, "mv", tmp, dst)
         if remote_hashes(files, dst) != files:
@@ -220,8 +220,8 @@ def main():
         # separate qualification, never misreported as a completed E2E proof.
         report["perspective_http"] = perspective_http_check()
         report["rendered_version_verified"] = False
-        # Keep prior project intact for explicit engineer-approved recovery.
-        report["prior_project_path"] = prior
+        # Preserve the old project outside Gateway project discovery.
+        report["prior_project_path"] = prior if target_exists else None
         report["e2e"] = "NOT_TESTED"
         report["deployment"] = "PASS"
     except Exception as exc:
@@ -231,16 +231,18 @@ def main():
                 failed = DATA + "/projects/.direct-failed-" + stamp
                 if exists(dst):
                     run("docker", "exec", AGENT, "mv", dst, failed)
-                if exists(prior):
+                if target_exists:
+                    if not exists(prior):
+                        raise RuntimeError("FAIL: saved prior project missing; engineer intervention required")
                     run("docker", "exec", AGENT, "mv", prior, dst)
-                if old_hashes is None or remote_hashes(files, dst) != old_hashes:
-                    raise RuntimeError("FAIL: rollback file hashes differ from pre-deployment state")
+                elif exists(dst):
+                    raise RuntimeError("FAIL: fresh-install rollback did not remove new project")
                 rollback_baseline = scan_api(url, token, context)
                 scan_api(url, token, context, method="POST")
                 report["rollback_scan"] = wait_scan(
                     url, token, context,
                     baseline_timestamp=rollback_baseline.get("lastScanTimestamp"))
-                report["rollback"] = "FILE_HASHES_AND_SCAN_VERIFIED"
+                report["rollback"] = "PREVIOUS_STATE_RESTORED_AND_SCAN_COMPLETED"
             except Exception as rollback_exc:
                 report["rollback"] = "FAILED_ENGINEER_REQUIRED"
                 report["rollback_error"] = str(rollback_exc)
