@@ -1,11 +1,287 @@
-# Ignition GitHub → EAM deployment lab
+# Ignition 8.3 — GitHub CI/CD and Multi-Factory EAM TEST Lab
 
-This repository contains a reusable **Ignition 8.3 TEST-only** CI/CD starter: developer changes → pull request → merge main → GitHub Actions → EAM Controller → TEST Agent verification.
+This repository demonstrates **native Ignition Perspective project delivery** using two separate workflows:
 
-**Status: engineering starter, NOT a qualified end-to-end deployment.** The actual file-based Ignition `DeploymentSmokeTest` project and the Controller/Agent trial Gateways must still be configured and tested.
+1. **Existing Direct GitOps:** `.github/workflows/ignition-e2e.yml` — delivers `DeploymentSmokeTest` directly to the local isolated TEST Agent.
+2. **Multi-Factory EAM:** `.github/workflows/ignition-eam-multi-factory.yml` — validates three independent projects, stages **Factory A** on the EAM Controller, and has a separately gated EAM dispatch adapter.
 
-- CI intentionally **fails closed** if a genuine `ignition-project/DeploymentSmokeTest/project.json` and additional project resources are absent.
-- GitHub Actions deployment requires a self-hosted runner with `ignition-lab` label, an `ignition-test` environment, correct lab-only paths, and an explicitly configured EAM task.
-- Do not point at production Gateways. Always back up before changes.
+**Scope: TEST/LAB only.** A successful EAM task is **not** proof of Perspective rendering, correct PLC mappings, or safe production deployment. **Never point this workflow at a production Gateway.** Refer to [Multi-Factory commissioning status](docs/EAM_MULTI_FACTORY_LAB.md).
 
-See `docs/LAB_README.md` for lab setup and `controller/REQUIRED_SCAN_GATE.md` for the missing Controller scan/verify step. Older package examples are under `reference/initial-starter/`.
+## 1. Architecture and responsibilities
+
+```text
+                  DevAgent / Developers
+                          |
+                        GitHub
+                          |
+                    GitHub Actions CI
+                          |
+                   approved TEST release
+                          |
+                self-hosted ignition-lab runner
+                          |
+          +---------------+----------------+
+          |                                |
+     Direct TEST                       EAM Controller
+     DeploymentSmokeTest               ignition-eam-controller
+                                           |
+                                     EAM Send Project
+                                           |
+                        +------------------+------------------+
+                        |                  |                  |
+                  Factory A           Factory B           Factory C
+                  EAM-Agent           VM Agent            Future Agent
+                  WarehouseHMI        ConveyorHMI          PackagingHMI
+```
+
+- **Controller:** Ignition Gateway with EAM module set to **Controller**; stores/serves approved source projects and manages Agent tasks.
+- **Agent:** an ordinary Ignition Gateway with the **same EAM module** configured as an **Agent**, not a standalone Python agent. Each factory has its own Gateway, network identity, local OPC UA/PLC connections and security policy.
+- **GitHub:** source of truth for HMI resources. EAM itself does **not** pull projects from GitHub.
+- **CI/CD bridge:** stages the correct project on Controller, requests EAM task, and verifies the target independently.
+- **For separate customers:** prefer separate Controllers/security domains, not a single unrestricted Controller for unrelated companies.
+
+| Factory | Project directory | EAM Agent identity | EAM Send Project task | Current status |
+| --- | --- | --- | --- | --- |
+| A (Ubuntu lab host) | `ignition-project/WarehouseHMI` | `EAM-Agent` | `CICD-SEND-WarehouseHMI-A` | User confirmed HMI working after resource metadata fix |
+| B (second Ubuntu VM) | `ignition-project/ConveyorHMI` | `EAM-Factory-B` (planned) | `CICD-SEND-ConveyorHMI-B` (planned) | Not provisioned/qualified |
+| C (future factory) | `ignition-project/PackagingHMI` | `EAM-Factory-C` (planned) | `CICD-SEND-PackagingHMI-C` (planned) | Not provisioned/qualified |
+
+## 2. Existing Factory A on spark-9ffe (do not recreate)
+
+Existing Docker services:
+
+| Container | Role | Host browser address |
+| --- | --- | --- |
+| `ignition-eam-controller` | EAM Controller | `http://localhost:9188`; HTTPS `https://localhost:9143` |
+| `ignition-eam-agent` | Factory A EAM Agent | `http://localhost:9288`; HTTPS `https://localhost:9243` |
+| `ignition-eam-postgres` | Lab database | Docker-only |
+
+These bindings are localhost-only. **The web ports are not Gateway Network port 8060.** Do not infer remote accessibility from successful access to `localhost:9188`.
+
+Check without changing anything:
+
+```bash
+docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'
+docker port ignition-eam-controller
+docker inspect ignition-eam-controller --format '{{.HostConfig.NetworkMode}}'
+docker exec ignition-eam-controller ls /usr/local/bin/ignition/data/projects
+docker exec ignition-eam-agent ls /usr/local/bin/ignition/data/projects
+```
+
+In Controller UI: **Network → Enterprise → Agents** should show **EAM-Agent CONNECTED**. If the Agent reads **TRIAL EXPIRED**, log into the Agent Gateway and reset its trial where permitted; do **not** reset/recreate containers to fix license expiry. For production, obtain appropriate licenses.
+
+### Credentials
+
+In this particular lab the admin password was mounted from a local secret file into the Controller container. Use a password manager or read it locally if authorized. **Never commit or paste passwords, tokens, Docker inspect secret values or private certificates.** Rotate previously exposed credentials. EAM credentials at different customers must not be reused.
+
+## 3. GitHub repository, runner, and secrets
+
+```bash
+gh auth status
+gh repo view tomha85/ignition-cicd
+gh workflow list --repo tomha85/ignition-cicd
+```
+
+Use a **clean worktree** to preserve local branches and uncommitted engineering changes:
+
+```bash
+cd "$HOME/Downloads/ignition-cicd"
+git status --short
+git fetch origin main
+test ! -e "$HOME/Downloads/ignition-eam-factory-a" || { echo "Worktree already exists"; exit 1; }
+git worktree add --detach "$HOME/Downloads/ignition-eam-factory-a" origin/main
+cd "$HOME/Downloads/ignition-eam-factory-a"
+python3 scripts/eam_multi_factory.py --validate
+python3 -m unittest discover -s tests -v
+```
+
+The dispatch job targets a **self-hosted Linux runner with label `ignition-lab`** and GitHub Environment `ignition-test`. The runner must have Docker access to the isolated TEST Controller and Agent. Do not run untrusted pull-request code on a runner with OT privileges.
+
+Configure the existing TEST environment as required by the workflow:
+
+| GitHub Environment setting | Use |
+| --- | --- |
+| Secret `IGNITION_GATEWAY_API_TOKEN` | Token for authenticated Controller project scan; TEST-only |
+| Variable `IGNITION_CONTROLLER_CA_FILE` | Trusted Controller CA certificate path on runner |
+| Variable `IGNITION_CONTROLLER_CONTAINER` | `ignition-eam-controller` |
+| Variable `IGNITION_BACKUP_DIR` | Existing writable backup directory **outside checkout** |
+| Variable `IGNITION_EAM_BRIDGE_COMMISSIONED` | Leave `NO` until native Controller automation bridge is verified |
+| Variables `IGNITION_FACTORY_B_CONTAINER`, `IGNITION_FACTORY_C_CONTAINER` | Only for future locally accessible TEST containers; **do not use these to claim remote VM deployment** |
+
+The existing Factory A Docker target is `ignition-eam-agent`. For a remote VM, the current `eam_multi_factory_deploy.py` implementation is still Docker-local; it requires an **actual remote Agent verification adapter** before it can verify Factory B.
+
+## 4. How to create an Ignition EAM Controller from scratch
+
+For an independent corporate Controller (not required on the already running lab):
+
+1. Provision a dedicated Linux/Windows server or protected VM; size CPU/RAM/disk based on deployment scale, backups, monitoring and official Ignition requirements.
+2. Install a compatible Ignition **8.3** Gateway from the official download; commission the Gateway, assign a **unique** name, configure admin authentication and TLS.
+3. In **Platform → System → Modules**, ensure **Enterprise Administration Module (EAM)** is installed and running; install it using the Gateway's supported module installation flow if missing.
+4. In **Network → Enterprise → Configure**, choose **Controller** and complete the wizard.
+5. Configure Gateway Network certificate trust, access policy, and limited incoming connections; prefer private WAN/VPN and isolated IT/OT routing.
+6. Configure Controller event database if using monitoring/events and an off-server backup strategy. Verify recovery procedures before production usage.
+7. Confirm the correct Controller URL and Gateway Network listener; web defaults: HTTP **8088**, HTTPS **8043**; Gateway Network default **8060**. Your Docker port mappings may differ.
+
+**Do not** copy the Controller Docker volume, identity, SSL keystores or production credentials to another Gateway.
+
+## 5. Install Factory B on a separate Ubuntu VM (real remote lab)
+
+**Example only:** `spark-9ffe` (Controller host) and a distinct Ubuntu VM (Factory B) on a private routed network.
+
+1. Create an Ubuntu 22.04/24.04 VM on KVM, VMware, VirtualBox or Proxmox. Example test allocation: **4 vCPU, 8 GB RAM, 40 GB disk** (planning suggestion, not official minimum). Choose a **private bridged/routed network**, not a public-facing bridge.
+2. Give Factory B a **unique IP/hostname** and record the actual addresses: `CONTROLLER_PRIVATE_IP`, `FACTORY_B_PRIVATE_IP`. `127.0.0.1` on the VM always means the VM itself.
+3. On the VM install the official Ignition 8.3 Linux distribution appropriate to its **CPU architecture** (x86_64 vs ARM64). Start the service, complete initial commissioning and name the Gateway `Factory-B-Gateway`.
+4. Open the VM's Gateway web interface on its private IP, e.g. `http://FACTORY_B_PRIVATE_IP:8088`, from an authorized admin computer. Install/verify **EAM module** in **Platform → System → Modules**.
+5. Back up Controller Gateway and Docker network configuration **before any port/firewall changes** on the existing host.
+6. On `spark-9ffe` check Controller Gateway Network port:
+   ```bash
+   docker port ignition-eam-controller
+   docker inspect ignition-eam-controller --format '{{.HostConfig.NetworkMode}}'
+   sudo ss -lnt | grep -E '8060|9188|9143' || true
+   ```
+   If `8060/tcp` is not reachable from the private VM, **stop here**. Existing Docker localhost-only web bindings do not expose it. Make a reviewed, backup-controlled change to the Docker Compose/network/firewall/VPN routing; do **not** recreate the running Controller or indiscriminately publish 8060 on the public Internet.
+7. Test the network from the VM using the **real private Controller hostname/IP**:
+   ```bash
+   # Execute on Factory B VM; replace hostname with the actual private address.
+   nc -vz CONTROLLER_PRIVATE_IP 8060
+   ```
+   TCP reachable does **not** prove Gateway Network trust or EAM connection.
+8. On **Factory B Gateway**, go to **Network → Gateway Network → Connections → Outgoing Connections**. Create an outgoing connection to `CONTROLLER_PRIVATE_IP:8060` with **Use SSL** enabled. Configure certificate trust / mutual authentication as required.
+9. On **Controller**, approve the matching incoming Gateway Network connection and certificates, following the site security policy. Both sides must show a healthy connection.
+10. On **Factory B Gateway**, go to **Network → Enterprise → Configure → Configure EAM**, select **Agent**, choose its existing connection to Controller, and finish. Approve/verify the Agent on Controller if required.
+11. In **Controller → Network → Enterprise → Agents**, verify **both** `EAM-Agent` (Factory A) and the actual registered Factory B Agent are CONNECTED. Record the exact Agent identity and update TEST registry/task configuration if it differs from `EAM-Factory-B`.
+
+**No GitHub runner is required inside the Factory B VM for EAM transfer.** Gateway Network provides transport. The CI workflow must still use a commissioned Controller bridge and a verification mechanism appropriate for the remote Agent.
+
+For scaled onboarding, review Ignition's official `init.properties` + `eam-install.properties` automated Agent installation procedure. Never duplicate an existing Gateway identity across sites.
+
+## 6. Critical Perspective project file layout
+
+Every native Perspective resource needs a `resource.json` describing its content files. We learned this during Factory A commissioning: EAM Send Project reported SUCCESS when `resource.json` was missing, but the Agent received only `project.json` and Perspective showed **View Not Found**.
+
+A working project includes:
+
+```text
+ignition-project/WarehouseHMI/
+  project.json
+  com.inductiveautomation.perspective/
+    page-config/
+      resource.json       # files: ["config.json"]
+      config.json         # / -> Main
+    views/Main/
+      resource.json       # files: ["view.json"]
+      view.json
+```
+
+CI validates the native descriptors for all three factory projects:
+
+```bash
+python3 scripts/eam_multi_factory.py --validate
+python3 scripts/validate.py ignition-project/WarehouseHMI
+python3 scripts/validate.py ignition-project/ConveyorHMI
+python3 scripts/validate.py ignition-project/PackagingHMI
+```
+
+## 7. End-to-end Factory A procedure — current tested route
+
+### A. Validate the release
+
+```bash
+gh workflow run ignition-eam-multi-factory.yml --repo tomha85/ignition-cicd --ref main -f action=validate -f factory=factory_a
+```
+
+A validation success only proves project/CI checks.
+
+### B. Stage Factory A on Controller — automated from GitHub
+
+```bash
+gh workflow run ignition-eam-multi-factory.yml --repo tomha85/ignition-cicd --ref main -f action=stage-controller -f factory=factory_a
+RUN_ID=$(gh run list --repo tomha85/ignition-cicd --workflow ignition-eam-multi-factory.yml --event workflow_dispatch --branch main --json databaseId --jq '.[0].databaseId')
+gh run watch "$RUN_ID" --repo tomha85/ignition-cicd --exit-status
+```
+
+This GitHub job runs on the trusted LAB runner. It backs up both local TEST Gateway **project trees**, stages `WarehouseHMI` on Controller and requests a Controller project scan. It does not initiate EAM Send Project or prove full Gateway backup/recovery.
+
+Check staged native resources:
+
+```bash
+docker exec ignition-eam-controller find /usr/local/bin/ignition/data/projects/WarehouseHMI -type f | sort
+```
+
+Verify the project appears in **Controller → Platform → System → Projects**.
+
+### C. Create the on-demand EAM task (once per project/target)
+
+On Controller open **Network → Enterprise → Agent Tasks → Create Agent Task**:
+
+| Step | Choose |
+| --- | --- |
+| Task type | **Send Project** |
+| Task Name | `CICD-SEND-WarehouseHMI-A` |
+| Schedule | **Execute On Demand** |
+| Target | **EAM-Agent** (the exact connected Agent identity) |
+| Source Gateway | **Local System** |
+| Source project | **WarehouseHMI** |
+| Max Concurrent Agents | **1** for this lab |
+
+Verify task appears in **Available**. On Demand means **it will never auto-run just because a project was staged**.
+
+### D. Execute EAM Send Project
+
+For the verified manual first test, use the EAM task's menu **Run/Execute Now** (label depends on installed UI), once. Observe **Running/Scheduled** and **History**. Require the correct task, Agent, timestamp and successful outcome.
+
+**Automated EAM triggering is not yet commissioned.** The separate `action=deploy-test` path is gated by `IGNITION_EAM_BRIDGE_COMMISSIONED`; setting that variable without installing/testing the native `controller/eam_multi_factory_gateway_timer.py` is prohibited. The native timer must be installed as a Controller-only Gateway script in an isolated management project and qualified; a GitHub validation run is not evidence of successful EAM task invocation.
+
+### E. Independently verify Agent resources and runtime
+
+```bash
+docker exec ignition-eam-agent find /usr/local/bin/ignition/data/projects/WarehouseHMI -type f | sort
+```
+
+Required: `project.json`, page `resource.json` + `config.json`, view `resource.json` + `view.json`.
+
+Open Factory A Perspective in a browser:
+
+`http://localhost:9288/data/perspective/client/WarehouseHMI`
+
+Expected: **HELLO FACTORY A**, **Factory A - Warehouse**, **SMOKE VERSION V1**. User reported this worked after adding the metadata descriptors. Actual browser rendering is a **separate gate** from EAM task SUCCESS.
+
+### F. Troubleshooting
+
+| Symptom | Cause to examine | Safe action |
+| --- | --- | --- |
+| Agent shows `TRIAL EXPIRED` | Unlicensed EAM trial | On Agent, reset trial in permitted lab or license properly; don't recreate Docker |
+| Controller shows 0/1 Connected | Gateway Network trust/offline/trial | Inspect Agent/Controller connection, cert and EAM status |
+| `WarehouseHMI` absent on Controller | Workflow only did `validate`, or source wasn't staged | Run `stage-controller`, check job log |
+| Git source missing `WarehouseHMI` | Local checkout on old branch | `git fetch` and use clean isolated worktree; preserve existing branch |
+| Task remains STOPPED/On Demand | Not triggered | Execute explicitly only after backup, staging and scan |
+| Task SUCCESS but View Not Found | Missing/invalid native resource metadata or runtime registration | Compare Controller and Agent resource files; ensure `resource.json`, re-stage and re-send after backups |
+| Controller and Agent files differ | Incorrect task/source/release, transfer or resource registration issue | HOLD; inspect task History and Gateway logs; don't copy files directly into Agent |
+| `deploy-test` HOLD | Controller bridge not commissioned or target mismatch | Do not bypass guard; commission and verify bridge |
+| Factory B VM cannot connect | 8060 not reachable or cert trust failed | Check private routing, Docker port binding, firewall and Gateway Network approvals |
+
+## 8. Real multi-factory operation
+
+1. Maintain a **Factory Registry** with customer, Gateway ID, project, approved task and permissions. The TEST mapping lives in `manifests/eam-multi-factory-lab.json`.
+2. For each release: PR → deterministic CI → isolated TEST deployment → simulation/FAT → engineer approval → Controller stage → EAM Send Project → independent Agent verification → immutable evidence.
+3. Back up the actual affected Agent and Controller before changes. For production, include **EAM Collect Backup / full Gateway backup** and verify restore procedures; these are distinct from the lab's `projects.tar`.
+4. Do not confuse Agent task SUCCESS with a fully working HMI. Check native resources, running Perspective pages, required project dependencies, database/Tag Providers and physical PLC mappings separately.
+5. Deploy by authorized factory/target; never select all Agents by default. Serialize updates to the same Controller project/Agent; schedule batches and pause on unexplained failures.
+6. If WAN is unavailable, local factory HMI should continue operating independently; mark deployment HOLD and revalidate before retrying.
+7. Use separate Controller/security domain per independent customer where appropriate. EAM is privileged infrastructure and must not bypass plant OT change controls.
+
+## 9. Known limitations / accurate qualification
+
+- **Validated in the lab:** Factory A Gateway Network CONNECTED, Controller staging from GitHub, manual EAM Send Project, and user-confirmed Perspective rendering of `WarehouseHMI` after fixing native resource metadata.
+- **Not yet demonstrated:** automated native timer-driven EAM dispatch end-to-end; Factory B VM remote Gateway Network connectivity and deployment; production release, full rollback and field PLC mapping validation.
+- **Workflow scope:** only Factory A `stage-controller` is enabled. Factory B/C project sources are valid but their multi-factory remote deployment paths are **not** commissioned.
+- **Never promote based on simulation alone.** Verify physical signal mappings, security, engineer approval, backups, recovery and live site behavior before production.
+
+## Official references
+
+- [Ignition 8.3 installation](https://www.docs.inductiveautomation.com/docs/8.3/getting-started/startup-guide/downloading-and-installing-ignition)
+- [Gateway Network / TLS / port 8060](https://www.docs.inductiveautomation.com/docs/8.3/platform/gateway-network)
+- [EAM Controller and Agent](https://www.docs.inductiveautomation.com/docs/8.3/ignition-modules/enterprise-administration)
+- [Adding EAM Agent](https://www.docs.inductiveautomation.com/docs/8.3/ignition-modules/enterprise-administration/adding-an-agent)
+- [EAM Send Project](https://www.docs.inductiveautomation.com/docs/8.3/ignition-modules/enterprise-administration/agent-tasks/send-project)
+- [Automated Agent installation](https://www.docs.inductiveautomation.com/docs/8.3/ignition-modules/enterprise-administration/agent-management/automated-agent-installation)

@@ -7,11 +7,11 @@ New workflow: `ignition-eam-multi-factory.yml`.
 
 | TEST factory | GitHub source | required EAM Agent | Send Project task | runner-side TEST container |
 | --- | --- | --- | --- | --- |
-| factory_a | ignition-project/WarehouseHMI | EAM-Factory-A | CICD-SEND-WarehouseHMI-A | ignition-eam-agent |
+| factory_a | ignition-project/WarehouseHMI | EAM-Agent | CICD-SEND-WarehouseHMI-A | ignition-eam-agent |
 | factory_b | ignition-project/ConveyorHMI | EAM-Factory-B | CICD-SEND-ConveyorHMI-B | ignition-factory-b-test |
 | factory_c | ignition-project/PackagingHMI | EAM-Factory-C | CICD-SEND-PackagingHMI-C | ignition-factory-c-test |
 
-Agent names above are **planned EAM identifiers**; Factory A Docker target is the existing healthy test container. Other Docker container names above are **planned test targets**, not evidence that the containers or Gateway Network connections exist.
+Factory A EAM identity is the actual registered **EAM-Agent**; its Docker target is the existing healthy test container. Other Docker container names above are **planned test targets**, not evidence that the containers or Gateway Network connections exist.
 
 ## Validate (works without a live EAM Controller)
 
