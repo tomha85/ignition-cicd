@@ -42,7 +42,7 @@
           "name": "BuildVersion"
         },
         "props": {
-          "text": "SMOKE VERSION V1",
+          "text": "SMOKE VERSION V2",
           "style": {
             "fontSize": "24px",
             "color": "#176e49",
