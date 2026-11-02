@@ -1,5 +1,11 @@
 # Ignition 8.3 — GitHub CI/CD and Multi-Factory EAM TEST Lab
 
+> **New to this repository?** [View the three-factory showcase](docs/THREE_FACTORY_SHOWCASE.md) with a real folder tree, exact project names and test commands.
+>
+> **A Warehouse** (1 Gateway / 2 projects) · **B Assembly** (2 Gateways) · **C Packaging** (1 Gateway / 1 demo project).
+> Source validation and release ZIP work for all three; only Factory A has a tested TEST Controller staging path.
+
+
 > V2 architecture candidate on feature branch: see docs/ARCHITECTURE_V2.md,
 > docs/ADD_FACTORY.md and docs/DEPLOYMENT_GUIDE_V2.md.
 > The LAB README below remains the legacy system reference; Agent/production deployment is HOLD.
@@ -16,9 +22,9 @@ The requested standard directory families are now present:
 - `tests/{unit,integration,gateway,fat}/`
 - `examples/{simple-factory,complex-factory}/` and lowercase `docs/` runbooks
 
-The existing **qualified** factory IDs are `lab-warehouse` (Factory A) and
-`lab-assembly` (Factory B); these are real registry identifiers, not arbitrary
-aliases for `factory-a` and `factory-b`. Do not rename targets without a
+Three examples are registered as `lab-warehouse` (Factory A), `lab-assembly`
+(Factory B) and `lab-packaging` (Factory C). These IDs are stable examples;
+Factory B/C are **validation/build-only**, not commissioned release targets. Do not rename targets without a
 separate tested migration. Legacy workflows and source mirrors remain available
 to avoid breaking current DEV/TEST operations.
 

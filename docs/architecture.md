@@ -31,12 +31,20 @@ ignition-cicd/
 │       ├── gateways/
 │       ├── environments/
 │       └── tests/
+│   └── lab-packaging/    # Factory C, one Gateway, PackagingLineHMI
+│       ├── factory.json
+│       ├── projects/
+│       ├── gateways/
+│       ├── environments/
+│       └── tests/
 ├── shared/               # project-resources, templates, schemas
 ├── tests/                # unit, integration, gateway, fat
 ├── examples/             # simple-factory, complex-factory
 ├── docs/
 └── README.md
 ```
+
+See [the 3-factory showcase](THREE_FACTORY_SHOWCASE.md) for example projects, Gateway assignments and commands.
 
 The V3 interfaces in `framework/validation/` delegate to the
 previously regression-tested engine at `reusable_cicd/core.py` rather than

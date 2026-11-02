@@ -9,3 +9,6 @@ Start with a new private or internal factory identifier and one Gateway.
 6. Add a TEST target only after engineering commissioning and review.
 7. Run python framework/cli/check_repo.py and all Python regression tests.
 8. EAM Agent transfer remains HOLD until an approved adapter is qualified.
+
+
+Example: `factories/lab-packaging/` is a one-project source-only demonstration with deployment disabled.

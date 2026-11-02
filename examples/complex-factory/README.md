@@ -7,3 +7,6 @@ Project names may repeat ACROSS factories, but must be unique per Gateway.
 No verified PLC tag sources or EAM Agent commissioning are provided.
 Before real deployment, independently qualify EAM task/Agent selection,
 Gateway rollback, Perspective rendering, alarm behavior and physical signals.
+
+
+Example: `factories/lab-assembly/` has independent `assembly-main` and `utilities-main` Gateways.
