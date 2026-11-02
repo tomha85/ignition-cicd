@@ -1,4 +1,5 @@
 name: EAM TEST - OpenAPI and Controller Task Diagnostics
+# Read-only verification of configured Factory A task and task-trigger API contract.
 # Repeat read-only diagnostics: inspect documented EAM task POST schema.
 
 on:
