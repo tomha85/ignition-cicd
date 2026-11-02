@@ -83,6 +83,8 @@ def main():
     must(os.getenv("GITHUB_EVENT_NAME") in ("push", "workflow_dispatch"),
          "only explicit workflow dispatch or existing LAB smoke push allowed")
     must(os.getenv("GITHUB_SHA")==a.sha,"release SHA gate")
+    must(out("git", "rev-parse", "HEAD")==a.sha,
+         "checkout must be the exact reviewed release commit")
     # Even if someone misconfigures the GitHub Environment, Controller writes
     # require a real required-reviewer approval for this exact run and branch.
     approval = verify_github_approval(os.environ, os.getenv("GH_APPROVAL_READ_TOKEN"))
