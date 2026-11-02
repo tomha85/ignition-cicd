@@ -1,5 +1,10 @@
 # Ignition 8.3 — GitHub CI/CD and Multi-Factory EAM TEST Lab
 
+> V2 architecture candidate on feature branch: see docs/ARCHITECTURE_V2.md,
+> docs/ADD_FACTORY.md and docs/DEPLOYMENT_GUIDE_V2.md.
+> The LAB README below remains the legacy system reference; Agent/production deployment is HOLD.
+
+
 This repository demonstrates **native Ignition Perspective project delivery** using two separate workflows:
 
 1. **Existing Direct GitOps:** `.github/workflows/ignition-e2e.yml` — delivers `DeploymentSmokeTest` directly to the local isolated TEST Agent.
