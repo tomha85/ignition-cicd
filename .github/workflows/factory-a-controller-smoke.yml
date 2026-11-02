@@ -1,0 +1,67 @@
+name: Factory A Framework - TEST Controller Smoke
+
+on:
+  push:
+    branches:
+      - feat/reusable-multifactory-framework-v1
+    paths:
+      - .github/workflows/factory-a-controller-smoke.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate Factory A native project and regression tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate manifest, source and existing test suite
+        run: |
+          python -m compileall -q reusable_cicd scripts/factory_a_controller_smoke.py
+          python scripts/reusable_factory.py --check-catalog
+          python scripts/factory_a_controller_smoke.py --validate-only --sha "$GITHUB_SHA"
+          python -m unittest discover -s tests -v
+
+  stage-controller:
+    name: Backup, stage FactoryASmoke on local TEST Controller and scan
+    needs: validate
+    if: >-
+      github.event_name == 'push' &&
+      github.repository == 'tomha85/ignition-cicd' &&
+      github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1'
+    runs-on: [self-hosted, linux, ignition-lab]
+    environment: ignition-test
+    concurrency:
+      group: eam-lab-factory_a
+      cancel-in-progress: false
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Create-only LAB staging after backup and verify Controller scan
+        env:
+          FACTORY_A_SMOKE_CONFIRM: 'YES'
+          IGNITION_CONTROLLER_CONTAINER: 'ignition-eam-controller'
+          IGNITION_AGENT_CONTAINER: 'ignition-eam-agent'
+          IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR || '/home/tomha/ignition-eam-lab/backups' }}
+          IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
+          IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
+          no_proxy: 'localhost,127.0.0.1,::1'
+        run: |
+          python scripts/factory_a_controller_smoke.py --stage-controller --sha "$GITHUB_SHA"
+      - name: Upload LAB stage evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: factory-a-controller-smoke-evidence
+          path: evidence/factory-a-controller-smoke.json
+          if-no-files-found: warn
