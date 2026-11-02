@@ -35,13 +35,22 @@ def validate_registry():
         paths = (
             "project.json",
             "com.inductiveautomation.perspective/page-config/config.json",
+            "com.inductiveautomation.perspective/page-config/resource.json",
             "com.inductiveautomation.perspective/views/Main/view.json",
+            "com.inductiveautomation.perspective/views/Main/resource.json",
         )
         if not all((base / item).is_file() for item in paths):
             raise RuntimeError("HOLD: missing native Ignition project resource: " + project)
         if any(p.is_symlink() for p in base.rglob("*")):
             raise RuntimeError("HOLD: symlinked project resources")
-        data = json.loads((base / paths[-1]).read_text())
+        for metadata, filename in (
+            ("com.inductiveautomation.perspective/page-config/resource.json", "config.json"),
+            ("com.inductiveautomation.perspective/views/Main/resource.json", "view.json"),
+        ):
+            descriptor = json.loads((base / metadata).read_text())
+            if descriptor.get("files") != [filename] or descriptor.get("scope") != "G":
+                raise RuntimeError("HOLD: bad native resource descriptor " + metadata)
+        data = json.loads((base / "com.inductiveautomation.perspective/views/Main/view.json").read_text())
         labels = [x.get("props", {}).get("text") for x in data["root"]["children"]]
         if not any(factory.replace("_", " ").upper() in str(x).upper() for x in labels):
             raise RuntimeError("HOLD: project factory identifier mismatch")
