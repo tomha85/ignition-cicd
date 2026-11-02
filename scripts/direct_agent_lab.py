@@ -189,7 +189,15 @@ def browser_version(expected):
                 "title": driver.title[:150],
                 "body_contains_expected": expected in driver.find_element(By.TAG_NAME, "body").text,
                 "login_page_detected": "login" in current.path.lower(),
+                "body_text_length": len(driver.find_element(By.TAG_NAME, "body").text),
+                "visible_error_keywords": [
+                    term for term in ("project not found", "page not found",
+                                      "session expired", "gateway connection lost",
+                                      "not authorized", "missing", "error")
+                    if term in driver.find_element(By.TAG_NAME, "body").text.lower()
+                ],
             }
+            # No screenshot/page source is uploaded: those could contain sensitive data.
             raise RuntimeError("HOLD: Perspective browser verification timeout: "
                                + json.dumps(diagnostic)) from exc
         return {"browser": browser, "verified_visible_text": expected,
