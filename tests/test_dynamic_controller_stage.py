@@ -119,6 +119,10 @@ class DynamicControllerStageTests(unittest.TestCase):
         self.assertIn("scripts/verify_stage_approval.py", wf)
         self.assertIn("scripts/manual_factory_dispatch.py", wf)
         self.assertNotIn("FACTORY_A_SMOKE_CONFIRM", wf)
+        self.assertIn("needs.validate.outputs.controller_id", wf)
+        self.assertIn("needs.validate.outputs.agent_id", wf)
+        self.assertNotIn("IGNITION_CONTROLLER_CONTAINER: 'ignition-eam-controller'", wf)
+        self.assertNotIn("IGNITION_AGENT_CONTAINER: 'ignition-eam-agent'", wf)
         self.assertNotIn("options: [FactoryASmoke", wf)
 
 if __name__ == "__main__":
