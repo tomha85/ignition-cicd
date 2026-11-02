@@ -64,6 +64,7 @@ class ApprovalVerificationTests(unittest.TestCase):
         from pathlib import Path
         source = Path("scripts/factory_a_controller_smoke.py").read_text()
         self.assertIn("verify_github_approval(os.environ", source)
+        self.assertIn('out("git", "rev-parse", "HEAD")==a.sha', source)
         self.assertLess(source.index("verify_github_approval(os.environ"),
                         source.index('backup.mkdir(mode=0o700)'))
 
