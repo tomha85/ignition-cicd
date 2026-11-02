@@ -1,5 +1,12 @@
 # Standard V3 TEST staging workflow
 
+**Mandatory reviewer gate:** [Configure GitHub Required reviewers, then
+Validate → Review deployments → Approve and deploy → Controller staging]
+(APPROVAL_WORKFLOW.md). **The existing `ignition-test` Environment must
+require `tomha85` review in GitHub Settings.** YAML cannot configure reviewers.
+The Controller stage script independently verifies the current-run review and
+refuses any writes until approved.
+
 The standard source layout has four workflow entrypoints:
 `validate.yml` (read-only source/manifest checks), `build-release.yml`
 (reproducible native project ZIP + immutable source SHA), `deploy-test.yml`
