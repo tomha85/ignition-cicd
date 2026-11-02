@@ -54,6 +54,7 @@ class FactoryProjectTests(unittest.TestCase):
         self.assertIn("workflow_dispatch:",header)
         self.assertIn("      factory:",header)
         self.assertIn("      project:",header)
+        self.assertIn("options: [FactoryASmoke, WarehouseHMI, ConveyorHMI, PackagingHMI, PackagingLineHMI]",header)
         self.assertNotIn("      action:",header)
         self.assertNotIn("      gateway_id:",header)
         jobs=re.findall(r"^  ([a-z][a-z0-9-]*):$",text.split("jobs:",1)[1],re.M)
