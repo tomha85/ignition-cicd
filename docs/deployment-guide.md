@@ -33,10 +33,26 @@ Open GitHub Actions → **Ignition EAM - Select Factory & Project (TEST)** →
 - **Project:** exact native project declared in that factory's `factory.json`
   (e.g. `WarehouseHMI` or `FactoryASmoke`).
 
-These two fields accept text rather than a fixed list because GitHub's native
-`workflow_dispatch` form cannot dynamically populate dependent dropdowns.
-New factories/projects require reviewed manifests and target onboarding, not
-another YAML options update.
+**Both fields are native GitHub Actions dropdowns (choice)**, restored
+for operator convenience. Their lists are generated from the registered
+`factories/*/factory.json` manifests using:
+
+```bash
+python scripts/sync_workflow_choices.py
+python scripts/sync_workflow_choices.py --check
+```
+
+When onboarding a factory or project, run the generator and commit the generated
+workflow YAML in the same PR. The validation job checks for catalog/UI drift
+and fails rather than hiding new projects. No new factory/project names should
+be manually coded into the deploy engine or workflow list.
+
+GitHub's native workflow_dispatch does **not support dependent choice inputs**:
+the Project dropdown shows the union of registered project names across all
+factories. Validate rejects projects that do not belong to the selected
+Factory, or have ambiguous Gateway mappings. The operator still supplies only
+Factory + Project. A truly cascading, live-filtered form would require a
+separate web UI or app; it is not provided by native GitHub Actions.
 
 `Action` and `Gateway ID` are **not** user inputs. The Validate job
 consults the selected factory's `factory.json`, deterministically resolves

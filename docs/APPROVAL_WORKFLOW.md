@@ -33,8 +33,12 @@ Run workflow / push Factory A source
 
 The first job `Validate` runs automatically.
 The standard manual workflow runs from `main` with exactly two inputs:
-Factory and Project. The Factory and Project text fields are validated from factory.json;
-validation confirms that the selected project actually belongs to the factory.
+Factory and Project. Both are restored **native GitHub choice dropdowns**
+generated from `factory.json`. The Project dropdown includes all registered
+projects (not a factory-specific cascading list); the Validate job confirms
+that the selected project belongs to the factory. When onboarding new
+factories or projects, run `python scripts/sync_workflow_choices.py` and
+commit the generated list; CI detects stale choices.
 The second `Stage` declares `needs: validate` and
 `environment: ignition-test`.
 
