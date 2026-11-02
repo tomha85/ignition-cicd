@@ -1,0 +1,67 @@
+{
+  "custom": {},
+  "params": {},
+  "props": {
+    "defaultSize": {
+      "width": 760,
+      "height": 420
+    }
+  },
+  "root": {
+    "type": "ia.container.flex",
+    "meta": {
+      "name": "root"
+    },
+    "props": {
+      "direction": "column",
+      "justify": "center",
+      "alignItems": "center",
+      "style": {
+        "backgroundColor": "#f4f7fb",
+        "padding": 25
+      }
+    },
+    "children": [
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "Title"
+        },
+        "props": {
+          "text": "FACTORY A - NEW FRAMEWORK",
+          "style": {
+            "fontSize": "36px",
+            "color": "#142D54"
+          }
+        }
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "BuildVersion"
+        },
+        "props": {
+          "text": "FACTORY A SMOKE V1",
+          "style": {
+            "fontSize": "24px",
+            "marginTop": 20,
+            "color": "#176e49"
+          }
+        }
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "Safety"
+        },
+        "props": {
+          "text": "ISOLATED TEST ONLY - NO PLC CONNECTION",
+          "style": {
+            "fontSize": "17px",
+            "marginTop": 20
+          }
+        }
+      }
+    ]
+  }
+}

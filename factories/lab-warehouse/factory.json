@@ -9,6 +9,10 @@
         {
           "name": "WarehouseHMI",
           "source": "projects/WarehouseHMI"
+        },
+        {
+          "name": "FactoryASmoke",
+          "source": "projects/FactoryASmoke"
         }
       ],
       "environments": {

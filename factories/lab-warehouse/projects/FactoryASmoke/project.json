@@ -1,0 +1,6 @@
+{
+  "title": "FactoryASmoke",
+  "description": "Controller-only native Factory A smoke test; no PLC connections",
+  "enabled": true,
+  "inheritable": false
+}
