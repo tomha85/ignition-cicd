@@ -1,0 +1,6 @@
+{
+  "title": "WarehouseHMI",
+  "description": "Isolated TEST-only Factory A - Warehouse; no PLC connections",
+  "enabled": true,
+  "inheritable": false
+}
