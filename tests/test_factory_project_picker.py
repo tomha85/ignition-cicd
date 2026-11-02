@@ -83,7 +83,12 @@ class FactoryProjectTests(unittest.TestCase):
                     cwd=ROOT,text=True,capture_output=True,timeout=30)
                 self.assertEqual(cp.returncode,0,cp.stderr)
                 values=dict(x.split("=",1) for x in out.read_text().splitlines())
-                self.assertEqual(values,{"gateway_id":gw,"stage_eligible":eligible})
+                self.assertEqual(values["gateway_id"], gw)
+                self.assertEqual(values["stage_eligible"], eligible)
+                self.assertEqual(values["controller_id"],
+                                 "ignition-eam-controller" if eligible == "true" else "")
+                self.assertEqual(values["agent_id"],
+                                 "ignition-eam-agent" if eligible == "true" else "")
 
     def test_cli_ambiguous_mapping_cannot_emit_gateway(self):
         with tempfile.TemporaryDirectory() as d:
