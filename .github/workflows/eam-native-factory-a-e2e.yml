@@ -1,0 +1,65 @@
+name: EAM Factory A - Native TEST Send Project E2E
+
+on:
+  push:
+    branches:
+      - feat/reusable-multifactory-framework-v1
+    paths:
+      - .github/workflows/eam-native-factory-a-e2e.yml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Qualify source, EAM safety and regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Source integrity and deterministic regression suite
+        run: |
+          python -m compileall -q framework reusable_cicd scripts tests
+          python -m unittest discover -s tests -v
+          python framework/cli/check_repo.py
+
+  test-eam-agent:
+    name: Backup TEST Gateways, native OnDemand EAM Send Project and verify Agent
+    needs: validate
+    if: github.repository == 'tomha85/ignition-cicd' && github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1'
+    runs-on: [self-hosted, linux, ignition-lab]
+    environment: ignition-test
+    timeout-minutes: 15
+    concurrency:
+      group: eam-lab-factory_a
+      cancel-in-progress: false
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Take full Gateway backups BEFORE creating TEST task; execute only approved Agent
+        env:
+          EAM_NATIVE_FACTORY_A_SMOKE_CONFIRM: YES_FACTORY_A_TEST_ONLY
+          IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR || '/home/tomha/ignition-eam-lab/backups' }}
+          IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
+          IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
+          no_proxy: 'localhost,127.0.0.1,::1'
+        run: |
+          python scripts/eam_native_factory_a_send.py "$GITHUB_SHA"
+      - name: Upload TEST EAM Agent evidence, including HOLD reason
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eam-factory-a-native-send-evidence
+          path: evidence/eam-factory-a-native-send-project.json
+          if-no-files-found: warn
