@@ -29,25 +29,19 @@ Run workflow / push Factory A source
                         Upload evidence
 ```
 
-## Native waiting vs first-time setup
+## Exactly two GitHub jobs
 
-**When the reviewer protection is configured:** Validate PASS → reviewer-readiness
-PASS → GitHub marks the `ignition-test` stage job **Waiting** and shows
-**Review deployments**. Nothing starts on the self-hosted runner while waiting.
-Click **Approve and deploy** to release staging automatically.
+The first job `Validate` runs automatically. The second `Stage` declares
+`needs: validate` and `environment: ignition-test`.
 
-**Before the reviewer protection is configured:** Validate PASS →
-reviewer-readiness completes successfully with
-`APPROVAL_SETUP_REQUIRED_STAGE_SKIPPED` → stage job is **Skipped**.
-The workflow does not crash and does not deploy. Its summary and
-`ignition-test-review-readiness.json` artifact explain what setting is missing.
-A YAML file alone cannot cause GitHub's native Waiting state.
+GitHub's native Required reviewer protection makes **Stage WAIT** until
+`tomha85` chooses **Review deployments → Approve and deploy**. The workflow
+has no reviewer-readiness job and no approval polling loop. The internal
+current-run approval check runs only *after* GitHub releases the Stage job.
+It does not create a separate block.
 
-**Important:** GitHub's `environment:` YAML field does **not** set up approval by itself.
-The repository administrator must configure the existing `ignition-test`
-GitHub Environment with a Required reviewer. We cannot do this from a source commit.
-The Controller staging script also checks the actual GitHub run's approval history
-and **fails closed** if nobody approved it, even when the Environment is unprotected.
+The environment must keep Required reviewer `tomha85` enabled. Native
+Waiting depends on that GitHub setting, not on a YAML step.
 
 ## One-time setup in GitHub UI — REQUIRED
 
@@ -87,7 +81,7 @@ Use the existing GitHub workflow registered in the repository:
     `evidence/factory-a-controller-smoke.json` artifacts.
 
 The push-triggered **Factory A Framework - TEST Controller Smoke** workflow
-uses the same approval control and read-only reviewer-readiness preflight. A new push that matches its workflow path will
+uses the same approval control. A new push that matches its workflow path will
 also require approval after validation.
 
 ## Security properties
@@ -114,10 +108,7 @@ also require approval after validation.
 **Validation FAIL:** No approval is requested because staging depends on
 successful validation.
 
-**Validation PASS, stage Skipped:** The preflight could not confirm
-the required reviewer `tomha85` in the `ignition-test` Environment.
-Open the run summary and the `approval-readiness` artifact. Enable the
-required reviewer, then launch a **new run**.
+**Validate PASS but Stage does not wait:** Check `ignition-test` Required reviewers are still configured for `tomha85` and start a new run.
 
 **Stage unexpectedly starts and fails with HOLD_NO_APPROVAL:** A GitHub
 environment rule may have been changed between readiness and staging, the

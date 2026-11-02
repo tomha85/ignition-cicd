@@ -11,18 +11,19 @@
 > The LAB README below remains the legacy system reference; Agent/production deployment is HOLD.
 
 
-## New: Owner approval required before TEST Controller staging
+## Native GitHub approval — two-job flow
 
-After **Validate PASS**, the staging job requires approval by GitHub user
-`tomha85` through the protected `ignition-test` Environment. It will check
-the actual current-run approval using GitHub's API and will **HOLD without
-touching the Controller** when the approval is missing. To see the **Review
-deployments → Approve and deploy** button, an administrator must first enable
-**Required reviewers: tomha85** under **Settings → Environments →
-ignition-test**, with **Prevent self-review OFF** if you approve your own run.
+The Factory A workflow shows **only two jobs**: `Validate Factory A` and
+`Stage FactoryASmoke on EAM TEST Controller`.
 
-Read **[GitHub approval setup & walkthrough](docs/APPROVAL_WORKFLOW.md)**.
-EAM Agent tasks remain manual; Factory B/C remain validate/build-only.
+After validation succeeds, GitHub holds the Stage job in **Waiting**, because
+the `ignition-test` Environment has Required reviewer `tomha85`.
+Choose **Review deployments → Approve and deploy** to start Stage. The stage
+job backs up LAB project directories, stages the project, checks SHA-256 and
+scans the TEST Controller. A current-run approval check remains **inside**
+Stage as a safety control, not as an extra visible job. Agent tasks are manual.
+
+See [approval instructions](docs/APPROVAL_WORKFLOW.md).
 
 ## Standard V3 source layout (feature branch only)
 

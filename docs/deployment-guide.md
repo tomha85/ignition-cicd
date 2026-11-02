@@ -1,5 +1,14 @@
 # Standard V3 TEST staging workflow
 
+## Native approval with only two jobs
+
+Factory A smoke runs **Validate** followed by **Stage**. Stage has a GitHub
+`ignition-test` protected Environment; it **WAITs for tomha85's approval**.
+Click **Review deployments → Approve and deploy** to start the existing
+backup, Controller-stage and verification steps. No separate reviewer-check
+job appears.
+
+
 **Mandatory reviewer gate:** [Configure GitHub Required reviewers, then
 Validate → Review deployments → Approve and deploy → Controller staging]
 (APPROVAL_WORKFLOW.md). **The existing `ignition-test` Environment must
