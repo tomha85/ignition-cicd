@@ -93,6 +93,58 @@ def inspect_openapi(result, token, ca):
     for path, methods in spec["paths"].items():
         if re.search("agent.task|eam.*task",path,re.I) and "{" not in path and isinstance(methods,dict) and "get" in methods:
             read_routes.append(path)
+
+    # Parse only public API schema metadata (no task payloads, credentials or OT addresses).
+    goal="/data/api/v1/resources/com.inductiveautomation.eam/eam-tasks"
+    op=spec["paths"].get(goal,{}) if isinstance(spec["paths"].get(goal),dict) else {}
+    if isinstance(op.get("post"),dict):
+        post=op["post"]
+        body=post.get("requestBody",{})
+        content=body.get("content",{}) if isinstance(body,dict) else {}
+        schemas={mime: value.get("schema",{}) for mime,value in content.items()
+                 if isinstance(value,dict)}
+        result["openapi"]["create_task_contract"]={
+            "route":goal,"requestBody_required":body.get("required",False) if isinstance(body,dict) else False,
+            "content_types":list(content),
+            "request_schemas":schemas,
+            "parameters":[{"name":p.get("name"),"in":p.get("in")}
+                          for p in post.get("parameters",[]) if isinstance(p,dict)]}
+    target_components=spec.get("components",{}).get("schemas",{})
+    def expand_refs(value,depth=0,seen=None):
+        seen=set() if seen is None else seen
+        if depth>4:return {"limit":"MAX_DEPTH"}
+        if isinstance(value,list):
+            return [expand_refs(v,depth+1,seen) for v in value[:12]]
+        if not isinstance(value,dict):return value
+        if "$ref" in value:
+            ref=value["$ref"]
+            key=ref.rsplit("/",1)[-1]
+            if key in seen:return {"$ref":ref,"recursive":True}
+            if key in target_components:
+                return {"$ref":ref,"definition":expand_refs(target_components[key],depth+1,seen|{key})}
+        return {key:expand_refs(v,depth+1,seen)
+                for key,v in value.items() if key not in ("example","examples","description","default","externalDocs")}
+    if "create_task_contract" in result["openapi"]:
+        c=result["openapi"]["create_task_contract"]
+        c["request_schemas_expanded"]={k:expand_refs(v) for k,v in c["request_schemas"].items()}
+    # Direct documented read for registered EAM task names (do not expose all names).
+    task_names="/data/api/v1/resources/names/com.inductiveautomation.eam/eam-tasks"
+    req=urllib.request.Request("https://localhost:9143"+task_names,
+               headers={"X-Ignition-API-Token":token,"Accept":"application/json"})
+    try:
+        with urllib.request.urlopen(req,context=ctx,timeout=15) as resp:
+            obj=json.load(resp)
+        txt=json.dumps(obj)
+        result["openapi"]["registered_task_summary"]={
+            "http":200,"body_type":type(obj).__name__,
+            "task_count":len(obj) if isinstance(obj,list) else None,
+            "smoke_task":"PRESENT" if "CICD-SEND-FactoryASmoke-A" in txt else "NOT_FOUND",
+            "legacy_task":"PRESENT" if "CICD-SEND-WarehouseHMI-A" in txt else "NOT_FOUND"}
+    except urllib.error.HTTPError as exc:
+        result["openapi"]["registered_task_summary"]={"http":exc.code}
+    except Exception as exc:
+        result["openapi"]["registered_task_summary"]={"error_type":type(exc).__name__}
+
     # GET only, only explicitly documented no-parameter EAM task routes.
     result["openapi"]["documented_task_read_routes"]=read_routes[:20]
     for path in read_routes[:5]:
