@@ -27,13 +27,11 @@ class DirectAgentCandidateTests(unittest.TestCase):
         code = (ROOT / "scripts/direct_agent_lab.py").read_text()
         self.assertLess(code.index("project_backups"), code.index('run("docker", "cp",'))
         self.assertIn("verify_full_gateway_backup()", code)
-        self.assertIn("browser_version(expected)", code)
-        self.assertIn("IGNITION_E2E_BROWSER", code)
-        self.assertIn("webdriver.Chrome", code)
-        self.assertIn("webdriver.Edge", code)
-        self.assertIn("webdriver.Firefox", code)
-        self.assertNotIn('shutil.which("firefox")', code)
-        self.assertIn("rollback_runtime", code)
+        self.assertIn("perspective_http_check()", code)
+        self.assertNotIn("selenium", code)
+        self.assertIn('report["deployment"] = "PASS"', code)
+        self.assertIn('report["e2e"] = "NOT_TESTED"', code)
+        self.assertIn("rollback", code)
         self.assertNotIn("HOLD: native Perspective runtime verification not qualified", code)
 
     def test_scan_wait_requires_new_completed_timestamp(self):
@@ -51,10 +49,8 @@ class DirectAgentCandidateTests(unittest.TestCase):
                 result = module.wait_scan("test", "masked", None, baseline_timestamp=100)
         self.assertEqual(result["lastScanTimestamp"], 101)
 
-    def test_rollback_hashes_and_browser_preflight_exist(self):
+    def test_rollback_hashes_and_scan_exist(self):
         code = (ROOT / "scripts/direct_agent_lab.py").read_text()
-        self.assertLess(code.index("browser_probe = make_browser()"),
-                        code.index('run("docker", "cp",'))
         self.assertIn("remote_hashes(files, dst) != old_hashes", code)
         self.assertIn("baseline_timestamp=initial_scan", code)
 
@@ -64,7 +60,7 @@ class DirectAgentCandidateTests(unittest.TestCase):
         self.assertIn("IGNITION_AGENT_API_TOKEN", wf)
         self.assertIn("ignition-test-direct-evidence", wf)
         self.assertIn("IGNITION_AGENT_GWBK", wf)
-        self.assertIn("IGNITION_E2E_BROWSER", wf)
+        self.assertNotIn("IGNITION_E2E_BROWSER", wf)
         self.assertIn("default: deploy-agent-direct", wf)
         self.assertIn("github.ref == 'refs/heads/main'", wf)
         self.assertNotIn("IGNITION_TEST_AUTO_DIRECT", wf)
