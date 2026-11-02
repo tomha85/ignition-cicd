@@ -45,8 +45,8 @@ class ManualFactoryDispatchTests(unittest.TestCase):
 
     def test_stage_allowlist(self):
         authorize_stage("lab-warehouse", "warehouse-main", "FactoryASmoke")
-        for args in (("lab-warehouse","warehouse-main","WarehouseHMI"),
-                     ("lab-assembly","assembly-main","ConveyorHMI"),
+        authorize_stage("lab-warehouse", "warehouse-main", "WarehouseHMI")
+        for args in (("lab-assembly","assembly-main","ConveyorHMI"),
                      ("lab-assembly","utilities-main","PackagingHMI"),
                      ("lab-packaging","packaging-main","PackagingLineHMI")):
             with self.subTest(args=args), self.assertRaisesRegex(FrameworkError,"VALIDATE ONLY"):

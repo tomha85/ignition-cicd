@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 from reusable_cicd.core import FrameworkError
 from framework.deployment.planner import resolve_project_gateway
-from scripts.manual_factory_dispatch import APPROVED_STAGE, authorize_stage, select
+from scripts.manual_factory_dispatch import authorize_stage, select
 
 ROOT=Path(__file__).resolve().parents[1]
 SHA="a"*40
@@ -41,10 +41,11 @@ class FactoryProjectTests(unittest.TestCase):
                     resolve_project_gateway(ROOT,factory,project)
 
     def test_only_commissioned_source_can_stage(self):
-        self.assertEqual(APPROVED_STAGE,("lab-warehouse","warehouse-main","FactoryASmoke"))
+        for project in ("FactoryASmoke", "WarehouseHMI"):
+            target = authorize_stage("lab-warehouse", "warehouse-main", project)
+            self.assertEqual(target["project_scope"], "all_manifest_projects")
         for f,p in (("lab-assembly","ConveyorHMI"),
-                    ("lab-packaging","PackagingLineHMI"),
-                    ("lab-warehouse","WarehouseHMI")):
+                    ("lab-packaging","PackagingLineHMI")):
             with self.assertRaisesRegex(FrameworkError,"VALIDATE ONLY"):
                 authorize_stage(f,resolve_project_gateway(ROOT,f,p),p)
 
@@ -54,7 +55,8 @@ class FactoryProjectTests(unittest.TestCase):
         self.assertIn("workflow_dispatch:",header)
         self.assertIn("      factory:",header)
         self.assertIn("      project:",header)
-        self.assertIn("options: [FactoryASmoke, WarehouseHMI, ConveyorHMI, PackagingHMI, PackagingLineHMI]",header)
+        self.assertNotIn("options:", header)
+        self.assertEqual(header.count("        type: string"), 2)
         self.assertNotIn("      action:",header)
         self.assertNotIn("      gateway_id:",header)
         jobs=re.findall(r"^  ([a-z][a-z0-9-]*):$",text.split("jobs:",1)[1],re.M)
@@ -68,6 +70,7 @@ class FactoryProjectTests(unittest.TestCase):
 
     def test_cli_emits_verified_gateway_and_stage_eligibility(self):
         cases=(("lab-warehouse","FactoryASmoke","warehouse-main","true"),
+               ("lab-warehouse","WarehouseHMI","warehouse-main","true"),
                ("lab-assembly","ConveyorHMI","assembly-main","false"),
                ("lab-packaging","PackagingLineHMI","packaging-main","false"))
         with tempfile.TemporaryDirectory() as temp:
@@ -80,7 +83,12 @@ class FactoryProjectTests(unittest.TestCase):
                     cwd=ROOT,text=True,capture_output=True,timeout=30)
                 self.assertEqual(cp.returncode,0,cp.stderr)
                 values=dict(x.split("=",1) for x in out.read_text().splitlines())
-                self.assertEqual(values,{"gateway_id":gw,"stage_eligible":eligible})
+                self.assertEqual(values["gateway_id"], gw)
+                self.assertEqual(values["stage_eligible"], eligible)
+                self.assertEqual(values["controller_id"],
+                                 "ignition-eam-controller" if eligible == "true" else "")
+                self.assertEqual(values["agent_id"],
+                                 "ignition-eam-agent" if eligible == "true" else "")
 
     def test_cli_ambiguous_mapping_cannot_emit_gateway(self):
         with tempfile.TemporaryDirectory() as d:

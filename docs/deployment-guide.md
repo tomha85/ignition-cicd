@@ -29,8 +29,14 @@ Existing prior workflows remain for backward compatibility.
 Open GitHub Actions → **Ignition EAM - Select Factory & Project (TEST)** →
 **Run workflow**, branch `main`. Choose:
 
-- **Factory:** `lab-warehouse`, `lab-assembly`, or `lab-packaging`.
-- **Project:** exact registered Ignition project name (e.g. `FactoryASmoke`).
+- **Factory:** ID of a folder under `factories/` (e.g. `lab-warehouse`).
+- **Project:** exact native project declared in that factory's `factory.json`
+  (e.g. `WarehouseHMI` or `FactoryASmoke`).
+
+These two fields accept text rather than a fixed list because GitHub's native
+`workflow_dispatch` form cannot dynamically populate dependent dropdowns.
+New factories/projects require reviewed manifests and target onboarding, not
+another YAML options update.
 
 `Action` and `Gateway ID` are **not** user inputs. The Validate job
 consults the selected factory's `factory.json`, deterministically resolves
@@ -41,14 +47,23 @@ For example, Factory A `FactoryASmoke` resolves to `warehouse-main`.
 `assembly-main` and `utilities-main`. This must fail with
 `AMBIGUOUS_GATEWAY`. No Gateway is invented or chosen by position.
 
-Exactly **two GitHub jobs** appear: Validate → Stage. For the sole
-commissioned TEST source `lab-warehouse/FactoryASmoke`, Stage uses the
-protected `ignition-test` Environment to **WAIT** for `tomha85` review.
-After **Approve and deploy**, Stage verifies the reviewed commit,
-backs up the Controller and Agent project directories, stages native
-Ignition resources on the isolated Controller, and checks hashes + scan.
-Factory B/C, or the uncommissioned `WarehouseHMI`, validate but Stage
-is **Skipped**. No EAM Agent task runs and production stays HOLD.
+Exactly **two GitHub jobs** appear: Validate → Stage. The release planner
+checks the selected project under its uniquely resolved Gateway. It then reads
+`targets/lab-targets.json` for a **commissioned isolated TEST Controller**
+with `controller_stage_approved=true` and
+`project_scope=all_manifest_projects`. This authorizes every native project
+on that verified Gateway, **not one hardcoded project name**.
+
+Currently the reviewed local `lab-warehouse/warehouse-main` target permits
+**both `WarehouseHMI` and `FactoryASmoke`** to stage after
+`ignition-test` Required Reviewer approval. All other Gateways remain
+**validate-only** until their real TEST Controller/Agent, HTTPS scan endpoint,
+backup location and isolation are commissioned in the target registry.
+
+After **Approve and deploy**, Stage revalidates the manifest and target,
+verifies the exact Git commit, archives Controller + Agent project directories,
+compares source files, stages on the isolated Controller and scans via HTTPS.
+No EAM Agent task runs, no real PLC mapping is proven, and production remains HOLD.
 
 The legacy `deploy-test.yml` and `reusable-deploy.yml` remain callable
 for existing integrations but are not additional boxes in this manual UI.
@@ -56,7 +71,7 @@ for existing integrations but are not additional boxes in this manual UI.
 ## Status
 
 The underlying Factory A stage adapter passed a real update in GitHub run
-41504512471. The V3 manual nested-call path must be verified by an actual
-`workflow_dispatch` run before declaring that route fully proven.
+41504512471. The new generic Controller stage adapter requires a fresh GitHub-approved
+`workflow_dispatch` test before claiming full end-to-end deployment PASS.
 
 Production HOLD. Test Gateway real PLC/OPC UA/FAT separately.

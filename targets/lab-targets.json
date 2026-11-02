@@ -8,10 +8,11 @@
       "environment": "test",
       "controller_id": "ignition-eam-controller",
       "agent_id": "ignition-eam-agent",
-      "approved_project": "FactoryASmoke",
       "controller_stage_approved": true,
       "eam_send_commissioned": false,
-      "production_approved": false
+      "production_approved": false,
+      "project_scope": "all_manifest_projects",
+      "controller_scan_url": "https://localhost:9143/data/api/v1/scan/projects"
     },
     {
       "target_id": "lab-assembly-main-test-agent",
@@ -20,7 +21,6 @@
       "environment": "test",
       "controller_id": null,
       "agent_id": null,
-      "approved_project": null,
       "controller_stage_approved": false,
       "eam_send_commissioned": false,
       "production_approved": false
@@ -32,7 +32,6 @@
       "environment": "test",
       "controller_id": null,
       "agent_id": null,
-      "approved_project": null,
       "controller_stage_approved": false,
       "eam_send_commissioned": false,
       "production_approved": false
@@ -44,7 +43,6 @@
       "environment": "test",
       "controller_id": null,
       "agent_id": null,
-      "approved_project": null,
       "controller_stage_approved": false,
       "eam_send_commissioned": false,
       "production_approved": false

@@ -53,18 +53,22 @@ Source Release` generates a native project ZIP, pinned commit and SHA-256
 manifest. This is NOT a Gateway or Agent deployment.
 
 **Manual TEST Controller stage:** open **Ignition EAM - Select Factory &
-Project (TEST)** on branch `main`. Choose only **Factory** and **Project**
-(e.g. `lab-warehouse` / `FactoryASmoke`). The deterministic engine reads
+Project (TEST)** on branch `main`. Enter only **Factory** and **Project**
+(e.g. `lab-warehouse` / `WarehouseHMI`). The inputs are dynamic text so adding
+new factory/project manifests does **not** require editing workflow YAML. The deterministic engine reads
 `factory.json`, resolves a unique TEST Gateway and validates native source
 files. After Validate PASS, the Stage job waits for `ignition-test`
 Required reviewer approval. Following approval, Stage performs project-tree
 backup, Controller staging, SHA-256 verification and scan. Exactly **two jobs**
-appear. Factory B/C remain validate-only. Projects mapped to multiple
+appear. Projects on registered commissioned TEST Gateways (currently both
+`WarehouseHMI` and `FactoryASmoke` on `warehouse-main`) stage after review;
+Factory B/C remain validate-only pending isolated Controller commissioning.
+Projects mapped to multiple
 Gateways (e.g. Factory B `PackagingHMI`) fail validation rather than guess.
 
-**Unqualified**: the new manual nested reusable-workflow path has not yet had
-its own successful `workflow_dispatch` deployment; only the underlying
-Factory A Controller staging adapter has passed real TEST runs. Other factories
+**Qualification boundary**: The generic target-driven Controller stage adapter
+still needs a live approved `workflow_dispatch` run for each newly commissioned
+TEST target; previous successful Factory A staging used the legacy smoke adapter. Other factories
 are validation-only. EAM Agent task creation/triggering remains out of scope.
 Production is HOLD.
 
