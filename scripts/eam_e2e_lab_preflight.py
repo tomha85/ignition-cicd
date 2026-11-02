@@ -70,9 +70,13 @@ def preflight(sha: str, inspect_lab: bool) -> dict:
     if len(entries) != 1:
         raise FrameworkError("Factory A target not uniquely registered")
     e = entries[0]
-    if (e.get("factory_id"), e.get("gateway_id"), e.get("approved_project"),
-        e.get("controller_id"), e.get("agent_id"), e.get("environment")) != (
-            FACTORY, GATEWAY, PROJECT, CONTROLLER, AGENT, "test"):
+    # Controller staging is scoped to source-verified Gateway projects, not
+    # one hardcoded approved_project. Agent commissioning is still a separate HOLD.
+    if (e.get("factory_id"), e.get("gateway_id"),
+        e.get("controller_id"), e.get("agent_id"), e.get("environment"),
+        e.get("project_scope"), e.get("controller_stage_approved")) != (
+            FACTORY, GATEWAY, CONTROLLER, AGENT, "test",
+            "all_manifest_projects", True):
         raise FrameworkError("target identity is not approved for TEST")
     result = {
         "timestamp_utc": datetime.now(timezone.utc).isoformat(),
