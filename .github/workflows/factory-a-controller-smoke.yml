@@ -1,5 +1,7 @@
 name: Factory A Framework - TEST Controller Smoke
 # Limited to this feature branch and the isolated local TEST EAM Controller.
+# Operator-requested safe repeat: lab-warehouse / warehouse-main / FactoryASmoke.
+# Deployment stays create-only or verify-identical; EAM Send Project NOT RUN.
 
 on:
   push:
