@@ -192,8 +192,20 @@ def main():
                 if not tf.getmembers():
                     raise RuntimeError("FAIL: empty project backup " + container)
         report["project_backups"] = "PASS"
-        if not exists(dst) or exists(tmp) or exists(prior):
-            raise RuntimeError("HOLD: missing target or staging collision")
+        target_exists = exists(dst)
+        stage_exists = exists(tmp)
+        prior_exists = exists(prior)
+        report["target_preflight"] = {
+            "target_path": dst,
+            "target_exists": target_exists,
+            "stage_exists": stage_exists,
+            "prior_exists": prior_exists,
+        }
+        if not target_exists:
+            raise RuntimeError("HOLD: existing Agent project directory missing: " + dst)
+        if stage_exists or prior_exists:
+            raise RuntimeError("HOLD: staging path collision (stage=%s prior=%s)" %
+                               (stage_exists, prior_exists))
         old_json = subprocess.check_output(["docker", "exec", AGENT, "cat",
             dst + "/com.inductiveautomation.perspective/views/Main/view.json"], text=True)
         old_version = version_in_tree(json.loads(old_json))
