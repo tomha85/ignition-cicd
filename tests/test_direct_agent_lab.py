@@ -81,7 +81,7 @@ class DirectAgentCandidateTests(unittest.TestCase):
                      "Deployed At (UTC): 2026-11-02T01:00:00+00:00",
                      "Deployment Type: UPDATE"):
             self.assertIn(text, description)
-        self.assertTrue(data.endswith(b"\\n"))
+        self.assertTrue(data.endswith(bytes([10])))
         code = (ROOT / "scripts/direct_agent_lab.py").read_text()
         self.assertIn('report["description_verified"] = True', code)
         self.assertIn('remote_hashes(staged_files, dst) != staged_files', code)
