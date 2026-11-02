@@ -144,14 +144,14 @@ def release_project_metadata(source, sha, expected, mode, deployed_at):
     if not isinstance(original_description, str):
         raise RuntimeError("HOLD: invalid description")
     project["description"] = (
-        "CI/CD Managed TEST Project\\n"
-        + "Version: " + expected.removeprefix("SMOKE VERSION ") + "\\n"
-        + "Git Commit: " + sha + "\\n"
-        + "Deployed At (UTC): " + deployed_at + "\\n"
-        + "Deployment Type: " + mode + "\\n"
+        "CI/CD Managed TEST Project\n"
+        + "Version: " + expected.removeprefix("SMOKE VERSION ") + "\n"
+        + "Git Commit: " + sha + "\n"
+        + "Deployed At (UTC): " + deployed_at + "\n"
+        + "Deployment Type: " + mode + "\n"
         + "Source: tomha85/ignition-cicd"
     )
-    return (json.dumps(project, indent=2) + "\\n").encode("utf-8")
+    return (json.dumps(project, indent=2) + "\n").encode("utf-8")
 
 
 def verify_full_gateway_backup():
