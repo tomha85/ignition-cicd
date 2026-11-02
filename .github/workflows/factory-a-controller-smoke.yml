@@ -15,6 +15,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   validate:
@@ -34,13 +35,15 @@ jobs:
           python -m unittest discover -s tests -v
 
   stage-controller:
-    name: Backup, stage FactoryASmoke on local TEST Controller and scan
+    name: APPROVAL REQUIRED — backup and stage FactoryASmoke on TEST Controller
     needs: validate
     if: >-
       github.event_name == 'push' &&
       github.repository == 'tomha85/ignition-cicd' &&
       github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1'
     runs-on: [self-hosted, linux, ignition-lab]
+    # Required reviewers must be configured in GitHub Settings -> Environments -> ignition-test.
+    # The independent approval API check also fails closed if not configured.
     environment: ignition-test
     concurrency:
       group: eam-lab-factory_a
@@ -50,10 +53,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      # No Docker/Gateway writes before the real GitHub review is verified.
+      - name: Require tomha85 approval for this exact staging run
+        env:
+          GH_APPROVAL_READ_TOKEN: ${{ github.token }}
+        run: python3 scripts/verify_stage_approval.py
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Create-only LAB staging after backup and verify Controller scan
+      - name: Backed-up LAB staging after approval and verify Controller scan
         env:
           FACTORY_A_SMOKE_CONFIRM: 'YES'
           IGNITION_CONTROLLER_CONTAINER: 'ignition-eam-controller'
@@ -61,6 +69,7 @@ jobs:
           IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR || '/home/tomha/ignition-eam-lab/backups' }}
           IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
           IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
+          GH_APPROVAL_READ_TOKEN: ${{ github.token }}
           no_proxy: 'localhost,127.0.0.1,::1'
         run: |
           python scripts/factory_a_controller_smoke.py --stage-controller --sha "$GITHUB_SHA"
@@ -69,5 +78,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: factory-a-controller-smoke-evidence
-          path: evidence/factory-a-controller-smoke.json
+          path: |
+            evidence/factory-a-controller-smoke.json
+            evidence/factory-a-approval.json
           if-no-files-found: warn
