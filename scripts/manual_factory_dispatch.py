@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Manual multi-factory plan selector. Controller staging has one approved LAB target."""
+"""Select any manifest-verified Factory/Project; stage only on commissioned TEST target."""
 import argparse
 import json
 import re
@@ -11,8 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from reusable_cicd.core import FrameworkError, plan_release, validate_catalog
 from framework.deployment.planner import resolve_project_gateway
-
-APPROVED_STAGE = ("lab-warehouse", "warehouse-main", "FactoryASmoke")
+from framework.security.policies import resolve_controller_stage_target
 
 
 def select(factory, gateway, project, sha):
@@ -38,11 +37,7 @@ def select(factory, gateway, project, sha):
 
 
 def authorize_stage(factory, gateway, project):
-    if (factory, gateway, project) != APPROVED_STAGE:
-        raise FrameworkError(
-            "HOLD: staging limited to lab-warehouse/warehouse-main/FactoryASmoke; "
-            "other factory/Gateway/project combinations are VALIDATE ONLY"
-        )
+    return resolve_controller_stage_target(ROOT, factory, gateway, project)
 
 
 def main():
@@ -57,7 +52,10 @@ def main():
     try:
         plan = select(args.factory, args.gateway, args.project, args.sha)
         if args.action == "validate":
-            eligible = (plan["factory_id"], plan["gateway_id"], plan["project"]) == APPROVED_STAGE
+            eligible = resolve_controller_stage_target(
+                ROOT, plan["factory_id"], plan["gateway_id"], plan["project"],
+                require_approved=False,
+            ) is not None
             if args.github_output:
                 with open(args.github_output, "a", encoding="utf-8") as output:
                     output.write("gateway_id=" + plan["gateway_id"] + "\n")
@@ -67,12 +65,14 @@ def main():
             if not eligible:
                 print("TEST_CONTROLLER_STAGE=NOT_COMMISSIONED_VALIDATE_ONLY")
             return 0
-        authorize_stage(args.factory, args.gateway, args.project)
-        # The smoke adapter enforces GitHub branch/event, local LAB containers,
-        # verified backups, no-overwrite, HTTPS CA/token and source SHA256.
+        authorize_stage(plan["factory_id"], plan["gateway_id"], plan["project"])
+        # The generic adapter independently rechecks manifest/TEST target,
+        # current-run reviewer approval, backup, source hashes and Controller scan.
         subprocess.run(
-            [sys.executable, str(ROOT / "scripts/factory_a_controller_smoke.py"),
-             "--stage-controller", "--sha", args.sha], cwd=ROOT, check=True
+            [sys.executable, str(ROOT / "scripts/stage_selected_test_controller.py"),
+             "--factory", plan["factory_id"], "--gateway", plan["gateway_id"],
+             "--project", plan["project"], "--sha", args.sha],
+            cwd=ROOT, check=True
         )
         print("SELECTED_FACTORY_CONTROLLER_STAGE=CHECK_EVIDENCE")
         return 0
