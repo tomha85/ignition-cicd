@@ -51,7 +51,9 @@ class DirectAgentCandidateTests(unittest.TestCase):
 
     def test_rollback_hashes_and_scan_exist(self):
         code = (ROOT / "scripts/direct_agent_lab.py").read_text()
-        self.assertIn("remote_hashes(files, dst) != old_hashes", code)
+        self.assertIn("if not exists(prior):", code)
+        self.assertIn("PREVIOUS_STATE_RESTORED_AND_SCAN_COMPLETED", code)
+        self.assertIn("project disappeared after Gateway scan", code)
         self.assertIn("baseline_timestamp=initial_scan", code)
 
     def test_missing_target_uses_install_without_existing_version_gate(self):
