@@ -26,6 +26,8 @@ jobs:
     outputs:
       gateway_id: ${{ steps.resolve.outputs.gateway_id }}
       stage_eligible: ${{ steps.resolve.outputs.stage_eligible }}
+      controller_id: ${{ steps.resolve.outputs.controller_id }}
+      agent_id: ${{ steps.resolve.outputs.agent_id }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -98,8 +100,8 @@ jobs:
           SELECTED_PROJECT: ${{ inputs.project }}
           VERIFIED_GATEWAY: ${{ needs.validate.outputs.gateway_id }}
           IGNITION_TEST_STAGE_CONFIRM: ISOLATED_TEST_ONLY
-          IGNITION_CONTROLLER_CONTAINER: 'ignition-eam-controller'
-          IGNITION_AGENT_CONTAINER: 'ignition-eam-agent'
+          IGNITION_CONTROLLER_CONTAINER: ${{ needs.validate.outputs.controller_id }}
+          IGNITION_AGENT_CONTAINER: ${{ needs.validate.outputs.agent_id }}
           IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR || '/home/tomha/ignition-eam-backups' }}
           IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
           IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
