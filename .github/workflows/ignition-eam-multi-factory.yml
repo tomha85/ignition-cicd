@@ -1,0 +1,64 @@
+name: Ignition EAM - Multi-Factory TEST
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Validate plan or request gated EAM TEST deployment
+        type: choice
+        required: true
+        options: [validate, deploy-test]
+        default: validate
+      factory:
+        description: Approved TEST factory
+        type: choice
+        required: true
+        options: [factory_a, factory_b, factory_c]
+        default: factory_a
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate three isolated native Ignition projects
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: |
+          python -m compileall -q scripts tests
+          python -m unittest discover -s tests -v
+          python scripts/eam_multi_factory.py --validate
+          for p in WarehouseHMI ConveyorHMI PackagingHMI; do
+            python scripts/validate.py "ignition-project/$p"
+          done
+  plan-or-gated-deploy:
+    name: Factory-specific EAM release request (fail closed)
+    needs: validate
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: eam-lab-${{ inputs.factory }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compute immutable project release plan
+        run: |
+          python scripts/eam_multi_factory.py \
+            --factory "${{ inputs.factory }}" \
+            --sha "${{ github.sha }}" \
+            ${{ inputs.action == 'deploy-test' && '--deploy' || '' }}
+      - name: Upload target-scoped evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eam-multi-factory-evidence
+          path: evidence/eam-multi-factory.json
+          if-no-files-found: warn
