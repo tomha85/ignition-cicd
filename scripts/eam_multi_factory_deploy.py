@@ -89,7 +89,7 @@ def deploy(factory, sha):
     dest = DATA + "/projects/" + project
     request_path = REQUESTS + "/request.json"
     processing_path = REQUESTS + "/request.processing"
-    receipt_path = REQUESTS + "/complete-" + stamp + ".json"
+    receipt_path = REQUESTS + "/invoked-" + stamp + ".json"
     submitted = False
     try:
         for container in (CTRL, agent):
@@ -129,16 +129,16 @@ def deploy(factory, sha):
             Path(local).unlink(missing_ok=True)
         submitted = True
         receipt = wait_for(CTRL, receipt_path, 240)
-        if receipt.get("request_id") != stamp or receipt.get("eam_task") != plan["eam_task"] or receipt.get("success") is not True:
-            raise RuntimeError("FAIL: EAM task receipt missing or reports failure")
-        plan["eam_task_status"] = "REPORTED_COMPLETED"
+        if receipt.get("request_id") != stamp or receipt.get("eam_task") != plan["eam_task"] or receipt.get("task_invoked") is not True:
+            raise RuntimeError("FAIL: EAM task invocation receipt missing or reports failure")
+        plan["eam_task_status"] = "INVOKED_AGENT_RESULT_PENDING"
         # Independent target verification (not only task invocation).
         deadline = time.monotonic() + 120
         while time.monotonic() < deadline:
             if present(agent, dest):
                 try:
                     if hashes(agent, dest, plan["file_hashes"]) == plan["file_hashes"]:
-                        plan["agent_verification"] = "FILES_MATCH"
+                        plan["agent_verification"] = "FILES_MATCH"\n                        plan["eam_task_status"] = "AGENT_CONTENT_VERIFIED"
                         plan["deployment"] = "PASS"
                         break
                 except subprocess.CalledProcessError:
