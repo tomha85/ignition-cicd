@@ -66,6 +66,26 @@ class DirectAgentCandidateTests(unittest.TestCase):
         self.assertNotIn('tmp = DATA + "/projects/.direct-stage-"', code)
         self.assertNotIn('prior = DATA + "/projects/.direct-prior-"', code)
 
+    def test_release_description_contains_version_sha_timestamp_and_mode(self):
+        spec = importlib.util.spec_from_file_location(
+            "direct_agent_metadata_test", ROOT / "scripts/direct_agent_lab.py")
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        sha = "a" * 40
+        data = module.release_project_metadata(
+            ROOT / "ignition-project/DeploymentSmokeTest",
+            sha, "SMOKE VERSION V3", "UPDATE", "2026-11-02T01:00:00+00:00")
+        import json
+        description = json.loads(data)["description"]
+        for text in ("Version: V3", "Git Commit: " + sha,
+                     "Deployed At (UTC): 2026-11-02T01:00:00+00:00",
+                     "Deployment Type: UPDATE"):
+            self.assertIn(text, description)
+        self.assertTrue(data.endswith(b"\\n"))
+        code = (ROOT / "scripts/direct_agent_lab.py").read_text()
+        self.assertIn('report["description_verified"] = True', code)
+        self.assertIn('remote_hashes(staged_files, dst) != staged_files', code)
+
     def test_no_auto_push_release(self):
         wf = (ROOT / ".github/workflows/ignition-e2e.yml").read_text()
         self.assertIn("inputs.action == 'deploy-agent-direct'", wf)
