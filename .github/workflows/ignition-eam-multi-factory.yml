@@ -57,6 +57,8 @@ jobs:
         if: inputs.action == 'deploy-test'
         env:
           IGNITION_EAM_LAB_ONLY: 'YES'
+          IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
+          IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
           IGNITION_EAM_BRIDGE_COMMISSIONED: ${{ vars.IGNITION_EAM_BRIDGE_COMMISSIONED || 'NO' }}
           IGNITION_EAM_CONTROLLER_CONTAINER: ${{ vars.IGNITION_CONTROLLER_CONTAINER }}
           IGNITION_EAM_AGENT_CONTAINER: ${{ inputs.factory == 'factory_a' && vars.IGNITION_FACTORY_A_CONTAINER || inputs.factory == 'factory_b' && vars.IGNITION_FACTORY_B_CONTAINER || vars.IGNITION_FACTORY_C_CONTAINER }}
