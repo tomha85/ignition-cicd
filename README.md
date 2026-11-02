@@ -9,38 +9,38 @@
 
 The requested standard directory families are now present:
 
-- \`.github/workflows/{validate,build-release,deploy-test,reusable-deploy}.yml\`
-- \`framework/{cli,validation,adapters,deployment,security}/\`
-- \`factories/<factory-id>/{factory.json,projects,gateways,environments,tests}/\`
-- \`shared/{project-resources,templates,schemas}/\`
-- \`tests/{unit,integration,gateway,fat}/\`
-- \`examples/{simple-factory,complex-factory}/\` and lowercase \`docs/\` runbooks
+- `.github/workflows/{validate,build-release,deploy-test,reusable-deploy}.yml`
+- `framework/{cli,validation,adapters,deployment,security}/`
+- `factories/<factory-id>/{factory.json,projects,gateways,environments,tests}/`
+- `shared/{project-resources,templates,schemas}/`
+- `tests/{unit,integration,gateway,fat}/`
+- `examples/{simple-factory,complex-factory}/` and lowercase `docs/` runbooks
 
-The existing **qualified** factory IDs are \`lab-warehouse\` (Factory A) and
-\`lab-assembly\` (Factory B); these are real registry identifiers, not arbitrary
-aliases for \`factory-a\` and \`factory-b\`. Do not rename targets without a
+The existing **qualified** factory IDs are `lab-warehouse` (Factory A) and
+`lab-assembly` (Factory B); these are real registry identifiers, not arbitrary
+aliases for `factory-a` and `factory-b`. Do not rename targets without a
 separate tested migration. Legacy workflows and source mirrors remain available
 to avoid breaking current DEV/TEST operations.
 
-**Native source validation**: \`python framework/cli/check_repo.py\` and
-\`python -m unittest discover -s tests -v\`.
+**Native source validation**: `python framework/cli/check_repo.py` and
+`python -m unittest discover -s tests -v`.
 
-**Reproducible source release**: \`Standard V3 - Build Immutable Native Ignition
-Source Release\` generates a native project ZIP, pinned commit and SHA-256
+**Reproducible source release**: `Standard V3 - Build Immutable Native Ignition
+Source Release` generates a native project ZIP, pinned commit and SHA-256
 manifest. This is NOT a Gateway or Agent deployment.
 
 **Manual TEST Controller stage**: use the already-registered
-\`Ignition EAM - Multi-Factory TEST\` workflow, choose the
-\`feat/reusable-multifactory-framework-v1\` branch, select
-\`framework-stage-controller\`, \`lab-warehouse\`, \`warehouse-main\` and
-\`FactoryASmoke\`. The manual job calls \`deploy-test.yml\` →
-\`reusable-deploy.yml\`, which validates the manifest, archives existing LAB
+`Ignition EAM - Multi-Factory TEST` workflow, choose the
+`feat/reusable-multifactory-framework-v1` branch, select
+`framework-stage-controller`, `lab-warehouse`, `warehouse-main` and
+`FactoryASmoke`. The manual job calls `deploy-test.yml` →
+`reusable-deploy.yml`, which validates the manifest, archives existing LAB
 project directories, updates/compares Controller files and requests authenticated
-Controller scan. **Do not select the legacy \`deploy-test\` action**: that action
+Controller scan. **Do not select the legacy `deploy-test` action**: that action
 targets a different, not-commissioned EAM Agent bridge.
 
 **Unqualified**: the new manual nested reusable-workflow path has not yet had
-its own successful \`workflow_dispatch\` deployment; only the underlying
+its own successful `workflow_dispatch` deployment; only the underlying
 Factory A Controller staging adapter has passed real TEST runs. Other factories
 are validation-only. EAM Agent task creation/triggering remains out of scope.
 Production is HOLD.
