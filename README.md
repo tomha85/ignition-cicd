@@ -28,7 +28,7 @@ Stage as a safety control, not as an extra visible job. Agent tasks are manual.
 
 See [approval instructions](docs/APPROVAL_WORKFLOW.md).
 
-## Standard V3 source layout (feature branch only)
+## Standard V3 source layout (merged on main)
 
 The requested standard directory families are now present:
 
@@ -52,15 +52,15 @@ to avoid breaking current DEV/TEST operations.
 Source Release` generates a native project ZIP, pinned commit and SHA-256
 manifest. This is NOT a Gateway or Agent deployment.
 
-**Manual TEST Controller stage**: use the already-registered
-`Ignition EAM - Multi-Factory TEST` workflow, choose the
-`feat/reusable-multifactory-framework-v1` branch, select
-`framework-stage-controller`, `lab-warehouse`, `warehouse-main` and
-`FactoryASmoke`. The manual job calls `deploy-test.yml` →
-`reusable-deploy.yml`, which validates the manifest, archives existing LAB
-project directories, updates/compares Controller files and requests authenticated
-Controller scan. **Do not select the legacy `deploy-test` action**: that action
-targets a different, not-commissioned EAM Agent bridge.
+**Manual TEST Controller stage:** open **Ignition EAM - Select Factory &
+Project (TEST)** on branch `main`. Choose only **Factory** and **Project**
+(e.g. `lab-warehouse` / `FactoryASmoke`). The deterministic engine reads
+`factory.json`, resolves a unique TEST Gateway and validates native source
+files. After Validate PASS, the Stage job waits for `ignition-test`
+Required reviewer approval. Following approval, Stage performs project-tree
+backup, Controller staging, SHA-256 verification and scan. Exactly **two jobs**
+appear. Factory B/C remain validate-only. Projects mapped to multiple
+Gateways (e.g. Factory B `PackagingHMI`) fail validation rather than guess.
 
 **Unqualified**: the new manual nested reusable-workflow path has not yet had
 its own successful `workflow_dispatch` deployment; only the underlying

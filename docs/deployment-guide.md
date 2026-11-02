@@ -24,32 +24,34 @@ The standard source layout has four workflow entrypoints:
 (reusable wrapper), and `reusable-deploy.yml` (guarded Controller stage).
 Existing prior workflows remain for backward compatibility.
 
-## How to use today — already registered manual entrypoint
+## Standard manual deployment — Factory + Project only
 
-GitHub Actions → **Ignition EAM - Multi-Factory TEST** → **Run workflow**.
-Select branch `feat/reusable-multifactory-framework-v1`.
-Select action `framework-stage-controller`, factory `lab-warehouse`,
-gateway `warehouse-main`, project `FactoryASmoke`.
+Open GitHub Actions → **Ignition EAM - Select Factory & Project (TEST)** →
+**Run workflow**, branch `main`. Choose:
 
-The action now delegates through `deploy-test.yml` →
-`reusable-deploy.yml` → `scripts/manual_factory_dispatch.py` →
-`scripts/factory_a_controller_smoke.py`. It validates the selected factory/
-Gateway/project and releases only to the local isolated EAM TEST Controller.
+- **Factory:** `lab-warehouse`, `lab-assembly`, or `lab-packaging`.
+- **Project:** exact registered Ignition project name (e.g. `FactoryASmoke`).
 
-The stage adapter backs up project directories from both LAB containers,
-stages an update or confirms unchanged files, compares SHA-256, and scans the
-Controller. Project archives are not complete Gateway disaster-recovery backups.
+`Action` and `Gateway ID` are **not** user inputs. The Validate job
+consults the selected factory's `factory.json`, deterministically resolves
+a single Gateway for the chosen project, and verifies the TEST environment.
+For example, Factory A `FactoryASmoke` resolves to `warehouse-main`.
 
-**No EAM Agent Task is created or executed by this staging path.**
-`FactoryASmoke` on Controller is separate from remote EAM Agent deployment.
-Factory B is intentionally validation-only until its TEST Controller and
-credentials are independently commissioned.
+**Ambiguous mapping:** `lab-assembly/PackagingHMI` belongs to both
+`assembly-main` and `utilities-main`. This must fail with
+`AMBIGUOUS_GATEWAY`. No Gateway is invented or chosen by position.
 
-The new `deploy-test.yml` and `reusable-deploy.yml` are callable workflows,
-not stand-alone `workflow_dispatch` entries. A new manual workflow filename
-on a feature branch is not normally dispatchable until present on the default
-branch. Hence use the registered legacy manual workflow selecting the feature
-branch.
+Exactly **two GitHub jobs** appear: Validate → Stage. For the sole
+commissioned TEST source `lab-warehouse/FactoryASmoke`, Stage uses the
+protected `ignition-test` Environment to **WAIT** for `tomha85` review.
+After **Approve and deploy**, Stage verifies the reviewed commit,
+backs up the Controller and Agent project directories, stages native
+Ignition resources on the isolated Controller, and checks hashes + scan.
+Factory B/C, or the uncommissioned `WarehouseHMI`, validate but Stage
+is **Skipped**. No EAM Agent task runs and production stays HOLD.
+
+The legacy `deploy-test.yml` and `reusable-deploy.yml` remain callable
+for existing integrations but are not additional boxes in this manual UI.
 
 ## Status
 

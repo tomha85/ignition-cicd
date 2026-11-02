@@ -64,27 +64,20 @@ GitHub's availability of required reviewers depends on repository visibility
 and GitHub plan. If GitHub does not expose the Required reviewers setting,
 **do not** weaken or delete the code gate to deploy: it will stay HOLD.
 
-## Start and approve a TEST staging example
+## Running the two-field standard workflow
 
-Use the existing GitHub workflow registered in the repository:
+1. Go to Actions → **Ignition EAM - Select Factory & Project (TEST)**.
+2. Choose branch **main**, Factory **lab-warehouse**, Project **FactoryASmoke**.
+3. Click **Run workflow**; Gateway `warehouse-main` is resolved from
+   `factories/lab-warehouse/factory.json`, not requested from you.
+4. Validate must PASS, then Stage shows **Waiting**.
+5. Click **Review deployments → ignition-test → Approve and deploy**.
+6. Stage automatically backs up and verifies the TEST Controller.
+7. Review deployment evidence and project description in the Controller.
 
-1. Open Actions → **Ignition EAM - Multi-Factory TEST** → **Run workflow**.
-2. Branch: `feat/reusable-multifactory-framework-v1`.
-3. Action: `framework-stage-controller`.
-4. Factory: `lab-warehouse`.
-5. Gateway: `warehouse-main`.
-6. Project: `FactoryASmoke`.
-7. Click **Run workflow**.
-8. Wait for validation to complete. The stage job should show **Waiting**
-   rather than execute. Click **Review deployments**.
-9. Select **`ignition-test`** and click **Approve and deploy**.
-10. Only now will the stage job run. Review source hashes, Controller scan status
-    and `evidence/factory-a-approval.json` and
-    `evidence/factory-a-controller-smoke.json` artifacts.
-
-The push-triggered **Factory A Framework - TEST Controller Smoke** workflow
-uses the same approval control. A new push that matches its workflow path will
-also require approval after validation.
+Other factories can be source-validated but cannot stage until each
+TEST Controller target is separately commissioned. Ambiguous project-to-
+Gateway associations fail validation. The user manages Agent tasks later.
 
 ## Security properties
 
