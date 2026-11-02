@@ -1,0 +1,116 @@
+# Approve after Validate — GitHub → EAM TEST Controller
+
+## Intended behavior
+
+```text
+Run workflow / push Factory A source
+               |
+               v
+         VALIDATE (automatic)
+               |
+        PASS / FAIL
+               |
+         PASS only
+               v
+   WAITING FOR YOUR GITHUB REVIEW
+      Environment: ignition-test
+      Required reviewer: tomha85
+          /              \
+    REJECT              APPROVE AND DEPLOY
+       |                      |
+     STOP                 Backup first
+                               |
+                        Stage FactoryASmoke
+                        on EAM TEST Controller
+                               |
+                        Verify source SHA256
+                        + Controller project scan
+                               |
+                        Upload evidence
+```
+
+**Important:** GitHub's `environment:` YAML field does **not** set up approval by itself.
+The repository administrator must configure the existing `ignition-test`
+GitHub Environment with a Required reviewer. We cannot do this from a source commit.
+The Controller staging script also checks the actual GitHub run's approval history
+and **fails closed** if nobody approved it, even when the Environment is unprotected.
+
+## One-time setup in GitHub UI — REQUIRED
+
+1. Go to your repository:
+   `https://github.com/tomha85/ignition-cicd/settings/environments`.
+2. Select the existing environment **`ignition-test`** (keep the existing
+   environment secrets/settings used by the TEST staging job).
+3. Under **Deployment protection rules**, enable **Required reviewers**.
+4. Add GitHub user **`tomha85`** as the required reviewer. Save protection rules.
+5. **Leave Prevent self-review unchecked** if you will start and approve the same
+   workflow yourself. If you enable Prevent self-review, another reviewer must
+   approve instead; the current smoke approval gate only allows `tomha85`.
+6. For extra control, disable **Allow administrators to bypass configured
+   protection rules**, if that control is available.
+7. Do **not** edit `main`, Agent task configuration, or production settings.
+
+GitHub's availability of required reviewers depends on repository visibility
+and GitHub plan. If GitHub does not expose the Required reviewers setting,
+**do not** weaken or delete the code gate to deploy: it will stay HOLD.
+
+## Start and approve a TEST staging example
+
+Use the existing GitHub workflow registered in the repository:
+
+1. Open Actions → **Ignition EAM - Multi-Factory TEST** → **Run workflow**.
+2. Branch: `feat/reusable-multifactory-framework-v1`.
+3. Action: `framework-stage-controller`.
+4. Factory: `lab-warehouse`.
+5. Gateway: `warehouse-main`.
+6. Project: `FactoryASmoke`.
+7. Click **Run workflow**.
+8. Wait for validation to complete. The stage job should show **Waiting**
+   rather than execute. Click **Review deployments**.
+9. Select **`ignition-test`** and click **Approve and deploy**.
+10. Only now will the stage job run. Review source hashes, Controller scan status
+    and `evidence/factory-a-approval.json` and
+    `evidence/factory-a-controller-smoke.json` artifacts.
+
+The push-triggered **Factory A Framework - TEST Controller Smoke** workflow
+uses the same approval control. A new push that matches its workflow path will
+also require approval after validation.
+
+## Security properties
+
+- Approved identity: `tomha85`, verified using GitHub REST
+  `GET /repos/{owner}/{repo}/actions/runs/{run_id}/approvals`.
+- The approval **must be for the current run** and the **`ignition-test`**
+  environment. Wrong reviewer, rejected review, missing API access or no
+  approval produces **HOLD**.
+- Only the first attempt of a run is eligible. For a failed run, launch a
+  **fresh workflow run** rather than reusing old review history.
+- Only `lab-warehouse / warehouse-main / FactoryASmoke` may stage.
+- Factory B/C remain source validation/build only, regardless of approval.
+- Before mutation, staging takes TEST Controller and Agent **project directory
+  archives**. These are not independently qualified full-Gateway backups.
+- On any deployment error, the Controller project update adapter attempts
+  rollback and writes a HOLD/rollback report.
+- **No EAM Agent task is created or run**. You will manage Agent tasks later.
+- The stage job runs only on the isolated local `ignition-lab` runner.
+- Production is not authorized.
+
+## Troubleshooting
+
+**Validation FAIL:** No approval is requested because staging depends on
+successful validation.
+
+**Validation PASS, stage FAIL with `HOLD: current run has NO approval`:**
+Required reviewers may not yet be enabled; or you selected the wrong reviewer,
+wrong environment, or bypassed the environment. Set the protection rule and
+launch a **new run**.
+
+**GitHub API 403/404:** The stage job requires `actions: read` for
+`GITHUB_TOKEN`. Do not substitute an unscoped Personal Access Token.
+
+**No Review deployments button:** Check environment protection rules and
+your GitHub account permissions. Code changes cannot create a required reviewer
+by themselves.
+
+**Agent task:** It is intentionally out of this workflow. Stage Controller
+success does not prove Agent or Perspective runtime success.
