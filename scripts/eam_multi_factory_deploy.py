@@ -5,6 +5,8 @@ trees before staging, and verifies target files after the EAM Send Project task.
 """
 import argparse
 import hashlib
+import ssl
+from urllib.request import Request, urlopen
 import json
 import os
 from pathlib import Path
@@ -73,6 +75,32 @@ def wait_for(controller, path, deadline_seconds):
         time.sleep(3)
     raise RuntimeError("HOLD: EAM task completion receipt timed out")
 
+def controller_scan():
+    token = os.environ.get("IGNITION_CONTROLLER_API_TOKEN")
+    ca = Path(os.environ.get("IGNITION_CONTROLLER_CA_FILE", ""))
+    if not token or not ca.is_file():
+        raise RuntimeError("HOLD: Controller scan API token or trusted CA missing")
+    context = ssl.create_default_context(cafile=str(ca))
+    url = "https://localhost:9143/data/api/v1/scan/projects"
+    request = Request(url, data=b"", method="POST",
+                      headers={"X-Ignition-API-Token": token})
+    with urlopen(request, timeout=30, context=context) as response:
+        if response.status != 200:
+            raise RuntimeError("HOLD: Controller project scan not accepted")
+        body = json.load(response)
+    if not isinstance(body, dict) or not isinstance(body.get("scanActive"), bool):
+        raise RuntimeError("HOLD: unexpected Controller project scan response")
+    deadline = time.monotonic() + 90
+    while time.monotonic() < deadline:
+        req = Request(url, headers={"X-Ignition-API-Token": token})
+        with urlopen(req, timeout=30, context=context) as response:
+            status = json.load(response)
+        if status.get("scanActive") is False:
+            return status
+        time.sleep(2)
+    raise RuntimeError("HOLD: Controller scan did not reach idle state")
+
+
 def deploy(factory, sha):
     plan = release_plan(factory, sha)
     plan["deployment"] = "HOLD"
@@ -114,6 +142,7 @@ def deploy(factory, sha):
         if hashes(CTRL, dest, plan["file_hashes"]) != plan["file_hashes"]:
             raise RuntimeError("FAIL: Controller project content differs from release")
         plan["staging"] = "HASH_VERIFIED"
+        plan["controller_scan"] = controller_scan()
         # The native Controller bridge must validate this request against its own
         # factory/task/agent allowlist; a started receipt is not sufficient.
         request = {k: plan[k] for k in ("factory", "project", "target_agent",
