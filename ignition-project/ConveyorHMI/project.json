@@ -1,0 +1,6 @@
+{
+  "title": "ConveyorHMI",
+  "description": "Isolated TEST-only Factory B - Conveyor; no PLC connections",
+  "enabled": true,
+  "inheritable": false
+}
