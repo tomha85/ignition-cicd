@@ -1,6 +1,7 @@
 name: Factory A Framework - TEST Controller Smoke
 # One-shot verified update to FactoryASmoke description on EAM TEST Controller.
 # Native GitHub review gate: validate, then WAIT when configured; otherwise stage SKIPPED.
+# V3 review gate regression: no reviewer means clean SKIP, not a failed stage job.
 # Factory A example 2026-11-02: verify updated source description on TEST Controller.
 # Limited to this feature branch and the isolated local TEST EAM Controller.
 # V2 post-refactor smoke: repeat Controller-only source identity and backup verification.
