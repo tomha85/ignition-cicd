@@ -1,4 +1,5 @@
 name: Factory A Framework - TEST Controller Smoke
+# One-shot verified update to FactoryASmoke description on EAM TEST Controller.
 # Limited to this feature branch and the isolated local TEST EAM Controller.
 # V2 post-refactor smoke: repeat Controller-only source identity and backup verification.
 # Operator-requested safe repeat: lab-warehouse / warehouse-main / FactoryASmoke.
