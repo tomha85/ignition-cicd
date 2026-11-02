@@ -25,10 +25,10 @@
       {
         "type": "ia.display.label",
         "meta": {
-          "name": "HelloTomHaTitle"
+          "name": "HelloRyanHaTitle"
         },
         "props": {
-          "text": "Hello TOM HA",
+          "text": "helllo RYAN HA",
           "style": {
             "fontSize": "58px",
             "fontWeight": "bold",
@@ -58,7 +58,7 @@
           "name": "BuildVersion"
         },
         "props": {
-          "text": "SMOKE VERSION V2",
+          "text": "SMOKE VERSION V3",
           "style": {
             "fontSize": "24px",
             "color": "#176e49",
