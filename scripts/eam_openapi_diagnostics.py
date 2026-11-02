@@ -164,6 +164,58 @@ def inspect_openapi(result, token, ca):
                  "required":p.get("required",False)} for p in specop.get("parameters",[])
                 if isinstance(p,dict)]
             result["openapi"]["force_task_api"]["request_body_present"]="requestBody" in specop
+
+    # Extract only the exact legacy task route mapping and source identity.
+    if "legacy_task_definition" in result["openapi"]:
+        shape=result["openapi"]["legacy_task_definition"].get("safe_shape",{})
+        settings=shape.get("config",{}).get("settings",{}) if isinstance(shape,dict) else {}
+        result["openapi"]["legacy_task_safe_configuration"]={
+            "sourceProject":settings.get("sourceProject"),
+            "targetGateways_shape":settings.get("targetGateways"),
+            "selectedGateway":settings.get("selectedGateway"),
+            "profile":shape.get("config",{}).get("profile",{}),
+        }
+    # Read the official Agent-status endpoint using only GET.
+    route="/data/eam/api/v1/agents"
+    req=urllib.request.Request("https://localhost:9143"+route,
+                headers={"X-Ignition-API-Token":token,"Accept":"application/json"})
+    try:
+        with urllib.request.urlopen(req,context=ctx,timeout=15) as resp:
+            agents=json.load(resp)
+        if isinstance(agents,dict):
+            payload=agents
+        else:
+            payload={"value":agents}
+        txt=json.dumps(payload)
+        result["openapi"]["agent_registry_summary"]={
+            "http":200,"response_keys":list(payload.keys())[:30],
+            "EAM-Agent_seen":"EAM-Agent" in txt,
+            "response_type":type(agents).__name__
+        }
+        # Report fields of the exact approved EAM-Agent only. Others are elided.
+        def matched(obj,depth=0):
+            if depth>8:return []
+            found=[]
+            if isinstance(obj,dict):
+                if any(v=="EAM-Agent" for v in obj.values() if isinstance(v,str)):
+                    safe={}
+                    for k,v in obj.items():
+                        if k.lower() in ("name","id","agentname","gatewayname","status","state",
+                                         "connected","connectionstatus","gatewaystatus","health"):
+                            safe[k]=v if isinstance(v,(str,bool,int,float)) else type(v).__name__
+                    if safe:found.append(safe)
+                for v in obj.values():
+                    found+=matched(v,depth+1)
+            elif isinstance(obj,list):
+                for v in obj[:30]:
+                    found+=matched(v,depth+1)
+            return found[:5]
+        result["openapi"]["agent_registry_summary"]["matching_approved_agent"]=matched(agents)
+    except urllib.error.HTTPError as exc:
+        result["openapi"]["agent_registry_summary"]={"http":exc.code}
+    except Exception as exc:
+        result["openapi"]["agent_registry_summary"]={"error_type":type(exc).__name__}
+
     # Find the official EAM GET agents/status routes without inventing endpoints.
     result["openapi"]["agent_read_routes"]=[
         path for path,methods in sorted(spec["paths"].items())
