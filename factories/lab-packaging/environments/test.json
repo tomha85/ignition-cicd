@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "factory_id": "lab-packaging",
+  "environment": "test",
+  "gateways": {
+    "packaging-main": {
+      "target_id": "lab-packaging-test-agent",
+      "github_environment": "lab-packaging-test"
+    }
+  },
+  "deployment_enabled": false,
+  "approval_required": false
+}

@@ -1,0 +1,100 @@
+name: Standard V3 - Reusable TEST Controller Staging
+
+on:
+  workflow_call:
+    inputs:
+      factory:
+        type: string
+        required: true
+      gateway:
+        type: string
+        required: true
+      project:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  select-and-validate:
+    name: Verify selected factory/Gateway/project against approved native source
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Factory source and release validation
+        env:
+          SELECTED_FACTORY: ${{ inputs.factory }}
+          SELECTED_GATEWAY: ${{ inputs.gateway }}
+          SELECTED_PROJECT: ${{ inputs.project }}
+        run: |
+          python framework/cli/check_repo.py
+          python framework/cli/validate_factory.py \
+            --factory "$SELECTED_FACTORY" \
+            --gateway "$SELECTED_GATEWAY" \
+            --project "$SELECTED_PROJECT" --sha "$GITHUB_SHA"
+          python scripts/manual_factory_dispatch.py \
+            --action validate --factory "$SELECTED_FACTORY" \
+            --gateway "$SELECTED_GATEWAY" \
+            --project "$SELECTED_PROJECT" --sha "$GITHUB_SHA"
+
+  stage-controller:
+    name: Stage and verify EAM TEST Controller
+    needs: select-and-validate
+    if: github.repository == 'tomha85/ignition-cicd' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1') && github.event_name == 'workflow_dispatch'
+    runs-on: [self-hosted, linux, ignition-lab]
+    # Required reviewers configured in GitHub Settings, not in YAML.
+    environment: ignition-test
+    concurrency:
+      group: eam-lab-factory_a
+      cancel-in-progress: false
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Require tomha85 approval for this exact run before any Controller writes
+        env:
+          GH_APPROVAL_READ_TOKEN: ${{ github.token }}
+        run: python3 scripts/verify_stage_approval.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Backup before TEST Controller update, verify file hashes and scan
+        env:
+          SELECTED_FACTORY: ${{ inputs.factory }}
+          SELECTED_GATEWAY: ${{ inputs.gateway }}
+          SELECTED_PROJECT: ${{ inputs.project }}
+          FACTORY_A_SMOKE_CONFIRM: 'YES'
+          IGNITION_CONTROLLER_CONTAINER: 'ignition-eam-controller'
+          IGNITION_AGENT_CONTAINER: 'ignition-eam-agent'
+          IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR || '/home/tomha/ignition-eam-backups' }}
+          IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
+          IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
+          GH_APPROVAL_READ_TOKEN: ${{ github.token }}
+          no_proxy: 'localhost,127.0.0.1,::1'
+        run: |
+          python scripts/manual_factory_dispatch.py \
+            --action stage-controller \
+            --factory "$SELECTED_FACTORY" \
+            --gateway "$SELECTED_GATEWAY" \
+            --project "$SELECTED_PROJECT" --sha "$GITHUB_SHA"
+      - name: Preserve Controller TEST stage evidence even on HOLD
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: standard-controller-stage-evidence
+          path: |
+            evidence/factory-a-controller-smoke.json
+            evidence/factory-a-approval.json
+          if-no-files-found: warn

@@ -1,0 +1,49 @@
+name: Architecture V2 - Safe Multi-Factory Qualification
+
+on:
+  pull_request:
+  push:
+    branches:
+      - feat/reusable-multifactory-framework-v1
+
+permissions:
+  contents: read
+
+jobs:
+  architecture:
+    name: Verify factory manifests, native source parity, safety and regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Compile framework and legacy scripts
+        run: |
+          python -m compileall -q framework reusable_cicd scripts tests
+      - name: Verify architecture, mirror parity and environment boundaries
+        run: |
+          python framework/cli/check_repo.py
+      - name: Full original and new regression suite
+        run: |
+          python -m unittest discover -s tests -v
+      - name: Confirm original Ignition CI compatibility
+        run: |
+          python scripts/reusable_factory.py --check-catalog
+          python scripts/eam_multi_factory.py --validate
+          python scripts/validate.py ignition-project/DeploymentSmokeTest
+      - name: Verify a selected factory plan remains read-only
+        run: |
+          python scripts/manual_factory_dispatch.py \
+            --action validate \
+            --factory lab-warehouse \
+            --gateway warehouse-main \
+            --project FactoryASmoke \
+            --sha "$GITHUB_SHA"

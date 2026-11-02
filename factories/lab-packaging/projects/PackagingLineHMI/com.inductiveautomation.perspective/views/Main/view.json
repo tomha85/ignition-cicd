@@ -1,0 +1,97 @@
+{
+  "custom": {},
+  "params": {},
+  "props": {
+    "defaultSize": {
+      "width": 900,
+      "height": 520
+    }
+  },
+  "root": {
+    "type": "ia.container.flex",
+    "meta": {
+      "name": "root"
+    },
+    "props": {
+      "direction": "column",
+      "justify": "center",
+      "alignItems": "center",
+      "style": {
+        "backgroundColor": "#f3f7fc",
+        "padding": 30
+      }
+    },
+    "children": [
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "FactoryTitle"
+        },
+        "props": {
+          "text": "FACTORY C / PACKAGING",
+          "style": {
+            "fontSize": "34px",
+            "color": "#142d54",
+            "marginTop": 0
+          }
+        }
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "ProjectTitle"
+        },
+        "props": {
+          "text": "PackagingLineHMI - One Gateway Demo",
+          "style": {
+            "fontSize": "24px",
+            "color": "#176e49",
+            "marginTop": 16
+          }
+        }
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "GatewayInfo"
+        },
+        "props": {
+          "text": "Packaging Main / One Perspective Project",
+          "style": {
+            "fontSize": "19px",
+            "color": "#30567b",
+            "marginTop": 18
+          }
+        }
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "DataNotice"
+        },
+        "props": {
+          "text": "DEMO ONLY - NO PLC / OPC UA / LIVE SIGNALS",
+          "style": {
+            "fontSize": "18px",
+            "color": "#a65a00",
+            "marginTop": 24
+          }
+        }
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "Qualification"
+        },
+        "props": {
+          "text": "Validate and build ZIP only - staging not commissioned",
+          "style": {
+            "fontSize": "16px",
+            "color": "#516174",
+            "marginTop": 12
+          }
+        }
+      }
+    ]
+  }
+}

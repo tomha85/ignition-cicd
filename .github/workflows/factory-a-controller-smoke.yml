@@ -1,0 +1,87 @@
+name: Factory A Framework - TEST Controller Smoke
+# Factory A TEST: changed native project resources trigger Validate → native GitHub approval → Stage.
+# Native GitHub Environment gate: Validate → WAIT for approval → Stage.
+# Factory A example 2026-11-02: verify updated source description on TEST Controller.
+# Limited to this feature branch and the isolated local TEST EAM Controller.
+# V2 post-refactor smoke: repeat Controller-only source identity and backup verification.
+# Operator-requested safe repeat: lab-warehouse / warehouse-main / FactoryASmoke.
+# Deployment stays create-only or verify-identical; EAM Send Project NOT RUN.
+
+on:
+  push:
+    branches:
+      - main
+      - feat/reusable-multifactory-framework-v1
+    paths:
+      - .github/workflows/factory-a-controller-smoke.yml
+      - 'factories/lab-warehouse/projects/FactoryASmoke/**'
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  validate:
+    name: Validate Factory A native project and regression tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate manifest, source and existing test suite
+        run: |
+          python -m compileall -q reusable_cicd scripts/factory_a_controller_smoke.py
+          python scripts/reusable_factory.py --check-catalog
+          python scripts/factory_a_controller_smoke.py --validate-only --sha "$GITHUB_SHA"
+          python -m unittest discover -s tests -v
+
+  stage-controller:
+    name: Stage FactoryASmoke on EAM TEST Controller
+    needs: validate
+    if: >-
+      github.event_name == 'push' &&
+      github.repository == 'tomha85/ignition-cicd' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1')
+    runs-on: [self-hosted, linux, ignition-lab]
+    # Required reviewers must be configured in GitHub Settings -> Environments -> ignition-test.
+    # The stage job is paused by GitHub before being assigned a runner.
+    environment: ignition-test
+    concurrency:
+      group: eam-lab-factory_a
+      cancel-in-progress: false
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      # No Docker/Gateway writes before the real GitHub review is verified.
+      - name: Require tomha85 approval for this exact staging run
+        env:
+          GH_APPROVAL_READ_TOKEN: ${{ github.token }}
+        run: python3 scripts/verify_stage_approval.py
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Backed-up LAB staging after approval and verify Controller scan
+        env:
+          FACTORY_A_SMOKE_CONFIRM: 'YES'
+          IGNITION_CONTROLLER_CONTAINER: 'ignition-eam-controller'
+          IGNITION_AGENT_CONTAINER: 'ignition-eam-agent'
+          IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR || '/home/tomha/ignition-eam-lab/backups' }}
+          IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
+          IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
+          GH_APPROVAL_READ_TOKEN: ${{ github.token }}
+          no_proxy: 'localhost,127.0.0.1,::1'
+        run: |
+          python scripts/factory_a_controller_smoke.py --stage-controller --sha "$GITHUB_SHA"
+      - name: Upload LAB stage evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: factory-a-controller-smoke-evidence
+          path: |
+            evidence/factory-a-controller-smoke.json
+            evidence/factory-a-approval.json
+          if-no-files-found: warn

@@ -1,0 +1,6 @@
+{
+  "title": "PackagingHMI",
+  "description": "Isolated TEST-only Factory C - Packaging; no PLC connections",
+  "enabled": true,
+  "inheritable": false
+}

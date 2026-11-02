@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Factory environment V1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "factory_id",
+    "environment",
+    "gateways",
+    "deployment_enabled",
+    "approval_required"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "factory_id": {
+      "type": "string"
+    },
+    "environment": {
+      "enum": [
+        "dev",
+        "test",
+        "production"
+      ]
+    },
+    "gateways": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "target_id",
+          "github_environment"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "target_id": {
+            "type": "string"
+          },
+          "github_environment": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "deployment_enabled": {
+      "const": false
+    },
+    "approval_required": {
+      "type": "boolean"
+    }
+  }
+}

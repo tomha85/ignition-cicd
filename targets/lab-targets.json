@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "targets": [
+    {
+      "target_id": "lab-warehouse-test-agent",
+      "factory_id": "lab-warehouse",
+      "gateway_id": "warehouse-main",
+      "environment": "test",
+      "controller_id": "ignition-eam-controller",
+      "agent_id": "ignition-eam-agent",
+      "approved_project": "FactoryASmoke",
+      "controller_stage_approved": true,
+      "eam_send_commissioned": false,
+      "production_approved": false
+    },
+    {
+      "target_id": "lab-assembly-main-test-agent",
+      "factory_id": "lab-assembly",
+      "gateway_id": "assembly-main",
+      "environment": "test",
+      "controller_id": null,
+      "agent_id": null,
+      "approved_project": null,
+      "controller_stage_approved": false,
+      "eam_send_commissioned": false,
+      "production_approved": false
+    },
+    {
+      "target_id": "lab-assembly-utilities-test-agent",
+      "factory_id": "lab-assembly",
+      "gateway_id": "utilities-main",
+      "environment": "test",
+      "controller_id": null,
+      "agent_id": null,
+      "approved_project": null,
+      "controller_stage_approved": false,
+      "eam_send_commissioned": false,
+      "production_approved": false
+    },
+    {
+      "target_id": "lab-packaging-test-agent",
+      "factory_id": "lab-packaging",
+      "gateway_id": "packaging-main",
+      "environment": "test",
+      "controller_id": null,
+      "agent_id": null,
+      "approved_project": null,
+      "controller_stage_approved": false,
+      "eam_send_commissioned": false,
+      "production_approved": false
+    }
+  ]
+}

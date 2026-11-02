@@ -1,5 +1,79 @@
 # Ignition 8.3 — GitHub CI/CD and Multi-Factory EAM TEST Lab
 
+> **New to this repository?** [View the three-factory showcase](docs/THREE_FACTORY_SHOWCASE.md) with a real folder tree, exact project names and test commands.
+>
+> **A Warehouse** (1 Gateway / 2 projects) · **B Assembly** (2 Gateways) · **C Packaging** (1 Gateway / 1 demo project).
+> Source validation and release ZIP work for all three; only Factory A has a tested TEST Controller staging path.
+
+
+> V2 architecture candidate on feature branch: see docs/ARCHITECTURE_V2.md,
+> docs/ADD_FACTORY.md and docs/DEPLOYMENT_GUIDE_V2.md.
+> The LAB README below remains the legacy system reference; Agent/production deployment is HOLD.
+
+
+## Native GitHub approval — two-job flow
+
+The Factory A workflow shows **only two jobs**: `Validate Factory A` and
+`Stage FactoryASmoke on EAM TEST Controller`.
+
+After merging, the same TEST-only reviewed staging path accepts `main` and
+`feat/reusable-multifactory-framework-v1`; it never authorizes production.
+
+After validation succeeds, GitHub holds the Stage job in **Waiting**, because
+the `ignition-test` Environment has Required reviewer `tomha85`.
+Choose **Review deployments → Approve and deploy** to start Stage. The stage
+job backs up LAB project directories, stages the project, checks SHA-256 and
+scans the TEST Controller. A current-run approval check remains **inside**
+Stage as a safety control, not as an extra visible job. Agent tasks are manual.
+
+See [approval instructions](docs/APPROVAL_WORKFLOW.md).
+
+## Standard V3 source layout (feature branch only)
+
+The requested standard directory families are now present:
+
+- `.github/workflows/{validate,build-release,deploy-test,reusable-deploy}.yml`
+- `framework/{cli,validation,adapters,deployment,security}/`
+- `factories/<factory-id>/{factory.json,projects,gateways,environments,tests}/`
+- `shared/{project-resources,templates,schemas}/`
+- `tests/{unit,integration,gateway,fat}/`
+- `examples/{simple-factory,complex-factory}/` and lowercase `docs/` runbooks
+
+Three examples are registered as `lab-warehouse` (Factory A), `lab-assembly`
+(Factory B) and `lab-packaging` (Factory C). These IDs are stable examples;
+Factory B/C are **validation/build-only**, not commissioned release targets. Do not rename targets without a
+separate tested migration. Legacy workflows and source mirrors remain available
+to avoid breaking current DEV/TEST operations.
+
+**Native source validation**: `python framework/cli/check_repo.py` and
+`python -m unittest discover -s tests -v`.
+
+**Reproducible source release**: `Standard V3 - Build Immutable Native Ignition
+Source Release` generates a native project ZIP, pinned commit and SHA-256
+manifest. This is NOT a Gateway or Agent deployment.
+
+**Manual TEST Controller stage**: use the already-registered
+`Ignition EAM - Multi-Factory TEST` workflow, choose the
+`feat/reusable-multifactory-framework-v1` branch, select
+`framework-stage-controller`, `lab-warehouse`, `warehouse-main` and
+`FactoryASmoke`. The manual job calls `deploy-test.yml` →
+`reusable-deploy.yml`, which validates the manifest, archives existing LAB
+project directories, updates/compares Controller files and requests authenticated
+Controller scan. **Do not select the legacy `deploy-test` action**: that action
+targets a different, not-commissioned EAM Agent bridge.
+
+**Unqualified**: the new manual nested reusable-workflow path has not yet had
+its own successful `workflow_dispatch` deployment; only the underlying
+Factory A Controller staging adapter has passed real TEST runs. Other factories
+are validation-only. EAM Agent task creation/triggering remains out of scope.
+Production is HOLD.
+
+See [standard architecture](docs/architecture.md),
+[factory onboarding](docs/add-factory.md),
+[developer guide](docs/developer-guide.md), and
+[deployment guide](docs/deployment-guide.md).
+
+
 This repository demonstrates **native Ignition Perspective project delivery** using two separate workflows:
 
 1. **Existing Direct GitOps:** `.github/workflows/ignition-e2e.yml` — delivers `DeploymentSmokeTest` directly to the local isolated TEST Agent.

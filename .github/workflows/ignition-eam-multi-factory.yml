@@ -5,20 +5,31 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: Validate plan or request gated EAM TEST deployment
+        description: Legacy EAM or new manual framework TEST action
         type: choice
         required: true
-        options: [validate, stage-controller, deploy-test]
-        default: validate
+        options: [framework-validate, framework-stage-controller]
+        default: framework-validate
       factory:
-        description: Approved TEST factory
+        description: Select legacy factory or framework factory
         type: choice
         required: true
-        options: [factory_a, factory_b, factory_c]
-        default: factory_a
+        options: [lab-warehouse, lab-assembly, lab-packaging]
+        default: lab-warehouse
+      gateway_id:
+        description: "Framework: Gateway ID (warehouse-main, assembly-main, utilities-main, packaging-main)"
+        type: string
+        required: false
+        default: warehouse-main
+      project_name:
+        description: "Framework: project name from Gateway manifest"
+        type: string
+        required: false
+        default: FactoryASmoke
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   validate:
@@ -36,59 +47,40 @@ jobs:
           for p in WarehouseHMI ConveyorHMI PackagingHMI; do
             python scripts/validate.py "ignition-project/$p"
           done
-  plan-or-gated-deploy:
-    name: Factory-specific EAM release request (fail closed)
+  framework-validate:
+    name: Validate manually selected factory, Gateway and TEST project
     needs: validate
-    if: github.event_name == 'workflow_dispatch'
-    runs-on: [self-hosted, linux, ignition-lab]
-    environment: ignition-test
-    concurrency:
-      group: eam-lab-${{ inputs.factory }}
-      cancel-in-progress: false
+    if: github.event_name == 'workflow_dispatch' && (inputs.action == 'framework-validate' || inputs.action == 'framework-stage-controller')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Validate target plan
-        run: |
-          python scripts/eam_multi_factory.py --factory "${{ inputs.factory }}" --sha "${{ github.sha }}"
-      - name: Stage Factory A source on EAM Controller (backup first)
-        if: inputs.action == 'stage-controller' && inputs.factory == 'factory_a'
+      - name: Read-only native project plan for selected TEST factory
         env:
-          FACTORY_A_TEST_CONFIRM: 'YES'
+          TARGET_FACTORY: ${{ inputs.factory }}
+          TARGET_GATEWAY: ${{ inputs.gateway_id }}
+          TARGET_PROJECT: ${{ inputs.project_name }}
         run: |
-          bash scripts/stage_factory_a_controller_test.sh "$PWD"
-      - name: Controller project scan after stage
-        if: inputs.action == 'stage-controller' && inputs.factory == 'factory_a'
-        env:
-          IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
-          IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
-        run: |
-          python scripts/eam_controller_scan_test.py
-      - name: Reject uncommissioned staging target
-        if: inputs.action == 'stage-controller' && inputs.factory != 'factory_a'
-        run: |
-          echo "HOLD: only existing Factory A Controller staging is commissioned for this TEST" >&2
-          exit 2
-      - name: EAM TEST deployment (commissioned Controller bridge required)
-        if: inputs.action == 'deploy-test'
-        env:
-          IGNITION_EAM_LAB_ONLY: 'YES'
-          IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
-          IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
-          IGNITION_EAM_BRIDGE_COMMISSIONED: ${{ vars.IGNITION_EAM_BRIDGE_COMMISSIONED || 'NO' }}
-          IGNITION_EAM_CONTROLLER_CONTAINER: ${{ vars.IGNITION_CONTROLLER_CONTAINER }}
-          IGNITION_EAM_AGENT_CONTAINER: ${{ inputs.factory == 'factory_a' && 'ignition-eam-agent' || inputs.factory == 'factory_b' && vars.IGNITION_FACTORY_B_CONTAINER || vars.IGNITION_FACTORY_C_CONTAINER }}
-          IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR }}
-        run: |
-          python scripts/eam_multi_factory_deploy.py --factory "${{ inputs.factory }}" --sha "${{ github.sha }}"
-      - name: Upload target-scoped evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: eam-multi-factory-evidence
-          path: |
-            evidence/eam-multi-factory.json
-            evidence/eam-multi-factory-deploy.json
-          if-no-files-found: warn
+          python scripts/manual_factory_dispatch.py --action validate \
+            --factory "$TARGET_FACTORY" \
+            --gateway "$TARGET_GATEWAY" \
+            --project "$TARGET_PROJECT" \
+            --sha "$GITHUB_SHA"
+
+  framework-stage-controller:
+    name: Selected Factory - Backed-up TEST Controller staging (reusable V3)
+    needs: [validate, framework-validate]
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'framework-stage-controller' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1')
+    uses: ./.github/workflows/deploy-test.yml
+    with:
+      factory: ${{ inputs.factory }}
+      gateway: ${{ inputs.gateway_id }}
+      project: ${{ inputs.project_name }}
+    secrets: inherit

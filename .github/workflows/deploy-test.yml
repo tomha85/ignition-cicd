@@ -1,0 +1,28 @@
+name: Standard V3 - Deploy Selected Project to Isolated TEST Controller
+
+on:
+  workflow_call:
+    inputs:
+      factory:
+        type: string
+        required: true
+      gateway:
+        type: string
+        required: true
+      project:
+        type: string
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  reusable-controller-stage:
+    name: Execute reviewed TEST staging from shared deployment workflow
+    uses: ./.github/workflows/reusable-deploy.yml
+    with:
+      factory: ${{ inputs.factory }}
+      gateway: ${{ inputs.gateway }}
+      project: ${{ inputs.project }}
+    secrets: inherit

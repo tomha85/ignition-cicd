@@ -1,0 +1,41 @@
+name: Reusable Multi-Factory Framework - Read-only Validation
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  framework-validation:
+    name: Generic factory schema, source and regression tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Confirm existing CI baseline remains valid
+        run: |
+          python -m compileall -q scripts tests reusable_cicd
+          python -m unittest discover -s tests -v
+          python scripts/validate.py ignition-project/DeploymentSmokeTest
+          python scripts/stage_controller.py --check-config
+          python scripts/eam_multi_factory.py --validate
+      - name: New multi-factory catalog / dry-run release plans
+        run: |
+          python scripts/reusable_factory.py --check-catalog
+          python scripts/reusable_factory.py --factory lab-warehouse --gateway warehouse-main --environment test --sha "$GITHUB_SHA" > /tmp/warehouse-plan.json
+          python scripts/reusable_factory.py --factory lab-assembly --gateway assembly-main --environment test --sha "$GITHUB_SHA" > /tmp/assembly-plan.json
+          python scripts/reusable_factory.py --factory lab-packaging --gateway packaging-main --environment test --sha "$GITHUB_SHA" > /tmp/packaging-plan.json
+          python - <<'PY'
+          import json
+          for path in ("/tmp/warehouse-plan.json", "/tmp/assembly-plan.json", "/tmp/packaging-plan.json"):
+              d = json.load(open(path))
+              assert d["status"] == "VALIDATED_NOT_DEPLOYED"
+              assert d["deployment_authorized"] is False
+              assert d["production_approved"] is False
+          print("FRAMEWORK_READ_ONLY_VALIDATION_PASS")
+          PY

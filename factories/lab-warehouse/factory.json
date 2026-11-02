@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "factory_id": "lab-warehouse",
+  "ignition_version": "8.3",
+  "gateways": [
+    {
+      "gateway_id": "warehouse-main",
+      "projects": [
+        {
+          "name": "WarehouseHMI",
+          "source": "projects/WarehouseHMI"
+        },
+        {
+          "name": "FactoryASmoke",
+          "source": "projects/FactoryASmoke"
+        }
+      ],
+      "environments": {
+        "test": {
+          "github_environment": "lab-warehouse-test",
+          "deployment_method": "eam",
+          "target_id": "lab-warehouse-test-agent",
+          "secret_refs": [
+            "IGNITION_EAM_API_TOKEN"
+          ],
+          "deployment_enabled": false
+        },
+        "production": {
+          "github_environment": "lab-warehouse-production",
+          "deployment_method": "eam",
+          "target_id": "lab-warehouse-production-agent",
+          "secret_refs": [
+            "IGNITION_EAM_API_TOKEN"
+          ],
+          "deployment_enabled": false,
+          "approval_required": true
+        }
+      }
+    }
+  ]
+}

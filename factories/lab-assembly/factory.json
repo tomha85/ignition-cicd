@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "factory_id": "lab-assembly",
+  "ignition_version": "8.3",
+  "gateways": [
+    {
+      "gateway_id": "assembly-main",
+      "projects": [
+        {
+          "name": "ConveyorHMI",
+          "source": "projects/ConveyorHMI"
+        },
+        {
+          "name": "PackagingHMI",
+          "source": "projects/PackagingHMI"
+        }
+      ],
+      "environments": {
+        "test": {
+          "github_environment": "lab-assembly-main-test",
+          "deployment_method": "eam",
+          "target_id": "lab-assembly-main-test-agent",
+          "secret_refs": [
+            "IGNITION_EAM_API_TOKEN"
+          ],
+          "deployment_enabled": false
+        },
+        "production": {
+          "github_environment": "lab-assembly-main-production",
+          "deployment_method": "eam",
+          "target_id": "lab-assembly-main-production-agent",
+          "secret_refs": [
+            "IGNITION_EAM_API_TOKEN"
+          ],
+          "deployment_enabled": false,
+          "approval_required": true
+        }
+      }
+    },
+    {
+      "gateway_id": "utilities-main",
+      "projects": [
+        {
+          "name": "PackagingHMI",
+          "source": "projects/PackagingHMI"
+        }
+      ],
+      "environments": {
+        "test": {
+          "github_environment": "lab-assembly-utilities-test",
+          "deployment_method": "eam",
+          "target_id": "lab-assembly-utilities-test-agent",
+          "secret_refs": [
+            "IGNITION_EAM_API_TOKEN"
+          ],
+          "deployment_enabled": false
+        }
+      }
+    }
+  ]
+}
