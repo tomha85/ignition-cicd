@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Factory FAT source requirement registry",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "factory_id",
+    "requirements",
+    "fat_status",
+    "site_source_documents",
+    "field_mapping_verified"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "factory_id": {
+      "type": "string"
+    },
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "source_reference",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source_reference": {
+            "type": "string"
+          },
+          "status": {
+            "const": "NOT_TESTED"
+          }
+        }
+      }
+    },
+    "fat_status": {
+      "const": "NOT_TESTED"
+    },
+    "site_source_documents": {
+      "type": "string"
+    },
+    "field_mapping_verified": {
+      "const": false
+    }
+  }
+}

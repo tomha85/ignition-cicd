@@ -143,11 +143,33 @@ class ArchitectureV2Tests(unittest.TestCase):
 
     def test_schemas_are_valid_json(self):
         files=list((ROOT/"shared/schemas").glob("*.json"))
-        self.assertEqual(len(files),4)
+        self.assertEqual(len(files),5)
         for file in files:
             obj=json.loads(file.read_text())
             self.assertEqual(obj["$schema"],"https://json-schema.org/draft/2020-12/schema")
             self.assertEqual(obj["type"],"object")
+
+    def test_fat_requirements_explicitly_not_tested(self):
+        from framework.validation.requirements import check_requirements
+        result=check_requirements(ROOT)
+        self.assertEqual(len(result["factory_requirements"]),2)
+        self.assertTrue(all(x["fat_status"]=="NOT_TESTED" for x in result["factory_requirements"]))
+
+    def test_false_fat_pass_is_rejected(self):
+        from framework.validation.requirements import check_requirements
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            for factory in ("lab-warehouse","lab-assembly"):
+                dest=root/"factories"/factory/"tests"
+                dest.mkdir(parents=True)
+                source=ROOT/"factories"/factory/"tests/requirements.json"
+                dest.joinpath("requirements.json").write_text(source.read_text())
+            bad=root/"factories/lab-warehouse/tests/requirements.json"
+            obj=json.loads(bad.read_text())
+            obj["fat_status"]="PASS"
+            bad.write_text(json.dumps(obj))
+            with self.assertRaises(FrameworkError):
+                check_requirements(root)
 
     def test_new_architecture_ci_does_not_deploy(self):
         file=(ROOT/".github/workflows/architecture-qualification.yml").read_text()
