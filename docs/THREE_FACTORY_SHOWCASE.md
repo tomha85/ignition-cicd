@@ -75,6 +75,14 @@ python scripts/build_release_v3.py \
 
 Source validation and ZIP package PASS **do not** prove Perspective browser rendering, OPC UA/PLC connections or functional FAT.
 
+## Approving Factory A staging
+
+After **Validate PASS**, GitHub should show **Review deployments** for the
+`ignition-test` Environment. Only an approval by `tomha85` allows the stage
+job to run. Follow [the approval setup guide](APPROVAL_WORKFLOW.md) before
+testing. Without a configured reviewer, the independent stage guard produces
+HOLD and does not modify the Controller.
+
 ## Scope of stage/deploy
 
 - Only Factory A / `FactoryASmoke` has a TEST Controller staging adapter qualified through the existing LAB smoke workflow.
