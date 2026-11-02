@@ -1,6 +1,7 @@
 """Manifest-bound TEST Controller staging policy; no implicit Agent/production release."""
 import json
 import re
+from urllib.parse import urlsplit
 from pathlib import Path
 from reusable_cicd.core import FrameworkError, load_factory
 
@@ -67,6 +68,15 @@ def check_target_registry(root: Path) -> dict:
                     raise FrameworkError("approved LAB target requires valid " + name)
             if target["controller_id"] == target["agent_id"]:
                 raise FrameworkError("Controller and Agent must be distinct")
+            uri = target.get("controller_scan_url")
+            if not isinstance(uri, str):
+                raise FrameworkError("approved LAB target requires HTTPS Controller scan endpoint")
+            parsed = urlsplit(uri)
+            if (parsed.scheme != "https" or parsed.hostname not in ("localhost", "127.0.0.1")
+                    or parsed.path != "/data/api/v1/scan/projects"
+                    or parsed.username or parsed.password or parsed.query or parsed.fragment
+                    or parsed.port is None):
+                raise FrameworkError("Controller scan endpoint must be isolated loopback HTTPS")
         else:
             if target.get("project_scope") is not None:
                 raise FrameworkError("uncommissioned target cannot grant project scope")
