@@ -127,6 +127,51 @@ def inspect_openapi(result, token, ca):
     if "create_task_contract" in result["openapi"]:
         c=result["openapi"]["create_task_contract"]
         c["request_schemas_expanded"]={k:expand_refs(v) for k,v in c["request_schemas"].items()}
+
+    # Compare the real, existing Factory A EAM task with the new smoke project.
+    # Never expose raw resource JSON, credentials, internal addresses or secrets.
+    path="/data/api/v1/resources/find/com.inductiveautomation.eam/eam-tasks/CICD-SEND-WarehouseHMI-A"
+    task_req=urllib.request.Request("https://localhost:9143"+path,
+        headers={"X-Ignition-API-Token":token,"Accept":"application/json"})
+    try:
+        with urllib.request.urlopen(task_req,context=ctx,timeout=15) as resp:
+            task=json.load(resp)
+        def safe_summary(obj,level=0):
+            if level>6:return "..."
+            if isinstance(obj,list):return [safe_summary(x,level+1) for x in obj[:5]]
+            if not isinstance(obj,dict):
+                return obj if obj in ("EAM-Agent","WarehouseHMI","FactoryASmoke",
+                    "CICD-SEND-WarehouseHMI-A","OnDemand","Immediate","eam_sendProject","Local System",
+                    True,False,0,1) else type(obj).__name__
+            return {k:safe_summary(v,level+1) for k,v in obj.items()
+                    if not any(x in k.lower() for x in ("secret","credential","password","token","key","url","connection","certificate"))}
+        result["openapi"]["legacy_task_definition"]={"http":200,"safe_shape":safe_summary(task)}
+    except urllib.error.HTTPError as exc:
+        result["openapi"]["legacy_task_definition"]={"http":exc.code}
+    except Exception as exc:
+        result["openapi"]["legacy_task_definition"]={"error_type":type(exc).__name__}
+    # Supported route contract for forcing EAM task; NEVER call it in diagnostics.
+    force="/data/eam/api/v1/eam-tasks/force/{owner}/{name}"
+    force_methods=spec["paths"].get(force,{})
+    result["openapi"]["force_task_api"]={
+        "path":force,
+        "methods": [k.upper() for k in force_methods if k.lower() in ("get","post","put","delete","patch")]
+    }
+    for method,specop in force_methods.items():
+        if method.lower() in ("get","post") and isinstance(specop,dict):
+            result["openapi"]["force_task_api"]["parameters"]=[
+                {"name":p.get("name"),"in":p.get("in"),
+                 "required":p.get("required",False)} for p in specop.get("parameters",[])
+                if isinstance(p,dict)]
+            result["openapi"]["force_task_api"]["request_body_present"]="requestBody" in specop
+    # Find the official EAM GET agents/status routes without inventing endpoints.
+    result["openapi"]["agent_read_routes"]=[
+        path for path,methods in sorted(spec["paths"].items())
+        if ("agent" in path.lower() or "gateway-network" in path.lower())
+        and ("status" in path.lower() or "agents" in path.lower())
+        and "{" not in path and isinstance(methods,dict) and "get" in methods
+    ][:35]
+
     # Direct documented read for registered EAM task names (do not expose all names).
     task_names="/data/api/v1/resources/names/com.inductiveautomation.eam/eam-tasks"
     req=urllib.request.Request("https://localhost:9143"+task_names,
