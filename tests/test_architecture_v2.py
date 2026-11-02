@@ -112,6 +112,8 @@ class ArchitectureV2Tests(unittest.TestCase):
         allowed=validate_stage_authority("lab-warehouse","warehouse-main","FactoryASmoke")
         self.assertTrue(allowed["approved_controller_stage"])
         self.assertFalse(allowed["eam_agent_deploy"])
+        other=validate_stage_authority("lab-warehouse","warehouse-main","WarehouseHMI")
+        self.assertTrue(other["approved_controller_stage"])
         with self.assertRaises(FrameworkError):
             validate_stage_authority("lab-assembly","assembly-main","ConveyorHMI")
 
