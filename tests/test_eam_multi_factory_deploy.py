@@ -31,7 +31,7 @@ class EAMDeployTests(unittest.TestCase):
         source = (ROOT / "scripts/eam_multi_factory_deploy.py").read_text()
         self.assertLess(source.index('plan["backup_verified"] = True'),
                         source.index('run("docker", "cp", str(src)'))
-        self.assertIn('plan["eam_task_status"] = "REPORTED_COMPLETED"', source)
+        self.assertIn('plan["eam_task_status"] = "INVOKED_AGENT_RESULT_PENDING"', source)
         self.assertIn('plan["agent_verification"] = "FILES_MATCH"', source)
         self.assertIn('plan["e2e_rendered"] = "NOT_TESTED"', source)
         self.assertNotIn('DEPLOYMENT=PASS', source)
