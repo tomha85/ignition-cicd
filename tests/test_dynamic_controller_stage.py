@@ -100,6 +100,14 @@ class DynamicControllerStageTests(unittest.TestCase):
                             generic.stage("lab-warehouse", "warehouse-main", project, SHA)
                         execute.assert_not_called()
 
+    def test_controller_extra_files_cannot_count_as_identical(self):
+        with patch.object(generic, "output", return_value="project.json\nextra.txt"):
+            with self.assertRaisesRegex(FrameworkError, "tree differs"):
+                generic.hashes_equal(
+                    "ignition-eam-controller", "/usr/local/bin/ignition/data/projects/WarehouseHMI",
+                    {"project.json": "a" * 64}
+                )
+
     def test_no_fake_success_in_read_only_plan(self):
         for project in ("WarehouseHMI", "FactoryASmoke"):
             result = select("lab-warehouse", None, project, SHA)
