@@ -21,12 +21,23 @@ for c in ignition-eam-controller ignition-eam-agent; do
 done
 echo "BACKUPS_VERIFIED=$OUT"
 DST="/usr/local/bin/ignition/data/projects/WarehouseHMI"
+# Preserve the previous project outside Ignition's watched projects directory.
+DATA="/usr/local/bin/ignition/data"
+STAGED="$DATA/.factory-a-stage-$STAMP"
+PRIOR="$DATA/.factory-a-prior-$STAMP"
+for P in "$STAGED" "$PRIOR"; do
+  if docker exec ignition-eam-controller test -e "$P"; then
+    echo "HOLD: unexpected existing staging/backup path $P"
+    exit 2
+  fi
+done
+docker cp ignition-project/WarehouseHMI ignition-eam-controller:"$STAGED"
+docker exec -u 0 ignition-eam-controller chown -R ignition:ignition "$STAGED"
 if docker exec ignition-eam-controller test -e "$DST"; then
-  echo "HOLD: Controller WarehouseHMI already exists; do not overwrite"
-  exit 2
+  docker exec ignition-eam-controller mv "$DST" "$PRIOR"
+  echo "CONTROLLER_PREVIOUS_COPY=$PRIOR"
 fi
-docker cp ignition-project/WarehouseHMI ignition-eam-controller:"$DST"
-docker exec -u 0 ignition-eam-controller chown -R ignition:ignition "$DST"
+docker exec ignition-eam-controller mv "$STAGED" "$DST"
 python3 - <<'PY'
 from pathlib import Path
 import subprocess,hashlib
