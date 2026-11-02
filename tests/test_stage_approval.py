@@ -72,8 +72,7 @@ class ApprovalVerificationTests(unittest.TestCase):
         from pathlib import Path
         text = Path(".github/workflows/factory-a-controller-smoke.yml").read_text()
         stage = text.split("  stage-controller:",1)[1]
-        self.assertIn("needs: [validate, reviewer-readiness]", stage)
-        self.assertIn("needs.reviewer-readiness.outputs.ready == 'true'", stage)
+        self.assertIn("needs: validate", stage)
         self.assertIn("environment: ignition-test", stage)
         self.assertIn("GH_APPROVAL_READ_TOKEN: ${{ github.token }}", stage)
         self.assertLess(stage.index("scripts/verify_stage_approval.py"),
@@ -83,8 +82,7 @@ class ApprovalVerificationTests(unittest.TestCase):
         from pathlib import Path
         text = Path(".github/workflows/reusable-deploy.yml").read_text()
         stage = text.split("  stage-controller:",1)[1]
-        self.assertIn("needs: [select-and-validate, reviewer-readiness]", stage)
-        self.assertIn("needs.reviewer-readiness.outputs.ready == 'true'", stage)
+        self.assertIn("needs: select-and-validate", stage)
         self.assertIn("environment: ignition-test", stage)
         self.assertIn("GH_APPROVAL_READ_TOKEN: ${{ github.token }}", stage)
         self.assertLess(stage.index("scripts/verify_stage_approval.py"),
@@ -98,17 +96,26 @@ class ApprovalVerificationTests(unittest.TestCase):
         self.assertNotIn("bash scripts/stage_factory_a_controller_test.sh", text)
         self.assertIn("uses: ./.github/workflows/deploy-test.yml", text)
 
-    def test_both_paths_skip_instead_of_failing_before_review_configuration(self):
+    def test_exactly_two_jobs_and_native_environment_gate(self):
         from pathlib import Path
-        for file in (".github/workflows/factory-a-controller-smoke.yml",
-                     ".github/workflows/reusable-deploy.yml"):
-            text = Path(file).read_text()
-            self.assertIn("  reviewer-readiness:", text, file)
-            self.assertIn("python3 scripts/check_environment_reviewers.py", text, file)
-            self.assertIn("needs.reviewer-readiness.outputs.ready == 'true'", text, file)
-        check = Path("scripts/check_environment_reviewers.py").read_text()
-        self.assertIn("return 0", check)
-        self.assertIn("APPROVAL_SETUP_REQUIRED_STAGE_SKIPPED", check)
+        expected = {
+            ".github/workflows/factory-a-controller-smoke.yml":
+                ["validate", "stage-controller"],
+            ".github/workflows/reusable-deploy.yml":
+                ["select-and-validate", "stage-controller"],
+        }
+        for path, names in expected.items():
+            source = Path(path).read_text()
+            # exactly two unindented job keys underneath jobs:
+            jobs = [line.strip()[:-1]
+                    for line in source.split("jobs:", 1)[1].splitlines()
+                    if line.startswith("  ") and not line.startswith("   ")
+                    and line.rstrip().endswith(":")]
+            self.assertEqual(jobs, names, path)
+            self.assertNotIn("  reviewer-readiness:", source)
+            stage = source.split("  stage-controller:", 1)[1]
+            self.assertIn("needs: " + names[0], stage)
+            self.assertIn("environment: ignition-test", stage)
 
     def test_missing_token_blocks_api_call(self):
         with self.assertRaisesRegex(a.ApprovalHold,"read token missing"):
