@@ -60,6 +60,13 @@ class ApprovalVerificationTests(unittest.TestCase):
         with self.assertRaises(a.ApprovalHold):
             a.validate_context(dict(CTX,GITHUB_EVENT_NAME="pull_request"))
 
+    def test_real_controller_stager_enforces_approval_before_mutation(self):
+        from pathlib import Path
+        source = Path("scripts/factory_a_controller_smoke.py").read_text()
+        self.assertIn("verify_github_approval(os.environ", source)
+        self.assertLess(source.index("verify_github_approval(os.environ"),
+                        source.index('backup.mkdir(mode=0o700)'))
+
     def test_missing_token_blocks_api_call(self):
         with self.assertRaisesRegex(a.ApprovalHold,"read token missing"):
             a.fetch_approvals("", "1234")
