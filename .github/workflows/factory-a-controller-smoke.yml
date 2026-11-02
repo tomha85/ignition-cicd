@@ -1,5 +1,5 @@
 name: Factory A Framework - TEST Controller Smoke
-# One-shot verified update to FactoryASmoke description on EAM TEST Controller.
+# Factory A TEST: changed native project resources trigger Validate → native GitHub approval → Stage.
 # Native GitHub Environment gate: Validate → WAIT for approval → Stage.
 # Factory A example 2026-11-02: verify updated source description on TEST Controller.
 # Limited to this feature branch and the isolated local TEST EAM Controller.
@@ -13,6 +13,7 @@ on:
       - feat/reusable-multifactory-framework-v1
     paths:
       - .github/workflows/factory-a-controller-smoke.yml
+      - 'factories/lab-warehouse/projects/FactoryASmoke/**'
 
 permissions:
   contents: read
