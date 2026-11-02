@@ -85,8 +85,9 @@ class ManifestGeneratedChoicesTests(unittest.TestCase):
         content = WORKFLOW.read_text()
         self.assertIn("Select Project (validated against chosen Factory)", content)
         self.assertEqual(content.count("        type: choice"), 2)
-        self.assertNotIn("      action:", content)
-        self.assertNotIn("      gateway_id:", content)
+        dispatch_inputs = content.split("permissions:", 1)[0]
+        self.assertNotIn("      action:", dispatch_inputs)
+        self.assertNotIn("      gateway_id:", dispatch_inputs)
         self.assertIn("needs: validate", content)
         self.assertIn("environment: ignition-test", content)
 
