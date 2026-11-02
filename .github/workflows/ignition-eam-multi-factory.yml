@@ -1,30 +1,19 @@
-name: Ignition EAM - Multi-Factory TEST
+name: Ignition EAM - Select Factory & Project (TEST)
 
 on:
-  pull_request:
   workflow_dispatch:
     inputs:
-      action:
-        description: Legacy EAM or new manual framework TEST action
-        type: choice
-        required: true
-        options: [framework-validate, framework-stage-controller]
-        default: framework-validate
       factory:
-        description: Select legacy factory or framework factory
+        description: "Factory (registered under factories/)"
         type: choice
         required: true
         options: [lab-warehouse, lab-assembly, lab-packaging]
         default: lab-warehouse
-      gateway_id:
-        description: "Framework: Gateway ID (warehouse-main, assembly-main, utilities-main, packaging-main)"
-        type: string
-        required: false
-        default: warehouse-main
-      project_name:
-        description: "Framework: project name from Gateway manifest"
-        type: string
-        required: false
+      project:
+        description: "Ignition project (must belong to selected Factory)"
+        type: choice
+        required: true
+        options: [FactoryASmoke, WarehouseHMI, ConveyorHMI, PackagingHMI, PackagingLineHMI]
         default: FactoryASmoke
 
 permissions:
@@ -33,28 +22,12 @@ permissions:
 
 jobs:
   validate:
-    name: Validate three isolated native Ignition projects
+    name: Validate Factory + Project (Gateway auto-resolved)
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - run: |
-          python -m compileall -q scripts tests
-          python -m unittest discover -s tests -v
-          python scripts/eam_multi_factory.py --validate
-          for p in WarehouseHMI ConveyorHMI PackagingHMI; do
-            python scripts/validate.py "ignition-project/$p"
-          done
-  framework-validate:
-    name: Validate manually selected factory, Gateway and TEST project
-    needs: validate
-    if: github.event_name == 'workflow_dispatch' && (inputs.action == 'framework-validate' || inputs.action == 'framework-stage-controller')
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
+    timeout-minutes: 12
+    outputs:
+      gateway_id: ${{ steps.resolve.outputs.gateway_id }}
+      stage_eligible: ${{ steps.resolve.outputs.stage_eligible }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -62,25 +35,88 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Read-only native project plan for selected TEST factory
-        env:
-          TARGET_FACTORY: ${{ inputs.factory }}
-          TARGET_GATEWAY: ${{ inputs.gateway_id }}
-          TARGET_PROJECT: ${{ inputs.project_name }}
+      - name: Validate architecture, project resources and regression tests
         run: |
-          python scripts/manual_factory_dispatch.py --action validate \
-            --factory "$TARGET_FACTORY" \
-            --gateway "$TARGET_GATEWAY" \
-            --project "$TARGET_PROJECT" \
-            --sha "$GITHUB_SHA"
+          python -m compileall -q framework reusable_cicd scripts tests
+          python framework/cli/check_repo.py
+          python -m unittest discover -s tests -v
+      - id: resolve
+        name: Resolve the unique TEST Gateway from factory.json
+        env:
+          SELECTED_FACTORY: ${{ inputs.factory }}
+          SELECTED_PROJECT: ${{ inputs.project }}
+        run: |
+          python scripts/manual_factory_dispatch.py \
+            --action validate --factory "$SELECTED_FACTORY" \
+            --project "$SELECTED_PROJECT" --sha "$GITHUB_SHA" \
+            --github-output "$GITHUB_OUTPUT"
+      - name: Publish verified selection
+        env:
+          SELECTED_FACTORY: ${{ inputs.factory }}
+          SELECTED_PROJECT: ${{ inputs.project }}
+          VERIFIED_GATEWAY: ${{ steps.resolve.outputs.gateway_id }}
+          STAGE_ALLOWED: ${{ steps.resolve.outputs.stage_eligible }}
+        run: |
+          {
+            echo "### Verified TEST selection"
+            echo "- Factory: \`$SELECTED_FACTORY\`"
+            echo "- Project: \`$SELECTED_PROJECT\`"
+            echo "- Resolved Gateway: \`$VERIFIED_GATEWAY\`"
+            if [ "$STAGE_ALLOWED" = 'true' ]; then
+              echo "- TEST Controller staging: **eligible; approval required**"
+            else
+              echo "- TEST Controller staging: **not commissioned; validate only**"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
-  framework-stage-controller:
-    name: Selected Factory - Backed-up TEST Controller staging (reusable V3)
-    needs: [validate, framework-validate]
-    if: github.event_name == 'workflow_dispatch' && inputs.action == 'framework-stage-controller' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/reusable-multifactory-framework-v1')
-    uses: ./.github/workflows/deploy-test.yml
-    with:
-      factory: ${{ inputs.factory }}
-      gateway: ${{ inputs.gateway_id }}
-      project: ${{ inputs.project_name }}
-    secrets: inherit
+  stage-controller:
+    name: Stage approved project to EAM TEST Controller
+    needs: validate
+    if: github.repository == 'tomha85/ignition-cicd' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && needs.validate.outputs.stage_eligible == 'true'
+    runs-on: [self-hosted, linux, ignition-lab]
+    environment: ignition-test
+    concurrency:
+      group: eam-lab-factory_a
+      cancel-in-progress: false
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify required-reviewer approval for the current run
+        env:
+          GH_APPROVAL_READ_TOKEN: ${{ github.token }}
+        run: python scripts/verify_stage_approval.py
+      - name: Revalidate mapping, backup, stage and verify native project
+        env:
+          SELECTED_FACTORY: ${{ inputs.factory }}
+          SELECTED_PROJECT: ${{ inputs.project }}
+          VERIFIED_GATEWAY: ${{ needs.validate.outputs.gateway_id }}
+          FACTORY_A_SMOKE_CONFIRM: 'YES'
+          IGNITION_CONTROLLER_CONTAINER: 'ignition-eam-controller'
+          IGNITION_AGENT_CONTAINER: 'ignition-eam-agent'
+          IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR || '/home/tomha/ignition-eam-backups' }}
+          IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
+          IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
+          GH_APPROVAL_READ_TOKEN: ${{ github.token }}
+          no_proxy: 'localhost,127.0.0.1,::1'
+        run: |
+          python scripts/manual_factory_dispatch.py \
+            --action stage-controller --factory "$SELECTED_FACTORY" \
+            --gateway "$VERIFIED_GATEWAY" \
+            --project "$SELECTED_PROJECT" --sha "$GITHUB_SHA"
+      - name: Upload Controller stage evidence even on HOLD
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selected-factory-test-controller-evidence
+          path: |
+            evidence/factory-a-controller-smoke.json
+            evidence/factory-a-approval.json
+          if-no-files-found: warn

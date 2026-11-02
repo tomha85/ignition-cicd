@@ -109,10 +109,13 @@ class ApprovalVerificationTests(unittest.TestCase):
     def test_legacy_unreviewed_write_actions_removed(self):
         from pathlib import Path
         text = Path(".github/workflows/ignition-eam-multi-factory.yml").read_text()
-        self.assertIn("options: [framework-validate, framework-stage-controller]", text)
-        self.assertNotIn("python scripts/eam_multi_factory_deploy.py --factory", text)
-        self.assertNotIn("bash scripts/stage_factory_a_controller_test.sh", text)
-        self.assertIn("uses: ./.github/workflows/deploy-test.yml", text)
+        self.assertIn("options: [lab-warehouse, lab-assembly, lab-packaging]", text)
+        self.assertNotIn("options: [framework-validate, framework-stage-controller]", text)
+        self.assertIn("needs: validate", text)
+        self.assertIn("environment: ignition-test", text)
+        self.assertIn("scripts/verify_stage_approval.py", text)
+        self.assertIn("needs.validate.outputs.stage_eligible == 'true'", text)
+        self.assertNotIn("uses: ./.github/workflows/deploy-test.yml", text)
 
     def test_exactly_two_jobs_and_native_environment_gate(self):
         from pathlib import Path
