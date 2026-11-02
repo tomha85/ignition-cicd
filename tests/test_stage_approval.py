@@ -67,6 +67,34 @@ class ApprovalVerificationTests(unittest.TestCase):
         self.assertLess(source.index("verify_github_approval(os.environ"),
                         source.index('backup.mkdir(mode=0o700)'))
 
+    def test_smoke_workflow_waits_after_validation_and_checks_real_review(self):
+        from pathlib import Path
+        text = Path(".github/workflows/factory-a-controller-smoke.yml").read_text()
+        stage = text.split("  stage-controller:",1)[1]
+        self.assertIn("needs: validate", stage)
+        self.assertIn("environment: ignition-test", stage)
+        self.assertIn("GH_APPROVAL_READ_TOKEN: ${{ github.token }}", stage)
+        self.assertLess(stage.index("scripts/verify_stage_approval.py"),
+                        stage.index("scripts/factory_a_controller_smoke.py --stage-controller"))
+
+    def test_reusable_workflow_has_same_protection(self):
+        from pathlib import Path
+        text = Path(".github/workflows/reusable-deploy.yml").read_text()
+        stage = text.split("  stage-controller:",1)[1]
+        self.assertIn("needs: select-and-validate", stage)
+        self.assertIn("environment: ignition-test", stage)
+        self.assertIn("GH_APPROVAL_READ_TOKEN: ${{ github.token }}", stage)
+        self.assertLess(stage.index("scripts/verify_stage_approval.py"),
+                        stage.index("--action stage-controller"))
+
+    def test_legacy_unreviewed_write_actions_removed(self):
+        from pathlib import Path
+        text = Path(".github/workflows/ignition-eam-multi-factory.yml").read_text()
+        self.assertIn("options: [validate, framework-validate, framework-stage-controller]", text)
+        self.assertNotIn("python scripts/eam_multi_factory_deploy.py --factory", text)
+        self.assertNotIn("bash scripts/stage_factory_a_controller_test.sh", text)
+        self.assertIn("uses: ./.github/workflows/deploy-test.yml", text)
+
     def test_missing_token_blocks_api_call(self):
         with self.assertRaisesRegex(a.ApprovalHold,"read token missing"):
             a.fetch_approvals("", "1234")
