@@ -8,7 +8,7 @@ on:
         description: Legacy EAM or new manual framework TEST action
         type: choice
         required: true
-        options: [validate, stage-controller, deploy-test, framework-validate, framework-stage-controller]
+        options: [validate, framework-validate, framework-stage-controller]
         default: validate
       factory:
         description: Select legacy factory or framework factory
@@ -47,61 +47,36 @@ jobs:
             python scripts/validate.py "ignition-project/$p"
           done
   plan-or-gated-deploy:
-    name: Factory-specific EAM release request (fail closed)
+    name: Legacy factory plan — READ ONLY (Agent task is user-managed)
     needs: validate
-    if: github.event_name == 'workflow_dispatch' && (inputs.action == 'validate' || inputs.action == 'stage-controller' || inputs.action == 'deploy-test')
-    runs-on: [self-hosted, linux, ignition-lab]
-    environment: ignition-test
-    concurrency:
-      group: eam-lab-${{ inputs.factory }}
-      cancel-in-progress: false
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'validate'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Validate target plan
-        run: |
-          python scripts/eam_multi_factory.py --factory "${{ inputs.factory }}" --sha "${{ github.sha }}"
-      - name: Stage Factory A source on EAM Controller (backup first)
-        if: inputs.action == 'stage-controller' && inputs.factory == 'factory_a'
+      - name: Validate legacy factory source without Gateway writes
         env:
-          FACTORY_A_TEST_CONFIRM: 'YES'
+          SELECTED_LEGACY_FACTORY: ${{ inputs.factory }}
         run: |
-          bash scripts/stage_factory_a_controller_test.sh "$PWD"
-      - name: Controller project scan after stage
-        if: inputs.action == 'stage-controller' && inputs.factory == 'factory_a'
-        env:
-          IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
-          IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
-        run: |
-          python scripts/eam_controller_scan_test.py
-      - name: Reject uncommissioned staging target
-        if: inputs.action == 'stage-controller' && inputs.factory != 'factory_a'
-        run: |
-          echo "HOLD: only existing Factory A Controller staging is commissioned for this TEST" >&2
+          python scripts/eam_multi_factory.py \
+            --factory "$SELECTED_LEGACY_FACTORY" --sha "$GITHUB_SHA"
+
+  reject-obsolete-deploy-actions:
+    name: HOLD legacy write actions — use framework-stage-controller with approval
+    needs: validate
+    if: github.event_name == 'workflow_dispatch' && (inputs.action == 'stage-controller' || inputs.action == 'deploy-test')
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo 'HOLD: legacy direct Controller/Agent deployment is disabled in V3.' >&2
+          echo 'Choose framework-stage-controller and approve the ignition-test environment.' >&2
           exit 2
-      - name: EAM TEST deployment (commissioned Controller bridge required)
-        if: inputs.action == 'deploy-test'
-        env:
-          IGNITION_EAM_LAB_ONLY: 'YES'
-          IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
-          IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
-          IGNITION_EAM_BRIDGE_COMMISSIONED: ${{ vars.IGNITION_EAM_BRIDGE_COMMISSIONED || 'NO' }}
-          IGNITION_EAM_CONTROLLER_CONTAINER: ${{ vars.IGNITION_CONTROLLER_CONTAINER }}
-          IGNITION_EAM_AGENT_CONTAINER: ${{ inputs.factory == 'factory_a' && 'ignition-eam-agent' || inputs.factory == 'factory_b' && vars.IGNITION_FACTORY_B_CONTAINER || vars.IGNITION_FACTORY_C_CONTAINER }}
-          IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR }}
-        run: |
-          python scripts/eam_multi_factory_deploy.py --factory "${{ inputs.factory }}" --sha "${{ github.sha }}"
-      - name: Upload target-scoped evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: eam-multi-factory-evidence
-          path: |
-            evidence/eam-multi-factory.json
-            evidence/eam-multi-factory-deploy.json
-          if-no-files-found: warn
 
   framework-validate:
     name: Validate manually selected factory, Gateway and TEST project
