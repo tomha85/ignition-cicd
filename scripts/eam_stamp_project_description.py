@@ -46,7 +46,7 @@ def stamp(project_dir: Path, factory: str, release_sha: str, run_id: str) -> dic
         f"source={release_sha[:12]} | content={digest[:16]} | "
         f"run={run_id} | at={timestamp} | NOT AGENT VERIFIED"
     )
-    project_file.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8")
+    project_file.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     return {"project": data["title"], "factory": factory,
             "release_sha": release_sha, "source_content_sha256": digest,
             "github_run_id": run_id, "staged_at_utc": timestamp,
