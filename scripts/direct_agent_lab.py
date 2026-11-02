@@ -216,6 +216,11 @@ def main():
         report["scan_request"] = scan_api(url, token, context, method="POST")
         report["scan_final"] = wait_scan(
             url, token, context, baseline_timestamp=initial_scan.get("lastScanTimestamp"))
+        if not exists(dst):
+            raise RuntimeError("FAIL: project disappeared after Gateway scan")
+        if remote_hashes(files, dst) != files:
+            raise RuntimeError("FAIL: project changed after Gateway scan")
+        report["post_scan_agent_files"] = "MATCH"
         # Test Gateway serves the project entry point; browser render is a
         # separate qualification, never misreported as a completed E2E proof.
         report["perspective_http"] = perspective_http_check()
@@ -228,7 +233,7 @@ def main():
         report["error"] = str(exc)
         if swapped:
             try:
-                failed = DATA + "/projects/.direct-failed-" + stamp
+                failed = DATA + "/.direct-failed-" + stamp
                 if exists(dst):
                     run("docker", "exec", AGENT, "mv", dst, failed)
                 if target_exists:
