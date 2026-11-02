@@ -54,6 +54,16 @@ class DirectAgentCandidateTests(unittest.TestCase):
         self.assertIn("remote_hashes(files, dst) != old_hashes", code)
         self.assertIn("baseline_timestamp=initial_scan", code)
 
+    def test_missing_target_uses_install_without_existing_version_gate(self):
+        code = (ROOT / "scripts/direct_agent_lab.py").read_text()
+        self.assertIn('report["install_mode"] = "UPDATE" if target_exists else "INSTALL"', code)
+        self.assertNotIn('if not exists(dst) or exists(tmp)', code)
+        self.assertIn('if target_exists:', code)
+        self.assertIn('tmp = DATA + "/.direct-stage-"', code)
+        self.assertIn('prior = DATA + "/.direct-prior-"', code)
+        self.assertNotIn('tmp = DATA + "/projects/.direct-stage-"', code)
+        self.assertNotIn('prior = DATA + "/projects/.direct-prior-"', code)
+
     def test_no_auto_push_release(self):
         wf = (ROOT / ".github/workflows/ignition-e2e.yml").read_text()
         self.assertIn("inputs.action == 'deploy-agent-direct'", wf)
