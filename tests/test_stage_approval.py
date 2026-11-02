@@ -90,7 +90,7 @@ class ApprovalVerificationTests(unittest.TestCase):
     def test_legacy_unreviewed_write_actions_removed(self):
         from pathlib import Path
         text = Path(".github/workflows/ignition-eam-multi-factory.yml").read_text()
-        self.assertIn("options: [validate, framework-validate, framework-stage-controller]", text)
+        self.assertIn("options: [framework-validate, framework-stage-controller]", text)
         self.assertNotIn("python scripts/eam_multi_factory_deploy.py --factory", text)
         self.assertNotIn("bash scripts/stage_factory_a_controller_test.sh", text)
         self.assertIn("uses: ./.github/workflows/deploy-test.yml", text)
