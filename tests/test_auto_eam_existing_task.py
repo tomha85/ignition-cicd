@@ -25,9 +25,8 @@ class AutoEamTaskTests(unittest.TestCase):
                                            "EAM-Agent", "agent-001"))
 
     def test_other_warehouse_project_not_authorized_for_eam(self):
-        target, task = m.eligible_task(m.ROOT, "lab-warehouse", "warehouse-main", "FactoryASmoke")
-        self.assertTrue(target["eam_send_commissioned"])
-        self.assertIsNone(task)
+        with self.assertRaisesRegex(RuntimeError, "unique, reviewed EAM task binding"):
+            m.eligible_task(m.ROOT, "lab-warehouse", "warehouse-main", "FactoryASmoke")
 
     def test_commissioning_requires_reviewed_task_binding(self):
         import shutil
