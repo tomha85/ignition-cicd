@@ -12,7 +12,14 @@
       "eam_send_commissioned": false,
       "production_approved": false,
       "project_scope": "all_manifest_projects",
-      "controller_scan_url": "https://localhost:9143/data/api/v1/scan/projects"
+      "controller_scan_url": "https://localhost:9143/data/api/v1/scan/projects",
+      "eam_tasks": [
+        {
+          "project": "WarehouseHMI",
+          "task_name": "CICD-SEND-WarehouseHMI-A",
+          "agent_name": "EAM-Agent"
+        }
+      ]
     },
     {
       "target_id": "lab-assembly-main-test-agent",
