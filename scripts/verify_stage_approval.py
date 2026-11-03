@@ -17,7 +17,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE = ROOT / "evidence/factory-a-approval.json"
 REPOSITORY = "tomha85/ignition-cicd"
-STAGING_REFS = frozenset(("refs/heads/main", "refs/heads/feat/reusable-multifactory-framework-v1"))
+STAGING_REFS = frozenset(("refs/heads/main", "refs/heads/feat/reusable-multifactory-framework-v1", "refs/heads/feat/generic-multifactory-eam-engine-v1-20261103"))
 ENVIRONMENT = "ignition-test"
 REVIEWER = "tomha85"
 ALLOWED_EVENTS = ("push", "workflow_dispatch")
