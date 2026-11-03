@@ -5,9 +5,11 @@ No EAM Agent Send Project task and NO production operations.
 Only a target in the reviewed TEST registry may authorize a Controller stage.
 """
 import argparse
+import hashlib
 import json
 import os
 import re
+import shutil
 import ssl
 import subprocess
 import sys
@@ -23,6 +25,7 @@ from reusable_cicd.core import FrameworkError, load_factory, plan_release, valid
 from framework.deployment.planner import resolve_project_gateway
 from framework.security.policies import resolve_controller_stage_target
 from scripts.verify_stage_approval import verify as verify_github_approval
+from scripts.eam_stamp_project_description import stamp as stamp_description
 
 DATA = "/usr/local/bin/ignition/data"
 REPORT = ROOT / "evidence/selected-controller-stage.json"
@@ -103,6 +106,37 @@ def prepare(factory, gateway, project, sha):
     return target, source, found[0]["sha256"]
 
 
+def prepare_stamped_copy(source, source_hashes, copy_dir, factory, sha, run_id):
+    """Produce a verified TEST-only copy; never mutate the Git checkout."""
+    require(copy_dir.parent.is_dir() and not copy_dir.exists(),
+            "unsafe staging copy path")
+    require(bool(re.fullmatch(r"[0-9]{1,20}", run_id)),
+            "missing/invalid GitHub run ID")
+    # Do not follow symlinks while preparing the native project.
+    require(not any(p.is_symlink() for p in source.rglob("*")),
+            "symlink in source project")
+    source_files = {p.relative_to(source).as_posix(): p
+                    for p in source.rglob("*") if p.is_file()}
+    require(set(source_files) == set(source_hashes),
+            "source tree differs from immutable manifest")
+    for name, src in source_files.items():
+        require(hashlib.sha256(src.read_bytes()).hexdigest() == source_hashes[name],
+                "source hash mismatch before description stamping: " + name)
+    shutil.copytree(source, copy_dir, symlinks=True)
+    metadata = stamp_description(copy_dir, factory, sha, run_id)
+    require(metadata["project"] == source.name, "description project mismatch")
+    expected = dict(source_hashes)
+    expected["project.json"] = hashlib.sha256(
+        (copy_dir / "project.json").read_bytes()).hexdigest()
+    require({p.relative_to(copy_dir).as_posix()
+             for p in copy_dir.rglob("*") if p.is_file()} == set(expected),
+            "stamped project file set changed")
+    for name, digest in expected.items():
+        require(hashlib.sha256((copy_dir / name).read_bytes()).hexdigest() == digest,
+                "stamped file hash mismatch: " + name)
+    return expected, metadata
+
+
 def stage(factory, gateway, project, sha):
     target, source, expected = prepare(factory, gateway, project, sha)
     report = {
@@ -165,6 +199,16 @@ def stage(factory, gateway, project, sha):
             with tarfile.open(archive) as tf:
                 require(bool(tf.getmembers()), "empty project backup")
         report["backup_verified"] = True
+        # Stage a source-verified, description-stamped copy outside the Git checkout.
+        # The stamped project.json has its own expected hash; all other files must
+        # remain byte-identical to the approved release.
+        staged_source = backup / "staged-source" / project
+        staged_source.parent.mkdir(mode=0o700)
+        expected, description = prepare_stamped_copy(
+            source, expected, staged_source, factory, sha,
+            os.getenv("GITHUB_RUN_ID", ""))
+        report["description_stamp"] = description
+        report["description_status"] = "TEST_CONTROLLER_STAGED_NOT_AGENT_VERIFIED"
         require(not any(exists(controller, x) for x in (temporary, previous, rejected)),
                 "staging or backup path collision")
         installed = exists(controller, dst)
@@ -178,7 +222,7 @@ def stage(factory, gateway, project, sha):
         if identical:
             report["staging"] = "PASS_ALREADY_IDENTICAL"
         else:
-            execute("docker", "cp", str(source), controller + ":" + temporary)
+            execute("docker", "cp", str(staged_source), controller + ":" + temporary)
             execute("docker", "exec", "-u", "0", controller, "chown",
                     "-R", "ignition:ignition", temporary)
             hashes_equal(controller, temporary, expected)
