@@ -155,11 +155,16 @@ def check_factory_connections(root: Path, factory_id: str,
     envs = {g["gateway_id"]: set(g["environments"]) for g in manifest["gateways"]}
     base = factory_dir / "connections"
     require(base.is_dir() and not base.is_symlink(), "missing/unsafe connections directory")
-    # No silent extra config documents; new categories require a reviewed schema.
-    extra = {file.name for file in base.iterdir() if file.suffix == ".json"} - {
-        kind + ".json" for kind in SCHEMAS
-    }
-    require(not extra, "unregistered connection metadata JSON file")
+    # The directory contains ONLY schema-bound JSON metadata. Do not allow
+    # stray .env, PEM/private-key, archives, nested folders or symlinks.
+    # New connection types require an explicit reviewed schema and validator.
+    expected_files = {kind + ".json" for kind in SCHEMAS}
+    found_files = {file.name for file in base.iterdir()}
+    require(found_files == expected_files,
+            "unregistered connection metadata file or required file missing")
+    require(all(file.is_file() and not file.is_symlink()
+                for file in base.iterdir()),
+            "unsafe connection metadata directory entry")
     summary = {"factory_id": factory_id, "metadata_applied_to_gateway": False,
                "runtime_connections_verified": False, "connection_counts": {}}
     for kind, (schema_name, collection) in SCHEMAS.items():
