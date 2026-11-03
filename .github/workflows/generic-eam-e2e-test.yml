@@ -3,17 +3,29 @@ on:
   workflow_dispatch:
     inputs:
       factory:
-        description: Factory ID (TEST only)
+        description: "Select registered Factory (uncommissioned targets validate only)"
         type: choice
         required: true
+        # BEGIN GENERATED FACTORY OPTIONS
         options:
           - lab-warehouse
+          - lab-assembly
+          - lab-packaging
+        # END GENERATED FACTORY OPTIONS
+        default: lab-warehouse
       project:
-        description: Commissioned Project (TEST only)
+        description: "Select registered Project (Factory/Project pairing validated)"
         type: choice
         required: true
+        # BEGIN GENERATED PROJECT OPTIONS
         options:
           - WarehouseHMI
+          - ConveyorHMI
+          - FactoryASmoke
+          - PackagingHMI
+          - PackagingLineHMI
+        # END GENERATED PROJECT OPTIONS
+        default: WarehouseHMI
 permissions:
   contents: read
   actions: read
@@ -38,17 +50,36 @@ jobs:
       - name: Verify architecture and generic qualification tests
         run: |
           python scripts/sync_workflow_choices.py --check
+          python scripts/sync_generic_eam_choices.py --check
           python -m compileall -q framework reusable_cicd scripts tests
           python framework/cli/check_repo.py
           python -m unittest discover -s tests -v
       - id: resolved
-        name: Resolve exact commissioned TEST target
+        name: Resolve Factory + Project (commissioned EAM only)
         env:
           FACTORY: ${{ inputs.factory }}
           PROJECT: ${{ inputs.project }}
         run: |
           python scripts/resolve_generic_eam_e2e.py \
             --factory "$FACTORY" --project "$PROJECT" --output "$GITHUB_OUTPUT"
+      - name: Publish selection and deployment eligibility
+        env:
+          SELECTED_FACTORY: ${{ inputs.factory }}
+          SELECTED_PROJECT: ${{ inputs.project }}
+          STAGE_ELIGIBLE: ${{ steps.resolved.outputs.stage_eligible }}
+          GATEWAY_ID: ${{ steps.resolved.outputs.gateway_id }}
+        run: |
+          {
+            echo "### Generic EAM TEST selection"
+            echo "- Factory: \`$SELECTED_FACTORY\`"
+            echo "- Project: \`$SELECTED_PROJECT\`"
+            echo "- Gateway: \`$GATEWAY_ID\`"
+            if [ "$STAGE_ELIGIBLE" = true ]; then
+              echo "- EAM deployment: **commissioned; protected approval required**"
+            else
+              echo "- EAM deployment: **VALIDATE ONLY — not commissioned; no approval/deploy**"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
   deploy:
     name: Review approval → Backup → Generic EAM TEST → Agent verification
     needs: validate
