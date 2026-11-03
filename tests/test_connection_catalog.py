@@ -193,6 +193,32 @@ class ConnectionCatalogTests(unittest.TestCase):
         with self.assertRaisesRegex(FrameworkError, "unregistered"):
             check_connections(self.root)
 
+    def test_hidden_env_and_private_key_files_block_repository(self):
+        base = self.root / "factories/lab-warehouse/connections"
+        for name in (".env", "client-private.key", "gateway-config.gwbk"):
+            with self.subTest(name=name):
+                path = base / name
+                path.write_text("DUMMY_INVALID_CONTENT_NOT_A_SECRET")
+                try:
+                    with self.assertRaisesRegex(FrameworkError, "unregistered"):
+                        check_connections(self.root)
+                finally:
+                    path.unlink()
+
+    def test_connection_document_extra_fields_and_duplicate_identifiers_fail(self):
+        self.mutate("gateways", [self.factory_gateway()])
+        self.mutate("databases", [self.database()])
+        self.mutate("opcua", [self.opcua()])
+        self.mutate("plc-devices", [self.plc()])
+        self.assertEqual(check_connections(self.root)["declared_connections"], 4)
+        self.mutate("gateways", [self.factory_gateway(),
+                                  self.factory_gateway()])
+        with self.assertRaisesRegex(FrameworkError, "duplicate connection"):
+            check_connections(self.root)
+        self.mutate("gateways", [self.factory_gateway(unexpected_flag=True)])
+        with self.assertRaises(FrameworkError):
+            check_connections(self.root)
+
     def test_validator_never_contacts_gateway_or_plc(self):
         import framework.validation.connections as catalog
         self.assertNotIn("urlopen(", Path(catalog.__file__).read_text())
