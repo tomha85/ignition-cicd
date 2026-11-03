@@ -45,13 +45,37 @@ class GenericEamE2ETests(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stderr)
         self.assertIn('"eam_task": "CICD-SEND-WarehouseHMI-A"', proc.stdout)
 
+    def test_main_branch_is_explicitly_authorized_only_in_isolated_lab(self):
+        approved = dict(GOOD, GITHUB_REF="refs/heads/main")
+        with patch.dict(os.environ, approved, clear=True):
+            plan = require_lab_candidate(
+                ROOT, "lab-warehouse", "warehouse-main", "WarehouseHMI")
+        self.assertEqual(plan["eam_task"], "CICD-SEND-WarehouseHMI-A")
+        refused = dict(approved, IGNITION_GENERIC_EAM_CANDIDATE="NO")
+        with patch.dict(os.environ, refused, clear=True):
+            with self.assertRaises(FrameworkError):
+                require_lab_candidate(
+                    ROOT, "lab-warehouse", "warehouse-main", "WarehouseHMI")
+
+    def test_generic_main_deployment_still_requires_approval(self):
+        workflow = (ROOT / ".github/workflows/generic-eam-e2e-test.yml").read_text()
+        self.assertIn("github.ref == 'refs/heads/main'", workflow)
+        self.assertIn("environment: ignition-test", workflow)
+        self.assertIn("scripts/verify_stage_approval.py", workflow)
+        self.assertIn("needs: validate", workflow)
+        self.assertIn("IGNITION_GENERIC_EAM_CANDIDATE: ISOLATED_TEST_ONLY", workflow)
+        staging = (ROOT / "scripts/stage_selected_test_controller.py").read_text()
+        sending = (ROOT / "scripts/auto_send_existing_eam_task.py").read_text()
+        for content in (staging, sending):
+            self.assertIn('os.getenv("IGNITION_GENERIC_EAM_CANDIDATE") == "ISOLATED_TEST_ONLY"', content)
+            self.assertIn("require_lab_candidate(ROOT, factory, gateway, project)", content)
+
     def test_read_only_validate_resolves_registered_lab(self):
         plan = verified("lab-warehouse", "WarehouseHMI")
         self.assertEqual(plan["agent_name"], "EAM-Agent")
 
     def test_bad_environment_or_branch_refused(self):
         for field, value in (
-            ("GITHUB_REF", "refs/heads/main"),
             ("GITHUB_REF", "refs/heads/unknown"),
             ("GITHUB_EVENT_NAME", "pull_request"),
             ("IGNITION_GENERIC_EAM_CANDIDATE", "NO"),
