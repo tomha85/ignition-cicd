@@ -87,7 +87,8 @@ class DynamicControllerStageTests(unittest.TestCase):
             check_with_changes(controller_scan_url="http://localhost:9143/data/api/v1/scan/projects")
             check_with_changes(controller_id="../../../etc")
             check_with_changes(project_scope="single-hardcoded-project")
-            check_with_changes(eam_send_commissioned=True)
+            # Commissioning without an independently reviewed task binding must HOLD.
+            check_with_changes(eam_send_commissioned=True, eam_tasks=[])
             check_with_changes(production_approved=True)
             check_with_changes(agent_id="ignition-eam-controller")
 
