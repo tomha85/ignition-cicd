@@ -5,7 +5,13 @@ can be exercised on the reviewed candidate branch; original main stays unchanged
 """
 from __future__ import annotations
 import os
+import sys
 from pathlib import Path
+
+# Running `python scripts/<name>.py` puts scripts/, not the repository root,
+# on sys.path. Resolve imports from this file's location, not the CWD.
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
 from reusable_cicd.core import FrameworkError
 from framework.deployment.generic_eam import resolve
 from framework.security.policies import resolve_controller_stage_target
