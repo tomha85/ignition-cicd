@@ -1,0 +1,133 @@
+name: Candidate - Generic Multi-Factory EAM E2E TEST (APPROVAL)
+on:
+  workflow_dispatch:
+    inputs:
+      factory:
+        description: Factory ID (TEST only)
+        type: choice
+        required: true
+        options:
+          - lab-warehouse
+      project:
+        description: Commissioned Project (TEST only)
+        type: choice
+        required: true
+        options:
+          - WarehouseHMI
+permissions:
+  contents: read
+  actions: read
+jobs:
+  validate:
+    name: Validate generic factory config + immutable source
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    outputs:
+      gateway_id: ${{ steps.resolved.outputs.gateway_id }}
+      stage_eligible: ${{ steps.resolved.outputs.stage_eligible }}
+      controller_id: ${{ steps.resolved.outputs.controller_id }}
+      agent_id: ${{ steps.resolved.outputs.agent_id }}
+      task_name: ${{ steps.resolved.outputs.task_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify architecture and generic qualification tests
+        run: |
+          python scripts/sync_workflow_choices.py --check
+          python -m compileall -q framework reusable_cicd scripts tests
+          python framework/cli/check_repo.py
+          python -m unittest discover -s tests -v
+      - id: resolved
+        name: Resolve exact commissioned TEST target
+        env:
+          FACTORY: ${{ inputs.factory }}
+          PROJECT: ${{ inputs.project }}
+        run: |
+          python scripts/resolve_generic_eam_e2e.py \
+            --factory "$FACTORY" --project "$PROJECT" --output "$GITHUB_OUTPUT"
+  deploy:
+    name: Review approval → Backup → Generic EAM TEST → Agent verification
+    needs: validate
+    if: github.repository == 'tomha85/ignition-cicd' && github.ref == 'refs/heads/feat/generic-multifactory-eam-engine-v1-20261103' && github.event_name == 'workflow_dispatch' && needs.validate.outputs.stage_eligible == 'true'
+    runs-on: [self-hosted, linux, ignition-lab]
+    environment: ignition-test
+    concurrency:
+      group: eam-lab-factory_a
+      cancel-in-progress: false
+    timeout-minutes: 18
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify current-run required reviewer approval
+        env:
+          GH_APPROVAL_READ_TOKEN: ${{ github.token }}
+        run: python scripts/verify_stage_approval.py
+      - name: Revalidate generic plan against commissioned LAB
+        env:
+          IGNITION_GENERIC_EAM_CANDIDATE: ISOLATED_TEST_ONLY
+          SELECTED_FACTORY: ${{ inputs.factory }}
+          SELECTED_PROJECT: ${{ inputs.project }}
+          VERIFIED_GATEWAY: ${{ needs.validate.outputs.gateway_id }}
+        run: |
+          python scripts/authorize_generic_eam_candidate.py \
+            --factory "$SELECTED_FACTORY" --gateway "$VERIFIED_GATEWAY" \
+            --project "$SELECTED_PROJECT"
+      - name: Backup, stamp, stage and scan Controller
+        env:
+          IGNITION_GENERIC_EAM_CANDIDATE: ISOLATED_TEST_ONLY
+          IGNITION_TEST_STAGE_CONFIRM: ISOLATED_TEST_ONLY
+          SELECTED_FACTORY: ${{ inputs.factory }}
+          SELECTED_PROJECT: ${{ inputs.project }}
+          VERIFIED_GATEWAY: ${{ needs.validate.outputs.gateway_id }}
+          IGNITION_CONTROLLER_CONTAINER: ${{ needs.validate.outputs.controller_id }}
+          IGNITION_AGENT_CONTAINER: ${{ needs.validate.outputs.agent_id }}
+          IGNITION_BACKUP_DIR: ${{ vars.IGNITION_BACKUP_DIR || '/home/tomha/ignition-eam-backups' }}
+          IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
+          IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
+          GH_APPROVAL_READ_TOKEN: ${{ github.token }}
+          no_proxy: 'localhost,127.0.0.1,::1'
+        run: |
+          python scripts/manual_factory_dispatch.py \
+            --action stage-controller --factory "$SELECTED_FACTORY" \
+            --gateway "$VERIFIED_GATEWAY" --project "$SELECTED_PROJECT" \
+            --sha "$GITHUB_SHA"
+      - name: Auto-send existing EAM task and verify Agent files
+        env:
+          IGNITION_GENERIC_EAM_CANDIDATE: ISOLATED_TEST_ONLY
+          IGNITION_TEST_STAGE_CONFIRM: ISOLATED_TEST_ONLY
+          IGNITION_EAM_AUTO_SEND_ENABLED: ${{ vars.IGNITION_EAM_AUTO_SEND_ENABLED || 'YES' }}
+          SELECTED_FACTORY: ${{ inputs.factory }}
+          SELECTED_PROJECT: ${{ inputs.project }}
+          VERIFIED_GATEWAY: ${{ needs.validate.outputs.gateway_id }}
+          IGNITION_CONTROLLER_CONTAINER: ${{ needs.validate.outputs.controller_id }}
+          IGNITION_AGENT_CONTAINER: ${{ needs.validate.outputs.agent_id }}
+          IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
+          IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
+          GH_APPROVAL_READ_TOKEN: ${{ github.token }}
+          no_proxy: 'localhost,127.0.0.1,::1'
+        run: |
+          python scripts/auto_send_existing_eam_task.py \
+            --factory "$SELECTED_FACTORY" --gateway "$VERIFIED_GATEWAY" \
+            --project "$SELECTED_PROJECT" --sha "$GITHUB_SHA" \
+            --run-id "$GITHUB_RUN_ID"
+      - name: Upload Controller and Agent evidence even on HOLD
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: candidate-generic-eam-e2e-test-evidence
+          path: |
+            evidence/selected-controller-stage.json
+            evidence/selected-agent-eam.json
+            evidence/factory-a-approval.json
+          if-no-files-found: warn
