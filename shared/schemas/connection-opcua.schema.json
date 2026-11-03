@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Factory opcua connection metadata: SOURCE ONLY (V1)",
+  "description": "Git-reviewed connection metadata only. It does not configure Ignition or prove a live PLC, OPC UA or database connection.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "factory_id",
+    "status",
+    "deployment_enabled",
+    "opcua_servers"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "factory_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+    },
+    "status": {
+      "enum": [
+        "NOT_PROVIDED",
+        "DOCUMENTED_NOT_APPLIED"
+      ]
+    },
+    "deployment_enabled": {
+      "const": false
+    },
+    "opcua_servers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "gateway_id",
+          "environment",
+          "endpoint",
+          "security_policy",
+          "security_mode",
+          "source_reference",
+          "validation_state"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9_.-]{0,127}$"
+          },
+          "gateway_id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$"
+          },
+          "environment": {
+            "enum": [
+              "dev",
+              "test",
+              "production"
+            ]
+          },
+          "endpoint": {
+            "type": "string",
+            "pattern": "^opc\\.tcp://[^\\s]+$",
+            "maxLength": 512
+          },
+          "security_policy": {
+            "enum": [
+              "Basic256Sha256",
+              "Aes128_Sha256_RsaOaep",
+              "Aes256_Sha256_RsaPss"
+            ]
+          },
+          "security_mode": {
+            "const": "SignAndEncrypt"
+          },
+          "certificate_ref": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          },
+          "credential_ref": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          },
+          "source_reference": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 128,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/ -]{3,127}$"
+          },
+          "validation_state": {
+            "const": "DOCUMENTED_NOT_RUNTIME_VERIFIED"
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "NOT_PROVIDED"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "opcua_servers": {
+            "maxItems": 0
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "DOCUMENTED_NOT_APPLIED"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "opcua_servers": {
+            "minItems": 1
+          }
+        }
+      }
+    }
+  ]
+}
