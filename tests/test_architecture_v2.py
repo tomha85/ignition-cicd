@@ -28,6 +28,9 @@ class ArchitectureV2Tests(unittest.TestCase):
         self.assertEqual(d["status"],"STRUCTURE_VALIDATED_DEPLOYMENT_NOT_AUTHORIZED")
         self.assertEqual(d["factories"],["lab-assembly","lab-packaging","lab-warehouse"])
         self.assertFalse(d["production_approved"])
+        self.assertEqual(d["connection_catalog"]["connection_documents"], 12)
+        self.assertEqual(d["connection_catalog"]["declared_connections"], 0)
+        self.assertEqual(d["connection_catalog"]["database_runtime"], "NOT_TESTED")
         self.assertEqual(d["eam_agent_transfer"],"NOT_TESTED")
 
     def test_environment_mapping(self):
@@ -146,7 +149,7 @@ class ArchitectureV2Tests(unittest.TestCase):
 
     def test_schemas_are_valid_json(self):
         files=list((ROOT/"shared/schemas").glob("*.json"))
-        self.assertEqual(len(files),5)
+        self.assertEqual(len(files),9)
         for file in files:
             obj=json.loads(file.read_text())
             self.assertEqual(obj["$schema"],"https://json-schema.org/draft/2020-12/schema")
