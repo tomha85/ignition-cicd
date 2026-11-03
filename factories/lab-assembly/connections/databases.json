@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "factory_id": "lab-assembly",
+  "status": "NOT_PROVIDED",
+  "deployment_enabled": false,
+  "databases": []
+}

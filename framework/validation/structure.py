@@ -6,6 +6,7 @@ from framework.validation.gateway_config import inspect_gateway
 from framework.validation.environments import check_environments
 from framework.security.policies import check_target_registry
 from framework.validation.requirements import check_requirements
+from framework.validation.connections import check_connections
 
 
 def qualify_repository(root: Path) -> dict:
@@ -25,9 +26,14 @@ def qualify_repository(root: Path) -> dict:
     mirrors = check_mirrors(root)
     registry = check_target_registry(root)
     requirements = check_requirements(root)
+    connections = check_connections(root)
     for schema in ("factory.schema.json", "environment.schema.json",
                    "gateway.schema.json", "target-registry.schema.json",
-                   "requirements.schema.json"):
+                   "requirements.schema.json",
+                   "connection-gateways.schema.json",
+                   "connection-databases.schema.json",
+                   "connection-opcua.schema.json",
+                   "connection-plc-devices.schema.json"):
         path = root / "shared/schemas" / schema
         if not path.is_file():
             raise FrameworkError("missing JSON schema: " + schema)
@@ -40,6 +46,7 @@ def qualify_repository(root: Path) -> dict:
             "environments": envs, "legacy_parity": mirrors,
             "target_registry": registry,
             "fat_requirements": requirements,
+            "connection_catalog": connections,
             "native_ignition_runtime": "NOT_TESTED",
             "eam_agent_transfer": "NOT_TESTED",
             "production_approved": False}

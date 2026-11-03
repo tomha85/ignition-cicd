@@ -1,6 +1,6 @@
 # Ignition 8.3 multi-factory GitHub repository — standard V3
 
-This is a **real feature-branch layout**, not a claim of Agent or production
+This is a **versioned multi-factory source layout**, not a claim of Agent or production
 qualification. Root directories include:
 
 ```text
@@ -23,6 +23,7 @@ ignition-cicd/
 │   │   ├── factory.json
 │   │   ├── projects/     # WarehouseHMI, FactoryASmoke
 │   │   ├── gateways/
+│   │   ├── connections/   # Gateway IP, DB, OPC UA, PLC metadata
 │   │   ├── environments/
 │   │   └── tests/
 │   └── lab-assembly/     # Factory B demo, Gateways assembly-main/utilities-main
@@ -43,6 +44,9 @@ ignition-cicd/
 ├── docs/
 └── README.md
 ```
+
+Database, Gateway IP, external OPC UA and PLC metadata are validated as
+read-only source, not runtime connectivity. See [Factory connection settings](FACTORY_CONNECTIONS.md).
 
 See [the 3-factory showcase](THREE_FACTORY_SHOWCASE.md) for example projects, Gateway assignments and commands.
 

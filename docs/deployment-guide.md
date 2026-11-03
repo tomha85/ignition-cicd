@@ -24,6 +24,15 @@ The standard source layout has four workflow entrypoints:
 (reusable wrapper), and `reusable-deploy.yml` (guarded Controller stage).
 Existing prior workflows remain for backward compatibility.
 
+## Source-only factory connection metadata
+
+Gateway IP/hostname, database host and credential alias, OPC UA endpoint and
+PLC inventory now belong under each `factories/<id>/connections/` directory.
+Repository CI checks these four files as part of Validate, including
+Factory/Gateway/environment compatibility and no embedded credentials.
+They **do not** configure live Ignition connections during Stage. See
+[Factory Connections](FACTORY_CONNECTIONS.md).
+
 ## Standard manual deployment — Factory + Project only
 
 Open GitHub Actions → **Ignition EAM - Select Factory & Project (TEST)** →

@@ -28,13 +28,25 @@ Stage as a safety control, not as an extra visible job. Agent tasks are manual.
 
 See [approval instructions](docs/APPROVAL_WORKFLOW.md).
 
+## Per-factory Gateway, database, OPC UA and PLC metadata
+
+Each Factory has four new files under `factories/<factory-id>/connections/`:
+`gateways.json`, `databases.json`, `opcua.json` and `plc-devices.json`.
+The initial three Factory examples contain **NOT_PROVIDED** with empty lists,
+because authentic site addresses, connections and physical mappings have not
+been supplied. The CI validator checks safe schema and Factory/Gateway/target
+membership; Stage does **not** create runtime connections or touch PLCs.
+
+Read [the Factory Connections guide](docs/FACTORY_CONNECTIONS.md) for exact
+paths, example records and credential rules.
+
 ## Standard V3 source layout (merged on main)
 
 The requested standard directory families are now present:
 
 - `.github/workflows/{validate,build-release,deploy-test,reusable-deploy}.yml`
 - `framework/{cli,validation,adapters,deployment,security}/`
-- `factories/<factory-id>/{factory.json,projects,gateways,environments,tests}/`
+- `factories/<factory-id>/{factory.json,projects,gateways,connections,environments,tests}/`
 - `shared/{project-resources,templates,schemas}/`
 - `tests/{unit,integration,gateway,fat}/`
 - `examples/{simple-factory,complex-factory}/` and lowercase `docs/` runbooks
