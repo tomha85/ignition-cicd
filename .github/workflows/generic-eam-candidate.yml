@@ -37,7 +37,10 @@ jobs:
         run: |
           python -m compileall -q framework/deployment/generic_eam.py scripts/plan_generic_eam.py tests/test_generic_eam_candidate.py
           python -m unittest discover -s tests -p 'test_generic_eam_candidate.py' -v
-      - name: Plan selected factory without OT writes
+      - name: Plan known Warehouse TEST config without OT writes
+        run: |
+          python scripts/plan_generic_eam.py --factory lab-warehouse --project WarehouseHMI
+      - name: Plan manually selected Factory without OT writes
         if: github.event_name == 'workflow_dispatch'
         env:
           FACTORY: ${{ inputs.factory }}
