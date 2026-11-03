@@ -1,0 +1,49 @@
+name: Candidate - Generic Multi-Factory EAM Plan (NO DEPLOY)
+on:
+  workflow_dispatch:
+    inputs:
+      factory:
+        description: Factory ID
+        required: true
+        type: string
+        default: lab-warehouse
+      project:
+        description: Project name
+        required: true
+        type: string
+        default: WarehouseHMI
+  pull_request:
+    paths:
+      - 'framework/deployment/generic_eam.py'
+      - 'generic-eam/**'
+      - 'scripts/plan_generic_eam.py'
+      - 'tests/test_generic_eam_candidate.py'
+      - '.github/workflows/generic-eam-candidate.yml'
+permissions:
+  contents: read
+jobs:
+  qualify:
+    name: Read-only generic EAM planning and regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify candidate code and tests
+        run: |
+          python -m compileall -q framework/deployment/generic_eam.py scripts/plan_generic_eam.py tests/test_generic_eam_candidate.py
+          python -m unittest discover -s tests -p 'test_generic_eam_candidate.py' -v
+      - name: Plan known Warehouse TEST config without OT writes
+        run: |
+          python scripts/plan_generic_eam.py --factory lab-warehouse --project WarehouseHMI
+      - name: Plan manually selected Factory without OT writes
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          FACTORY: ${{ inputs.factory }}
+          PROJECT: ${{ inputs.project }}
+        run: |
+          python scripts/plan_generic_eam.py --factory "$FACTORY" --project "$PROJECT"

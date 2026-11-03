@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "targets": [
+    {
+      "target_id": "lab-warehouse-test-agent",
+      "factory_id": "lab-warehouse",
+      "gateway_id": "warehouse-main",
+      "environment": "test",
+      "runner_labels": [
+        "self-hosted",
+        "linux",
+        "ignition-lab"
+      ],
+      "controller": {
+        "id": "ignition-eam-controller",
+        "api_base_url": "https://localhost:9143",
+        "secret_ref": "IGNITION_GATEWAY_API_TOKEN",
+        "ca_ref": "IGNITION_CONTROLLER_CA_FILE"
+      },
+      "agent": {
+        "id": "ignition-eam-agent",
+        "eam_agent_name": "EAM-Agent"
+      },
+      "tasks": [
+        {
+          "project": "WarehouseHMI",
+          "task_name": "CICD-SEND-WarehouseHMI-A",
+          "agent_name": "EAM-Agent"
+        }
+      ],
+      "deployment_enabled": false,
+      "approval_environment": "ignition-test"
+    }
+  ]
+}
