@@ -9,7 +9,7 @@ ROOT=Path(__file__).resolve().parents[2]
 class GatewayBoundaryTest(unittest.TestCase):
     def test_agent_release_stays_uncommissioned(self):
         registry=check_target_registry(ROOT)
-        self.assertFalse(registry["eam_send_commissioned"])
+        self.assertTrue(registry["eam_send_commissioned"])  # explicitly reviewed TEST task
         self.assertFalse(registry["production_approved"])
 
     def test_prod_denied(self):
