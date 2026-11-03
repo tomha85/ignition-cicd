@@ -11,10 +11,10 @@ from reusable_cicd.core import FrameworkError
 
 
 class AutoEamTaskTests(unittest.TestCase):
-    def test_uncommissioned_task_cannot_be_dispatched(self):
+    def test_commissioned_task_is_exactly_scoped(self):
         target, task = m.eligible_task(m.ROOT, "lab-warehouse", "warehouse-main", "WarehouseHMI")
-        self.assertFalse(target["eam_send_commissioned"])
-        self.assertIsNone(task)
+        self.assertTrue(target["eam_send_commissioned"])
+        self.assertEqual(task, {"project": "WarehouseHMI", "task_name": "CICD-SEND-WarehouseHMI-A", "agent_name": "EAM-Agent"})
 
     def test_task_requires_correct_agent(self):
         agents = {"items": [{"name": "EAM-Agent", "id": "agent-001"}]}
@@ -24,19 +24,10 @@ class AutoEamTaskTests(unittest.TestCase):
         self.assertFalse(m.agent_id_matches({"items": [agents["items"][0]] * 2},
                                            "EAM-Agent", "agent-001"))
 
-    def test_staging_only_returns_before_any_eam_api(self):
-        environment = {"GITHUB_REPOSITORY": "tomha85/ignition-cicd",
-                       "GITHUB_REF": "refs/heads/main",
-                       "GITHUB_EVENT_NAME": "workflow_dispatch",
-                       "GITHUB_SHA": "a" * 40, "GITHUB_RUN_ID": "123456"}
-        with patch.dict(m.os.environ, environment), patch.object(m, "api") as api:
-            with tempfile.TemporaryDirectory() as temp:
-                with patch.object(m, "REPORT", Path(temp) / "result.json"):
-                    result = m.deploy("lab-warehouse", "warehouse-main",
-                                      "WarehouseHMI", "a" * 40, "123456")
-                    self.assertEqual(result["status"], "EAM_NOT_COMMISSIONED_STAGE_ONLY")
-                    self.assertEqual(result["eam_send_project"], "NOT_RUN")
-                    api.assert_not_called()
+    def test_other_warehouse_project_not_authorized_for_eam(self):
+        target, task = m.eligible_task(m.ROOT, "lab-warehouse", "warehouse-main", "FactoryASmoke")
+        self.assertTrue(target["eam_send_commissioned"])
+        self.assertIsNone(task)
 
     def test_commissioning_requires_reviewed_task_binding(self):
         import shutil
