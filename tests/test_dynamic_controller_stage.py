@@ -29,7 +29,7 @@ class DynamicControllerStageTests(unittest.TestCase):
                 self.assertEqual(target["agent_id"], "ignition-eam-agent")
                 self.assertEqual(target["project_scope"], "all_manifest_projects")
                 self.assertTrue(target["controller_stage_approved"])
-                self.assertFalse(target["eam_send_commissioned"])
+                self.assertTrue(target["eam_send_commissioned"])
                 self.assertFalse(target["production_approved"])
                 parsed, source, expected = generic.prepare(
                     "lab-warehouse", "warehouse-main", project, SHA
