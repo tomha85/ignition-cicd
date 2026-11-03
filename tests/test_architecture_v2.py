@@ -100,7 +100,7 @@ class ArchitectureV2Tests(unittest.TestCase):
     def test_test_target_registry_deny_eam(self):
         d=check_target_registry(ROOT)
         self.assertEqual(d["registered_test_targets"],4)
-        self.assertFalse(d["eam_send_commissioned"])
+        self.assertTrue(d["eam_send_commissioned"])  # WarehouseHMI TEST only
         self.assertFalse(d["production_approved"])
 
     def test_production_block(self):

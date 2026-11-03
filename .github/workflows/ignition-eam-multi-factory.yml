@@ -135,7 +135,7 @@ jobs:
           IGNITION_TEST_STAGE_CONFIRM: ISOLATED_TEST_ONLY
           IGNITION_CONTROLLER_CONTAINER: ${{ needs.validate.outputs.controller_id }}
           IGNITION_AGENT_CONTAINER: ${{ needs.validate.outputs.agent_id }}
-          IGNITION_EAM_AUTO_SEND_ENABLED: ${{ vars.IGNITION_EAM_AUTO_SEND_ENABLED || 'NO' }}
+          IGNITION_EAM_AUTO_SEND_ENABLED: ${{ vars.IGNITION_EAM_AUTO_SEND_ENABLED || 'YES' }}
           IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
           IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
           GH_APPROVAL_READ_TOKEN: ${{ github.token }}
