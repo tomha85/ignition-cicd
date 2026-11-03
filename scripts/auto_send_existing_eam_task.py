@@ -113,7 +113,8 @@ def deploy(factory, gateway, project, sha, run_id):
         require(os.getenv("GITHUB_REPOSITORY") == "tomha85/ignition-cicd" and
                 os.getenv("GITHUB_EVENT_NAME") == "workflow_dispatch",
                 "only reviewed TEST dispatch permitted")
-        if os.getenv("GITHUB_REF") != "refs/heads/main":
+        if (os.getenv("GITHUB_REF") != "refs/heads/main" or
+                os.getenv("IGNITION_GENERIC_EAM_CANDIDATE") == "ISOLATED_TEST_ONLY"):
             from scripts.authorize_generic_eam_candidate import require_lab_candidate
             require_lab_candidate(ROOT, factory, gateway, project)
         require(os.getenv("GITHUB_SHA") == sha and re.fullmatch(r"[0-9a-f]{40}", sha),
