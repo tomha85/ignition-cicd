@@ -93,7 +93,11 @@ def preflight(sha: str, inspect_lab: bool) -> dict:
         "blockers": [],
         "registered_eam_task": "NOT_ATTESTED",
     }
-    if e.get("eam_send_commissioned") is not True:
+    # Registry commissioning is scoped to individual reviewed project/task
+    # bindings. A commissioned WarehouseHMI may never authorize FactoryASmoke.
+    bindings = e.get("eam_tasks", [])
+    if (e.get("eam_send_commissioned") is not True or
+            not any(t.get("project") == PROJECT for t in bindings)):
         result["blockers"].append("EAM_SEND_NOT_COMMISSIONED_IN_TARGET_REGISTRY")
     if os.environ.get("IGNITION_EAM_BRIDGE_COMMISSIONED") != "YES":
         result["blockers"].append("EAM_CONTROLLER_BRIDGE_NOT_ATTESTED")
