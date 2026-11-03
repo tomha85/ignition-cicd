@@ -151,7 +151,8 @@ def stage(factory, gateway, project, sha):
             "explicit isolated TEST stage confirmation missing")
     require(os.getenv("GITHUB_REPOSITORY") == "tomha85/ignition-cicd",
             "wrong GitHub repository")
-    if os.getenv("GITHUB_REF") != "refs/heads/main":
+    if (os.getenv("GITHUB_REF") != "refs/heads/main" or
+            os.getenv("IGNITION_GENERIC_EAM_CANDIDATE") == "ISOLATED_TEST_ONLY"):
         from scripts.authorize_generic_eam_candidate import require_lab_candidate
         require_lab_candidate(ROOT, factory, gateway, project)
     require(os.getenv("GITHUB_EVENT_NAME") == "workflow_dispatch",

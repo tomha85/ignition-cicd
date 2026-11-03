@@ -52,7 +52,7 @@ jobs:
   deploy:
     name: Review approval → Backup → Generic EAM TEST → Agent verification
     needs: validate
-    if: github.repository == 'tomha85/ignition-cicd' && github.ref == 'refs/heads/feat/generic-multifactory-eam-engine-v1-20261103' && github.event_name == 'workflow_dispatch' && needs.validate.outputs.stage_eligible == 'true'
+    if: github.repository == 'tomha85/ignition-cicd' && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && needs.validate.outputs.stage_eligible == 'true'
     runs-on: [self-hosted, linux, ignition-lab]
     environment: ignition-test
     concurrency:

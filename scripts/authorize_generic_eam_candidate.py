@@ -26,7 +26,7 @@ CONTROLLER_URL = "https://localhost:9143"
 def require_lab_candidate(root: Path, factory: str, gateway: str,
                           project: str, context=None) -> dict:
     context = os.environ if context is None else context
-    if (context.get("GITHUB_REF") != CANDIDATE_REF or
+    if (context.get("GITHUB_REF") not in (CANDIDATE_REF, "refs/heads/main") or
             context.get("GITHUB_EVENT_NAME") != "workflow_dispatch" or
             context.get("GITHUB_REPOSITORY") != "tomha85/ignition-cicd" or
             context.get("IGNITION_GENERIC_EAM_CANDIDATE") != "ISOLATED_TEST_ONLY"):
