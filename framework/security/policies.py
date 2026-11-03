@@ -51,8 +51,35 @@ def check_target_registry(root: Path) -> dict:
             raise FrameworkError("target registry / factory TEST manifest mismatch")
         if target.get("environment") != "test":
             raise FrameworkError("registry can contain LAB TEST only")
-        if target.get("eam_send_commissioned") is not False:
-            raise FrameworkError("EAM Agent deployment not commissioned")
+        commissioned = target.get("eam_send_commissioned")
+        if type(commissioned) is not bool:
+            raise FrameworkError("explicit bool eam_send_commissioned required")
+        tasks = target.get("eam_tasks", [])
+        if not isinstance(tasks, list):
+            raise FrameworkError("invalid EAM task bindings")
+        project_names = {p["name"] for p in gateway["projects"]}
+        seen_tasks, seen_projects = set(), set()
+        for binding in tasks:
+            if not isinstance(binding, dict) or set(binding) != {
+                    "project", "task_name", "agent_name"}:
+                raise FrameworkError("invalid EAM task binding fields")
+            project = binding["project"]
+            task = binding["task_name"]
+            agent_name = binding["agent_name"]
+            if (project not in project_names or project in seen_projects or
+                    not isinstance(task, str) or not re.fullmatch(
+                        r"[A-Za-z0-9_.-]{1,120}", task) or task in seen_tasks or
+                    not isinstance(agent_name, str) or not re.fullmatch(
+                        r"[A-Za-z0-9_.-]{1,120}", agent_name)):
+                raise FrameworkError("invalid/duplicate EAM project/task/Agent binding")
+            seen_projects.add(project)
+            seen_tasks.add(task)
+        if commissioned and (not target.get("controller_stage_approved") or
+                             not tasks or not target.get("controller_id") or
+                             not target.get("agent_id")):
+            raise FrameworkError("EAM commissioning requires reviewed TEST binding")
+        if commissioned and target.get("environment") != "test":
+            raise FrameworkError("EAM send authorized only in TEST")
         if target.get("production_approved") is not False:
             raise FrameworkError("production must be denied")
         approved = target.get("controller_stage_approved")
@@ -82,9 +109,9 @@ def check_target_registry(root: Path) -> dict:
                 raise FrameworkError("uncommissioned target cannot grant project scope")
     return {"registered_test_targets": len(ids),
             "approved_controller_targets": approved_count,
-            "eam_send_commissioned": False,
+            "eam_send_commissioned": any(t["eam_send_commissioned"] for t in targets),
             "production_approved": False,
-            "status": "TARGET_REGISTRY_VALIDATED_NO_EAM_AGENT_RELEASE"}
+            "status": "TARGET_REGISTRY_VALIDATED"}
 
 
 def resolve_controller_stage_target(root: Path, factory: str, gateway: str,
