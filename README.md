@@ -380,3 +380,11 @@ Expected: **HELLO FACTORY A**, **Factory A - Warehouse**, **SMOKE VERSION V1**. 
 - [Adding EAM Agent](https://www.docs.inductiveautomation.com/docs/8.3/ignition-modules/enterprise-administration/adding-an-agent)
 - [EAM Send Project](https://www.docs.inductiveautomation.com/docs/8.3/ignition-modules/enterprise-administration/agent-tasks/send-project)
 - [Automated Agent installation](https://www.docs.inductiveautomation.com/docs/8.3/ignition-modules/enterprise-administration/agent-management/automated-agent-installation)
+
+## Author and License
+
+**Author / Maintainer:** [tomha](https://github.com/tomha85)
+
+**License:** MIT License — this repository's original source code is released as open source under the terms of the [MIT License](LICENSE).
+
+You may use, copy, modify, distribute, sublicense, and sell copies of the MIT-licensed code, subject to retaining the copyright and license notice. Third-party software, dependencies, vendor components, and assets retain their own licenses; this MIT grant does not relicense Ignition or other third-party materials.
