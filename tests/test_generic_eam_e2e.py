@@ -1,5 +1,8 @@
 """Regression: candidate E2E cannot bypass reviewed Warehouse LAB protections."""
 import os
+import subprocess
+import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -23,6 +26,24 @@ class GenericEamE2ETests(unittest.TestCase):
                 ROOT, "lab-warehouse", "warehouse-main", "WarehouseHMI")
         self.assertEqual(plan["eam_task"], "CICD-SEND-WarehouseHMI-A")
         self.assertFalse(plan["production_approved"])
+
+    def test_authorizer_is_executable_from_foreign_working_directory(self):
+        # Reproduce GitHub runner: python scripts/authorize_generic_eam_candidate.py
+        # must bootstrap repository imports even if PYTHONPATH is unset.
+        script = ROOT / "scripts/authorize_generic_eam_candidate.py"
+        with tempfile.TemporaryDirectory() as other_dir:
+            environment = os.environ.copy()
+            environment.pop("PYTHONPATH", None)
+            environment.update(GOOD)
+            proc = subprocess.run(
+                [sys.executable, str(script),
+                 "--factory", "lab-warehouse",
+                 "--gateway", "warehouse-main",
+                 "--project", "WarehouseHMI"],
+                cwd=other_dir, env=environment, text=True,
+                capture_output=True, timeout=20)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertIn('"eam_task": "CICD-SEND-WarehouseHMI-A"', proc.stdout)
 
     def test_read_only_validate_resolves_registered_lab(self):
         plan = verified("lab-warehouse", "WarehouseHMI")
