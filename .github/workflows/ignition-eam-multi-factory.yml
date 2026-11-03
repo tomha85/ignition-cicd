@@ -127,6 +127,25 @@ jobs:
             --action stage-controller --factory "$SELECTED_FACTORY" \
             --gateway "$VERIFIED_GATEWAY" \
             --project "$SELECTED_PROJECT" --sha "$GITHUB_SHA"
+      - name: Auto-send approved project via existing EAM TEST task
+        env:
+          SELECTED_FACTORY: ${{ inputs.factory }}
+          SELECTED_PROJECT: ${{ inputs.project }}
+          VERIFIED_GATEWAY: ${{ needs.validate.outputs.gateway_id }}
+          IGNITION_TEST_STAGE_CONFIRM: ISOLATED_TEST_ONLY
+          IGNITION_CONTROLLER_CONTAINER: ${{ needs.validate.outputs.controller_id }}
+          IGNITION_AGENT_CONTAINER: ${{ needs.validate.outputs.agent_id }}
+          IGNITION_EAM_AUTO_SEND_ENABLED: ${{ vars.IGNITION_EAM_AUTO_SEND_ENABLED || 'NO' }}
+          IGNITION_CONTROLLER_CA_FILE: ${{ vars.IGNITION_CONTROLLER_CA_FILE || '/home/tomha/ignition-eam-lab/certs/lab-root-ca.crt' }}
+          IGNITION_CONTROLLER_API_TOKEN: ${{ secrets.IGNITION_GATEWAY_API_TOKEN }}
+          GH_APPROVAL_READ_TOKEN: ${{ github.token }}
+          no_proxy: 'localhost,127.0.0.1,::1'
+        run: |
+          python scripts/auto_send_existing_eam_task.py \
+            --factory "$SELECTED_FACTORY" \
+            --gateway "$VERIFIED_GATEWAY" \
+            --project "$SELECTED_PROJECT" \
+            --sha "$GITHUB_SHA" --run-id "$GITHUB_RUN_ID"
       - name: Upload Controller stage evidence even on HOLD
         if: always()
         uses: actions/upload-artifact@v4
@@ -134,5 +153,6 @@ jobs:
           name: selected-factory-test-controller-evidence
           path: |
             evidence/selected-controller-stage.json
+            evidence/selected-agent-eam.json
             evidence/factory-a-approval.json
           if-no-files-found: warn
