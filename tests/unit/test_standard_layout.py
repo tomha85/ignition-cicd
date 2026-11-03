@@ -17,6 +17,13 @@ class StandardRepositoryLayoutTest(unittest.TestCase):
         for name in ("planner.py","backup.py","stage.py","deploy.py","verify.py","recovery.py"):
             self.assertTrue((ROOT/"framework/deployment"/name).is_file(),name)
 
+    def test_connection_catalogs_are_first_class_factory_sources(self):
+        self.assertTrue((ROOT/"framework/validation/connections.py").is_file())
+        for factory in ("lab-warehouse", "lab-assembly", "lab-packaging"):
+            for name in ("gateways.json", "databases.json", "opcua.json",
+                         "plc-devices.json"):
+                self.assertTrue((ROOT/"factories"/factory/"connections"/name).is_file())
+
     def test_all_test_layers(self):
         for part in ("unit","integration","gateway","fat"):
             self.assertTrue((ROOT/"tests"/part/"__init__.py").is_file())
