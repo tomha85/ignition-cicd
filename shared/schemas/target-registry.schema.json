@@ -64,10 +64,33 @@
             "type": "boolean"
           },
           "eam_send_commissioned": {
-            "const": false
+            "type": "boolean"
           },
           "production_approved": {
             "const": false
+          },
+          "eam_tasks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "project",
+                "task_name",
+                "agent_name"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "project": {
+                  "type": "string"
+                },
+                "task_name": {
+                  "type": "string"
+                },
+                "agent_name": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
