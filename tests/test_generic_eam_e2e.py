@@ -99,6 +99,44 @@ class GenericEamE2ETests(unittest.TestCase):
                 require_lab_candidate(
                     ROOT, "lab-packaging", "packaging-main", "PackagingLineHMI")
 
+    def test_all_registered_factories_and_projects_visible(self):
+        from scripts.sync_workflow_choices import collect_choices, render
+        from scripts.sync_generic_eam_choices import sync
+        factories, projects = collect_choices(ROOT / "factories")
+        self.assertEqual(set(factories), {"lab-warehouse", "lab-assembly", "lab-packaging"})
+        self.assertEqual(len(projects), 5)
+        file = ROOT / ".github/workflows/generic-eam-e2e-test.yml"
+        workflow = file.read_text(encoding="utf-8")
+        self.assertEqual(render(workflow, factories, projects), workflow)
+        self.assertTrue(sync(ROOT, check=True))
+        self.assertIn("environment: ignition-test", workflow)
+        self.assertIn("needs.validate.outputs.stage_eligible == 'true'", workflow)
+
+    def test_uncommissioned_factories_can_validate_without_deploy(self):
+        for factory, project, gateway in (
+            ("lab-assembly", "ConveyorHMI", "assembly-main"),
+            ("lab-packaging", "PackagingLineHMI", "packaging-main"),
+            ("lab-warehouse", "FactoryASmoke", "warehouse-main"),
+        ):
+            with self.subTest(factory=factory, project=project):
+                result = verified(factory, project)
+                self.assertEqual(result["gateway_id"], gateway)
+                self.assertFalse(result["stage_eligible"])
+                self.assertFalse(result["deployment_authorized"])
+                self.assertFalse(result["production_approved"])
+
+    def test_cross_factory_selection_and_ambiguous_gateway_fail_closed(self):
+        from reusable_cicd.core import FrameworkError
+        with self.assertRaises(FrameworkError):
+            verified("lab-packaging", "WarehouseHMI")
+        with self.assertRaisesRegex(FrameworkError, "AMBIGUOUS_GATEWAY"):
+            verified("lab-assembly", "PackagingHMI")
+
+    def test_only_commissioned_warehouse_can_trigger_approval(self):
+        plan = verified("lab-warehouse", "WarehouseHMI")
+        self.assertTrue(plan["stage_eligible"])
+        self.assertEqual(plan["eam_task"], "CICD-SEND-WarehouseHMI-A")
+
     def test_needs_reviewed_environment_and_no_unapproved_stage(self):
         s = (ROOT / ".github/workflows/generic-eam-e2e-test.yml").read_text()
         self.assertIn("environment: ignition-test", s)
