@@ -1,0 +1,1303 @@
+{
+  "custom": {},
+  "params": {
+    "siteName": "SITE — NOT CONFIGURED",
+    "gatewayName": "GATEWAY — NOT CONFIGURED",
+    "deviceName": "DEVICE — NOT CONFIGURED",
+    "metrics": {
+      "Connected": "N/A — NOT MAPPED",
+      "MonitoredItems": "N/A — NOT MAPPED",
+      "RequestsPerSecond1m": "N/A — NOT MAPPED",
+      "ResponseMeanMs": "N/A — NOT MAPPED",
+      "ResponseMaxMs": "N/A — NOT MAPPED",
+      "QueueDurationMs": "N/A — NOT MAPPED",
+      "OverloadFactorPct": "N/A — NOT MAPPED",
+      "ActualSamplingIntervalMs": "N/A — NOT MAPPED"
+    },
+    "dataState": "NO VERIFIED DATA",
+    "samplingGroupRows": [
+      {
+        "Sampling group": "NOT MAPPED",
+        "Ideal interval (ms)": "N/A",
+        "Actual interval (ms)": "N/A",
+        "Request count": "N/A",
+        "Queue duration (ms)": "N/A",
+        "Overload factor (%)": "N/A",
+        "Timestamp": "N/A",
+        "Quality": "NOT MAPPED"
+      }
+    ]
+  },
+  "props": {
+    "defaultSize": {
+      "width": 1440,
+      "height": 1060
+    }
+  },
+  "root": {
+    "type": "ia.container.flex",
+    "meta": {
+      "name": "root"
+    },
+    "position": {},
+    "props": {
+      "direction": "column",
+      "style": {
+        "gap": "17px",
+        "padding": "28px",
+        "backgroundColor": "#f3f6fb",
+        "overflowY": "auto"
+      },
+      "wrap": "nowrap"
+    },
+    "children": [
+      {
+        "type": "ia.container.flex",
+        "meta": {
+          "name": "Header"
+        },
+        "position": {},
+        "props": {
+          "direction": "column",
+          "style": {
+            "gap": "10px",
+            "padding": "0 0 8px 0"
+          },
+          "wrap": "nowrap"
+        },
+        "children": [
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "Eyebrow"
+            },
+            "position": {
+              "basis": "auto"
+            },
+            "props": {
+              "text": "INDUSTRIAL DIAGNOSTICS · IGNITION 8.3",
+              "style": {
+                "fontSize": "12px",
+                "color": "#1867ce",
+                "fontWeight": "bold"
+              }
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "Title"
+            },
+            "position": {
+              "basis": "auto"
+            },
+            "props": {
+              "text": "PLC COMMUNICATION & PERFORMANCE",
+              "style": {
+                "fontSize": "28px",
+                "color": "#15243b",
+                "fontWeight": "bold"
+              }
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "Subtitle"
+            },
+            "position": {
+              "basis": "auto"
+            },
+            "props": {
+              "text": "Native Ignition diagnostics · verified historian trends · evidence-based investigation",
+              "style": {
+                "fontSize": "14px",
+                "color": "#63758c",
+                "fontWeight": "normal"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "SiteCaption"
+        },
+        "position": {
+          "basis": "auto"
+        },
+        "props": {
+          "text": "Reusable device detail view. No PLC CPU or scan-time values are inferred from Ignition driver statistics.",
+          "style": {
+            "fontSize": "12px",
+            "color": "#63758c",
+            "fontWeight": "normal"
+          }
+        }
+      },
+      {
+        "type": "ia.container.flex",
+        "meta": {
+          "name": "MappingWarning"
+        },
+        "position": {},
+        "props": {
+          "direction": "column",
+          "style": {
+            "gap": "10px",
+            "backgroundColor": "#fff8ec",
+            "border": "1px solid #ecd6aa",
+            "padding": "14px",
+            "borderRadius": "8px"
+          },
+          "wrap": "nowrap"
+        },
+        "children": [
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "MappingNoticeTitle"
+            },
+            "position": {
+              "basis": "auto"
+            },
+            "props": {
+              "text": "SOURCE STATUS: NO VERIFIED MAPPINGS",
+              "style": {
+                "fontSize": "14px",
+                "color": "#8f5525",
+                "fontWeight": "bold"
+              }
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "MappingNotice"
+            },
+            "position": {
+              "basis": "auto"
+            },
+            "props": {
+              "text": "Set view.params.tagRoot to a commissioned, normalized Ignition Tag folder. No PLC readings or historian pens are generated by this project. Data below will remain N/A until verified mapping exists.",
+              "style": {
+                "fontSize": "12px",
+                "color": "#79572c",
+                "fontWeight": "normal"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "ia.container.flex",
+        "meta": {
+          "name": "KpiGridFirst"
+        },
+        "position": {},
+        "props": {
+          "direction": "row",
+          "style": {
+            "gap": "12px",
+            "alignItems": "stretch"
+          },
+          "wrap": "wrap"
+        },
+        "children": [
+          {
+            "type": "ia.container.flex",
+            "meta": {
+              "name": "ConnectedCard"
+            },
+            "position": {
+              "grow": 1,
+              "basis": "220px"
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "gap": "10px",
+                "backgroundColor": "#ffffff",
+                "border": "1px solid #dfe6ef",
+                "borderRadius": "12px",
+                "padding": "14px",
+                "minWidth": "220px",
+                "flexGrow": 1
+              },
+              "wrap": "nowrap"
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "ConnectedTitle"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "Device connection",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#63758c",
+                    "fontWeight": "bold"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "ConnectedValue"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "N/A — NOT MAPPED",
+                  "style": {
+                    "fontSize": "24px",
+                    "color": "#15243b",
+                    "fontWeight": "bold"
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "property",
+                      "config": {
+                        "path": "view.params.metrics.Connected"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "ConnectedUnit"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "boolean",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#1867ce",
+                    "fontWeight": "bold"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "ConnectedNote"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "Ignition device diagnostic",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#63758c",
+                    "fontWeight": "normal"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "type": "ia.container.flex",
+            "meta": {
+              "name": "MonitoredItemsCard"
+            },
+            "position": {
+              "grow": 1,
+              "basis": "220px"
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "gap": "10px",
+                "backgroundColor": "#ffffff",
+                "border": "1px solid #dfe6ef",
+                "borderRadius": "12px",
+                "padding": "14px",
+                "minWidth": "220px",
+                "flexGrow": 1
+              },
+              "wrap": "nowrap"
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "MonitoredItemsTitle"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "Monitored items",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#63758c",
+                    "fontWeight": "bold"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "MonitoredItemsValue"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "N/A — NOT MAPPED",
+                  "style": {
+                    "fontSize": "24px",
+                    "color": "#15243b",
+                    "fontWeight": "bold"
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "property",
+                      "config": {
+                        "path": "view.params.metrics.MonitoredItems"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "MonitoredItemsUnit"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "count",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#1867ce",
+                    "fontWeight": "bold"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "MonitoredItemsNote"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "Includes diagnostic subscriptions",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#63758c",
+                    "fontWeight": "normal"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "type": "ia.container.flex",
+            "meta": {
+              "name": "RequestsPerSecond1mCard"
+            },
+            "position": {
+              "grow": 1,
+              "basis": "220px"
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "gap": "10px",
+                "backgroundColor": "#ffffff",
+                "border": "1px solid #dfe6ef",
+                "borderRadius": "12px",
+                "padding": "14px",
+                "minWidth": "220px",
+                "flexGrow": 1
+              },
+              "wrap": "nowrap"
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "RequestsPerSecond1mTitle"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "Throughput · 1 min",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#63758c",
+                    "fontWeight": "bold"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "RequestsPerSecond1mValue"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "N/A — NOT MAPPED",
+                  "style": {
+                    "fontSize": "24px",
+                    "color": "#15243b",
+                    "fontWeight": "bold"
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "property",
+                      "config": {
+                        "path": "view.params.metrics.RequestsPerSecond1m"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "RequestsPerSecond1mUnit"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "req/s",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#1867ce",
+                    "fontWeight": "bold"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "RequestsPerSecond1mNote"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "Rolling 60-second throughput",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#63758c",
+                    "fontWeight": "normal"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "type": "ia.container.flex",
+            "meta": {
+              "name": "ResponseMeanMsCard"
+            },
+            "position": {
+              "grow": 1,
+              "basis": "220px"
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "gap": "10px",
+                "backgroundColor": "#ffffff",
+                "border": "1px solid #dfe6ef",
+                "borderRadius": "12px",
+                "padding": "14px",
+                "minWidth": "220px",
+                "flexGrow": 1
+              },
+              "wrap": "nowrap"
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "ResponseMeanMsTitle"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "Mean response",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#63758c",
+                    "fontWeight": "bold"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "ResponseMeanMsValue"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "N/A — NOT MAPPED",
+                  "style": {
+                    "fontSize": "24px",
+                    "color": "#15243b",
+                    "fontWeight": "bold"
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "property",
+                      "config": {
+                        "path": "view.params.metrics.ResponseMeanMs"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "ResponseMeanMsUnit"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "ms",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#1867ce",
+                    "fontWeight": "bold"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "ResponseMeanMsNote"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "Execution mean since initialization",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#63758c",
+                    "fontWeight": "normal"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "ia.container.flex",
+        "meta": {
+          "name": "KpiGridSecond"
+        },
+        "position": {},
+        "props": {
+          "direction": "row",
+          "style": {
+            "gap": "12px",
+            "alignItems": "stretch"
+          },
+          "wrap": "wrap"
+        },
+        "children": [
+          {
+            "type": "ia.container.flex",
+            "meta": {
+              "name": "ResponseMaxMsCard"
+            },
+            "position": {
+              "grow": 1,
+              "basis": "220px"
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "gap": "10px",
+                "backgroundColor": "#ffffff",
+                "border": "1px solid #dfe6ef",
+                "borderRadius": "12px",
+                "padding": "14px",
+                "minWidth": "220px",
+                "flexGrow": 1
+              },
+              "wrap": "nowrap"
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "ResponseMaxMsTitle"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "Max response",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#63758c",
+                    "fontWeight": "bold"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "ResponseMaxMsValue"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "N/A — NOT MAPPED",
+                  "style": {
+                    "fontSize": "24px",
+                    "color": "#15243b",
+                    "fontWeight": "bold"
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "property",
+                      "config": {
+                        "path": "view.params.metrics.ResponseMaxMs"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "ResponseMaxMsUnit"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "ms",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#1867ce",
+                    "fontWeight": "bold"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "ResponseMaxMsNote"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "Maximum since initialization; not rolling",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#63758c",
+                    "fontWeight": "normal"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "type": "ia.container.flex",
+            "meta": {
+              "name": "QueueDurationMsCard"
+            },
+            "position": {
+              "grow": 1,
+              "basis": "220px"
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "gap": "10px",
+                "backgroundColor": "#ffffff",
+                "border": "1px solid #dfe6ef",
+                "borderRadius": "12px",
+                "padding": "14px",
+                "minWidth": "220px",
+                "flexGrow": 1
+              },
+              "wrap": "nowrap"
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "QueueDurationMsTitle"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "Queue duration",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#63758c",
+                    "fontWeight": "bold"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "QueueDurationMsValue"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "N/A — NOT MAPPED",
+                  "style": {
+                    "fontSize": "24px",
+                    "color": "#15243b",
+                    "fontWeight": "bold"
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "property",
+                      "config": {
+                        "path": "view.params.metrics.QueueDurationMs"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "QueueDurationMsUnit"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "ms",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#1867ce",
+                    "fontWeight": "bold"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "QueueDurationMsNote"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "Sampling group — not aggregate",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#63758c",
+                    "fontWeight": "normal"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "type": "ia.container.flex",
+            "meta": {
+              "name": "OverloadFactorPctCard"
+            },
+            "position": {
+              "grow": 1,
+              "basis": "220px"
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "gap": "10px",
+                "backgroundColor": "#ffffff",
+                "border": "1px solid #dfe6ef",
+                "borderRadius": "12px",
+                "padding": "14px",
+                "minWidth": "220px",
+                "flexGrow": 1
+              },
+              "wrap": "nowrap"
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "OverloadFactorPctTitle"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "Sampling overload",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#63758c",
+                    "fontWeight": "bold"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "OverloadFactorPctValue"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "N/A — NOT MAPPED",
+                  "style": {
+                    "fontSize": "24px",
+                    "color": "#15243b",
+                    "fontWeight": "bold"
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "property",
+                      "config": {
+                        "path": "view.params.metrics.OverloadFactorPct"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "OverloadFactorPctUnit"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "%",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#1867ce",
+                    "fontWeight": "bold"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "OverloadFactorPctNote"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "Sampling group — not PLC CPU",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#63758c",
+                    "fontWeight": "normal"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "type": "ia.container.flex",
+            "meta": {
+              "name": "ActualSamplingIntervalMsCard"
+            },
+            "position": {
+              "grow": 1,
+              "basis": "220px"
+            },
+            "props": {
+              "direction": "column",
+              "style": {
+                "gap": "10px",
+                "backgroundColor": "#ffffff",
+                "border": "1px solid #dfe6ef",
+                "borderRadius": "12px",
+                "padding": "14px",
+                "minWidth": "220px",
+                "flexGrow": 1
+              },
+              "wrap": "nowrap"
+            },
+            "children": [
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "ActualSamplingIntervalMsTitle"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "Actual sampling",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#63758c",
+                    "fontWeight": "bold"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "ActualSamplingIntervalMsValue"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "N/A — NOT MAPPED",
+                  "style": {
+                    "fontSize": "24px",
+                    "color": "#15243b",
+                    "fontWeight": "bold"
+                  }
+                },
+                "propConfig": {
+                  "props.text": {
+                    "binding": {
+                      "type": "property",
+                      "config": {
+                        "path": "view.params.metrics.ActualSamplingIntervalMs"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "ActualSamplingIntervalMsUnit"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "ms",
+                  "style": {
+                    "fontSize": "12px",
+                    "color": "#1867ce",
+                    "fontWeight": "bold"
+                  }
+                }
+              },
+              {
+                "type": "ia.display.label",
+                "meta": {
+                  "name": "ActualSamplingIntervalMsNote"
+                },
+                "position": {
+                  "basis": "auto"
+                },
+                "props": {
+                  "text": "Sampling group actual interval",
+                  "style": {
+                    "fontSize": "11px",
+                    "color": "#63758c",
+                    "fontWeight": "normal"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "ia.container.flex",
+        "meta": {
+          "name": "SamplingGroupDetailSection"
+        },
+        "props": {
+          "direction": "column",
+          "style": {
+            "gap": "10px",
+            "backgroundColor": "#ffffff",
+            "padding": "18px",
+            "border": "1px solid #dfe6ef",
+            "borderRadius": "12px"
+          }
+        },
+        "children": [
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "SamplingGroupTitle"
+            },
+            "props": {
+              "text": "SAMPLING GROUP DETAILS",
+              "style": {
+                "fontSize": "19px",
+                "color": "#15243b",
+                "fontWeight": "bold"
+              }
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "SamplingGroupDesc"
+            },
+            "props": {
+              "text": "Required to identify which Tag Group subscription rate is behind queue pressure. Not an aggregate PLC CPU metric.",
+              "style": {
+                "fontSize": "12px",
+                "color": "#63758c",
+                "fontWeight": "normal"
+              }
+            }
+          },
+          {
+            "type": "ia.display.table",
+            "meta": {
+              "name": "SamplingGroupDetailTable"
+            },
+            "props": {
+              "data": [
+                {
+                  "Sampling group": "NOT MAPPED",
+                  "Ideal interval (ms)": "N/A",
+                  "Actual interval (ms)": "N/A",
+                  "Request count": "N/A",
+                  "Queue duration (ms)": "N/A",
+                  "Overload factor (%)": "N/A",
+                  "Timestamp": "N/A",
+                  "Quality": "NOT MAPPED"
+                }
+              ]
+            },
+            "propConfig": {
+              "props.data": {
+                "binding": {
+                  "type": "property",
+                  "config": {
+                    "path": "view.params.samplingGroupRows"
+                  }
+                }
+              }
+            },
+            "position": {
+              "basis": "auto",
+              "grow": 1
+            }
+          }
+        ]
+      },
+      {
+        "type": "ia.container.flex",
+        "meta": {
+          "name": "HistorySection"
+        },
+        "position": {},
+        "props": {
+          "direction": "column",
+          "style": {
+            "gap": "10px",
+            "backgroundColor": "#ffffff",
+            "padding": "18px",
+            "border": "1px solid #dfe6ef",
+            "borderRadius": "12px"
+          },
+          "wrap": "nowrap"
+        },
+        "children": [
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "TrendTitle"
+            },
+            "position": {
+              "basis": "auto"
+            },
+            "props": {
+              "text": "HISTORICAL COMMUNICATION TRENDS",
+              "style": {
+                "fontSize": "19px",
+                "color": "#15243b",
+                "fontWeight": "bold"
+              }
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "TrendDescription"
+            },
+            "position": {
+              "basis": "auto"
+            },
+            "props": {
+              "text": "Power Chart: choose historian-backed metrics such as ResponseMeanMs, RequestsPerSecond1m, QueueDurationMs and OverloadFactorPct. Empty chart = no pens, not healthy PLC.",
+              "style": {
+                "fontSize": "12px",
+                "color": "#63758c",
+                "fontWeight": "normal"
+              }
+            }
+          },
+          {
+            "type": "ia.chart.powerchart",
+            "meta": {
+              "name": "DiagnosticPowerChart"
+            },
+            "position": {
+              "basis": "440px",
+              "grow": 1
+            },
+            "props": {}
+          }
+        ]
+      },
+      {
+        "type": "ia.container.flex",
+        "meta": {
+          "name": "AnalysisSection"
+        },
+        "position": {},
+        "props": {
+          "direction": "column",
+          "style": {
+            "gap": "10px",
+            "backgroundColor": "#ffffff",
+            "padding": "18px",
+            "border": "1px solid #dfe6ef",
+            "borderRadius": "12px"
+          },
+          "wrap": "nowrap"
+        },
+        "children": [
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "AnalysisTitle"
+            },
+            "position": {
+              "basis": "auto"
+            },
+            "props": {
+              "text": "ENGINEERING INVESTIGATION · READ-ONLY",
+              "style": {
+                "fontSize": "19px",
+                "color": "#15243b",
+                "fontWeight": "bold"
+              }
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "AnalysisStatus"
+            },
+            "position": {
+              "basis": "auto"
+            },
+            "props": {
+              "text": "STATUS: INSUFFICIENT VERIFIED EVIDENCE",
+              "style": {
+                "fontSize": "15px",
+                "color": "#925a21",
+                "fontWeight": "bold"
+              }
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "AnalysisDescription"
+            },
+            "position": {
+              "basis": "auto"
+            },
+            "props": {
+              "text": "Root cause is NOT CONFIRMED. Compare rolling request throughput, response times, sampling queue, overload and historical change events. Ignition driver metrics alone cannot prove PLC CPU, physical PLC scan time or network packet loss.",
+              "style": {
+                "fontSize": "13px",
+                "color": "#63758c",
+                "fontWeight": "normal"
+              }
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "InvestigationHint"
+            },
+            "position": {
+              "basis": "auto"
+            },
+            "props": {
+              "text": "Next checks: (1) Verify device/OPC quality and timestamps; (2) compare baseline windows; (3) review Tag Group changes and sampling-group overload; (4) obtain PLC diagnostics independently.",
+              "style": {
+                "fontSize": "12px",
+                "color": "#15243b",
+                "fontWeight": "normal"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "Footer"
+        },
+        "position": {
+          "basis": "auto"
+        },
+        "props": {
+          "text": "SOURCE CANDIDATE · NO GATEWAY/BROWSER FAT · READ ONLY · NO AUTOMATIC TAGS OR WRITES",
+          "style": {
+            "fontSize": "11px",
+            "color": "#63758c",
+            "fontWeight": "normal"
+          }
+        }
+      }
+    ]
+  }
+}

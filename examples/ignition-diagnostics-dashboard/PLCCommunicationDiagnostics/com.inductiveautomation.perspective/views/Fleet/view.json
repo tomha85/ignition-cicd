@@ -1,0 +1,216 @@
+{
+  "custom": {},
+  "params": {
+    "siteName": "CUSTOMER SITE — NOT CONFIGURED",
+    "deviceRows": []
+  },
+  "props": {
+    "defaultSize": {
+      "width": 1520,
+      "height": 880
+    }
+  },
+  "root": {
+    "type": "ia.container.flex",
+    "meta": {
+      "name": "root"
+    },
+    "props": {
+      "direction": "column",
+      "style": {
+        "gap": "16px",
+        "padding": "28px",
+        "backgroundColor": "#f4f7fb",
+        "overflowY": "auto"
+      }
+    },
+    "children": [
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "Kicker"
+        },
+        "props": {
+          "text": "INDUSTRIAL RELIABILITY / DEVICE FLEET",
+          "style": {
+            "fontSize": "12px",
+            "color": "#2563eb",
+            "fontWeight": "bold"
+          }
+        }
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "Title"
+        },
+        "props": {
+          "text": "ALL PLC COMMUNICATION HEALTH",
+          "style": {
+            "fontSize": "29px",
+            "color": "#14283f",
+            "fontWeight": "bold"
+          }
+        }
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "Subtitle"
+        },
+        "props": {
+          "text": "Compare any factory's Ignition driver connections · read only · 100+ PLC supported by configuration",
+          "style": {
+            "fontSize": "14px",
+            "color": "#64748b",
+            "fontWeight": "normal"
+          }
+        }
+      },
+      {
+        "type": "ia.container.flex",
+        "meta": {
+          "name": "Notice"
+        },
+        "props": {
+          "direction": "column",
+          "style": {
+            "gap": "12px",
+            "padding": "18px",
+            "backgroundColor": "#fff8ea",
+            "border": "1px solid #f2d8a3",
+            "borderRadius": "10px"
+          }
+        },
+        "children": [
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "NotConfigured"
+            },
+            "props": {
+              "text": "NO GATEWAY DATA CONNECTED",
+              "style": {
+                "fontSize": "16px",
+                "color": "#a36416",
+                "fontWeight": "bold"
+              }
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "NoticeDetail"
+            },
+            "props": {
+              "text": "This is a native Perspective view template. Populate fleetRows from verified Gateway diagnostics; the dashboard never discovers a plant or invents metrics. N/A is not a PASS.",
+              "style": {
+                "fontSize": "12px",
+                "color": "#14283f",
+                "fontWeight": "normal"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "ia.container.flex",
+        "meta": {
+          "name": "TablePanel"
+        },
+        "props": {
+          "direction": "column",
+          "style": {
+            "gap": "12px",
+            "backgroundColor": "#ffffff",
+            "padding": "18px",
+            "border": "1px solid #dce5f0",
+            "borderRadius": "12px"
+          }
+        },
+        "children": [
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "TableHeading"
+            },
+            "props": {
+              "text": "GATEWAYS / OPC SERVERS / PLCs",
+              "style": {
+                "fontSize": "18px",
+                "color": "#14283f",
+                "fontWeight": "bold"
+              }
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "TableDesc"
+            },
+            "props": {
+              "text": "Filter/sort by Gateway and OPC Server. Only confirmed values with Quality and timestamps should be displayed.",
+              "style": {
+                "fontSize": "12px",
+                "color": "#64748b",
+                "fontWeight": "normal"
+              }
+            }
+          },
+          {
+            "type": "ia.display.table",
+            "meta": {
+              "name": "FleetTable"
+            },
+            "position": {
+              "grow": 1,
+              "basis": "auto"
+            },
+            "props": {
+              "data": [
+                {
+                  "device_id": "—",
+                  "gateway_id": "—",
+                  "opc_server": "—",
+                  "status": "NOT MAPPED",
+                  "connected": "N/A",
+                  "badQuality": "N/A",
+                  "overload": "N/A",
+                  "responseMeanMs": "N/A",
+                  "requestRate": "N/A",
+                  "evidence": "NO SOURCE DATA"
+                }
+              ],
+              "enableSelection": true,
+              "show": true
+            },
+            "propConfig": {
+              "props.data": {
+                "binding": {
+                  "type": "property",
+                  "config": {
+                    "path": "view.params.deviceRows"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "Footer"
+        },
+        "props": {
+          "text": "Do not interpret absent telemetry as healthy. External OPC UA providers may expose different metrics. View requires independent Designer/Browser FAT before deployment.",
+          "style": {
+            "fontSize": "11px",
+            "color": "#64748b",
+            "fontWeight": "normal"
+          }
+        }
+      }
+    ]
+  }
+}

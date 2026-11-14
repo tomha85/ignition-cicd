@@ -1,0 +1,16 @@
+{
+  "pages": {
+    "/": {
+      "viewPath": "Fleet"
+    },
+    "/device": {
+      "viewPath": "Dashboard"
+    },
+    "/metrics": {
+      "viewPath": "MetricCatalog"
+    },
+    "/gateway": {
+      "viewPath": "Gateway"
+    }
+  }
+}

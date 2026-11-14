@@ -102,6 +102,16 @@ PLC data collector. Dashed EAM links represent intended delivery paths,
 not verified runtime connections. Factory B/C Agent deployments are not
 commissioned; production deployment remains on HOLD.
 
+## Ignition Diagnostics Perspective (source candidate)
+
+An isolated [PLC Communication Diagnostics Perspective project](examples/ignition-diagnostics-dashboard/README.md)
+provides a reusable **Fleet Overview**, per-device **Performance Dashboard**
+with Power Chart, and a **23-field built-in Ignition driver diagnostics catalog**.
+It is not hardcoded to a factory/PLC. Live Tag mapping, Historian
+configuration and real Gateway/Browser FAT remain **NOT VERIFIED**.
+No PLC data is read or written by the sample; it is intentionally
+separate from the two-container EAM TEST Lab and production CI/CD.
+
 ## Reusable customer configuration (read-only demo)
 
 To reuse the framework for your own factories, bring **real native Ignition

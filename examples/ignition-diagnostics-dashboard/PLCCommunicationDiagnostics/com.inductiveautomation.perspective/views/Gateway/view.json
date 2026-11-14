@@ -1,0 +1,377 @@
+{
+  "custom": {},
+  "params": {
+    "gatewayName": "IGNITION GATEWAY — NOT CONFIGURED",
+    "gatewayRows": [
+      {
+        "Metric": "Gateway CPU",
+        "Source": "Ignition Gateway Diagnostics → Performance / Metrics Dashboard",
+        "Unit": "percent",
+        "Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Timestamp": "N/A"
+      },
+      {
+        "Metric": "Gateway Heap Memory",
+        "Source": "Ignition performance.heap/heap-used",
+        "Unit": "MB or %",
+        "Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Timestamp": "N/A"
+      },
+      {
+        "Metric": "Gateway Disk Usage",
+        "Source": "Ignition performance.disk",
+        "Unit": "percent",
+        "Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Timestamp": "N/A"
+      },
+      {
+        "Metric": "Thread CPU / waits",
+        "Source": "Diagnostics → Threads",
+        "Unit": "threads / percent",
+        "Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Timestamp": "N/A"
+      },
+      {
+        "Metric": "Tag Group Execution",
+        "Source": "Diagnostics → Execution",
+        "Unit": "ms",
+        "Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Timestamp": "N/A"
+      },
+      {
+        "Metric": "DB Query Duration",
+        "Source": "Metrics Dashboard → databases",
+        "Unit": "ms",
+        "Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Timestamp": "N/A"
+      },
+      {
+        "Metric": "DB Active Connections",
+        "Source": "Metrics Dashboard → databases",
+        "Unit": "count",
+        "Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Timestamp": "N/A"
+      },
+      {
+        "Metric": "Historian Store and Forward",
+        "Source": "Services → Store and Forward (SQL Historian)",
+        "Unit": "records",
+        "Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Timestamp": "N/A"
+      },
+      {
+        "Metric": "Gateway Network Msg/s",
+        "Source": "Metrics Dashboard → gateway-network",
+        "Unit": "messages/sec",
+        "Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Timestamp": "N/A"
+      },
+      {
+        "Metric": "Gateway Network Bytes/s",
+        "Source": "Metrics Dashboard → gateway-network",
+        "Unit": "bytes/sec",
+        "Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Timestamp": "N/A"
+      },
+      {
+        "Metric": "OPC Client Connection",
+        "Source": "Connections → OPC → OPC Connections",
+        "Unit": "status",
+        "Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Timestamp": "N/A"
+      },
+      {
+        "Metric": "Gateway Logs",
+        "Source": "Diagnostics → Logs (read-only audit)",
+        "Unit": "events",
+        "Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Timestamp": "N/A"
+      }
+    ]
+  },
+  "props": {
+    "defaultSize": {
+      "width": 1500,
+      "height": 930
+    }
+  },
+  "root": {
+    "type": "ia.container.flex",
+    "meta": {
+      "name": "root"
+    },
+    "props": {
+      "direction": "column",
+      "style": {
+        "padding": "28px",
+        "gap": "16px",
+        "backgroundColor": "#f4f7fb",
+        "overflowY": "auto"
+      }
+    },
+    "children": [
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "Eyebrow"
+        },
+        "props": {
+          "text": "INDUSTRIAL RELIABILITY / IGNITION SYSTEM DIAGNOSTICS",
+          "style": {
+            "fontSize": "12px",
+            "color": "#2563eb",
+            "fontWeight": "bold"
+          }
+        }
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "Title"
+        },
+        "props": {
+          "text": "GATEWAY PERFORMANCE & SHARED BOTTLENECKS",
+          "style": {
+            "fontSize": "29px",
+            "color": "#15243b",
+            "fontWeight": "bold"
+          }
+        }
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "Desc"
+        },
+        "props": {
+          "text": "Compare Gateway CPU/heap, Tag Group execution, OPC connections, database and historian before attributing a fleet-wide slowdown to PLCs.",
+          "style": {
+            "fontSize": "14px",
+            "color": "#64748b",
+            "fontWeight": "normal"
+          }
+        }
+      },
+      {
+        "type": "ia.container.flex",
+        "meta": {
+          "name": "SourceWarning"
+        },
+        "props": {
+          "direction": "column",
+          "style": {
+            "gap": "8px",
+            "padding": "16px",
+            "backgroundColor": "#fff8ea",
+            "border": "1px solid #f1d4a0",
+            "borderRadius": "10px"
+          }
+        },
+        "children": [
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "Warning"
+            },
+            "props": {
+              "text": "SOURCE ADAPTER NOT COMMISSIONED",
+              "style": {
+                "fontSize": "16px",
+                "color": "#9f6216",
+                "fontWeight": "bold"
+              }
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "WarningDetail"
+            },
+            "props": {
+              "text": "These are Gateway diagnostics surfaces, not OPC device diagnostic Tag paths. The 8.3 Gateway Metrics Dashboard does not automatically create Perspective Tags. Bind only a supported, authorized read-only adapter after Gateway TEST verification.",
+              "style": {
+                "fontSize": "12px",
+                "color": "#6f4b22",
+                "fontWeight": "normal"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "ia.container.flex",
+        "meta": {
+          "name": "MetricsPanel"
+        },
+        "props": {
+          "direction": "column",
+          "style": {
+            "gap": "12px",
+            "padding": "18px",
+            "backgroundColor": "#ffffff",
+            "border": "1px solid #dce5f0",
+            "borderRadius": "12px"
+          }
+        },
+        "children": [
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "MetricsTitle"
+            },
+            "props": {
+              "text": "GATEWAY LAYER — AVAILABLE DIAGNOSTIC CATEGORIES",
+              "style": {
+                "fontSize": "18px",
+                "color": "#15243b",
+                "fontWeight": "bold"
+              }
+            }
+          },
+          {
+            "type": "ia.display.table",
+            "meta": {
+              "name": "GatewayMetricsTable"
+            },
+            "props": {
+              "data": [
+                {
+                  "Metric": "Gateway CPU",
+                  "Source": "Ignition Gateway Diagnostics → Performance / Metrics Dashboard",
+                  "Unit": "percent",
+                  "Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Timestamp": "N/A"
+                },
+                {
+                  "Metric": "Gateway Heap Memory",
+                  "Source": "Ignition performance.heap/heap-used",
+                  "Unit": "MB or %",
+                  "Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Timestamp": "N/A"
+                },
+                {
+                  "Metric": "Gateway Disk Usage",
+                  "Source": "Ignition performance.disk",
+                  "Unit": "percent",
+                  "Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Timestamp": "N/A"
+                },
+                {
+                  "Metric": "Thread CPU / waits",
+                  "Source": "Diagnostics → Threads",
+                  "Unit": "threads / percent",
+                  "Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Timestamp": "N/A"
+                },
+                {
+                  "Metric": "Tag Group Execution",
+                  "Source": "Diagnostics → Execution",
+                  "Unit": "ms",
+                  "Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Timestamp": "N/A"
+                },
+                {
+                  "Metric": "DB Query Duration",
+                  "Source": "Metrics Dashboard → databases",
+                  "Unit": "ms",
+                  "Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Timestamp": "N/A"
+                },
+                {
+                  "Metric": "DB Active Connections",
+                  "Source": "Metrics Dashboard → databases",
+                  "Unit": "count",
+                  "Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Timestamp": "N/A"
+                },
+                {
+                  "Metric": "Historian Store and Forward",
+                  "Source": "Services → Store and Forward (SQL Historian)",
+                  "Unit": "records",
+                  "Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Timestamp": "N/A"
+                },
+                {
+                  "Metric": "Gateway Network Msg/s",
+                  "Source": "Metrics Dashboard → gateway-network",
+                  "Unit": "messages/sec",
+                  "Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Timestamp": "N/A"
+                },
+                {
+                  "Metric": "Gateway Network Bytes/s",
+                  "Source": "Metrics Dashboard → gateway-network",
+                  "Unit": "bytes/sec",
+                  "Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Timestamp": "N/A"
+                },
+                {
+                  "Metric": "OPC Client Connection",
+                  "Source": "Connections → OPC → OPC Connections",
+                  "Unit": "status",
+                  "Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Timestamp": "N/A"
+                },
+                {
+                  "Metric": "Gateway Logs",
+                  "Source": "Diagnostics → Logs (read-only audit)",
+                  "Unit": "events",
+                  "Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Timestamp": "N/A"
+                }
+              ]
+            },
+            "propConfig": {
+              "props.data": {
+                "binding": {
+                  "type": "property",
+                  "config": {
+                    "path": "view.params.gatewayRows"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "Footer"
+        },
+        "props": {
+          "text": "Gateway-wide symptoms indicate a shared investigation scope, not proof of an exact root cause. No writes, controller changes, or automatic Gateway API calls.",
+          "style": {
+            "fontSize": "11px",
+            "color": "#64748b",
+            "fontWeight": "normal"
+          }
+        }
+      }
+    ]
+  }
+}

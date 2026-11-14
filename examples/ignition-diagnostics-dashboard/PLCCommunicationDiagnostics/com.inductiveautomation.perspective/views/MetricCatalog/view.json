@@ -1,0 +1,619 @@
+{
+  "custom": {},
+  "params": {
+    "siteName": "CUSTOMER SITE — NOT CONFIGURED",
+    "metricRows": [
+      {
+        "Metric": "Connected",
+        "Source": "root",
+        "Unit": "bool",
+        "Aggregate": "N/A",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Device connection to OPC UA server"
+      },
+      {
+        "Metric": "Hostname",
+        "Source": "root",
+        "Unit": "string",
+        "Aggregate": "N/A",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Configured device hostname, not latency"
+      },
+      {
+        "Metric": "Name",
+        "Source": "root",
+        "Unit": "string",
+        "Aggregate": "N/A",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Configured device name"
+      },
+      {
+        "Metric": "Port",
+        "Source": "root",
+        "Unit": "number",
+        "Aggregate": "N/A",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Configured communication port"
+      },
+      {
+        "Metric": "State",
+        "Source": "root",
+        "Unit": "string",
+        "Aggregate": "N/A",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Driver state"
+      },
+      {
+        "Metric": "Status",
+        "Source": "root",
+        "Unit": "string",
+        "Aggregate": "N/A",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Granular driver status"
+      },
+      {
+        "Metric": "Internal Indicator (IIN)",
+        "Source": "dnp3_optional",
+        "Unit": "string",
+        "Aggregate": "N/A",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "DNP3 / DNP3 Legacy only, Ignition 8.3.4+"
+      },
+      {
+        "Metric": "MonitoredItemCount",
+        "Source": "sampling_root",
+        "Unit": "number",
+        "Aggregate": "N/A",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Includes diagnostic subscriptions"
+      },
+      {
+        "Metric": "ActualSamplingInterval",
+        "Source": "sampling",
+        "Unit": "ms",
+        "Aggregate": "NO",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Actual execution sampling interval"
+      },
+      {
+        "Metric": "ActualThroughput",
+        "Source": "sampling",
+        "Unit": "count",
+        "Aggregate": "YES",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Requests completed in previous sample interval"
+      },
+      {
+        "Metric": "IdealSamplingInterval",
+        "Source": "sampling",
+        "Unit": "ms",
+        "Aggregate": "NO",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Configured/ideal sampling interval"
+      },
+      {
+        "Metric": "IdealThroughput",
+        "Source": "sampling",
+        "Unit": "requests_per_second",
+        "Aggregate": "YES",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Ideal requests/sec based on RequestCount and sampling interval"
+      },
+      {
+        "Metric": "OverloadFactor",
+        "Source": "sampling",
+        "Unit": "percent",
+        "Aggregate": "NO",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Sampling group queue pressure; >100% means cannot keep up"
+      },
+      {
+        "Metric": "QueueDuration",
+        "Source": "sampling",
+        "Unit": "ms",
+        "Aggregate": "NO",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Average time requests wait in device sampling queue"
+      },
+      {
+        "Metric": "RequestCount",
+        "Source": "sampling",
+        "Unit": "count",
+        "Aggregate": "YES",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Number of scheduled requests, not items nor requests/sec"
+      },
+      {
+        "Metric": "NthPercentile",
+        "Source": "execution",
+        "Unit": "ms",
+        "Aggregate": "YES",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "N-th percentile execution time; percentile-specific nodes must be discovered"
+      },
+      {
+        "Metric": "Count",
+        "Source": "execution",
+        "Unit": "count",
+        "Aggregate": "YES",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Lifetime request execution count; resets on initialization"
+      },
+      {
+        "Metric": "Max",
+        "Source": "execution",
+        "Unit": "ms",
+        "Aggregate": "YES",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Lifetime max since sampling group initialized"
+      },
+      {
+        "Metric": "Mean",
+        "Source": "execution",
+        "Unit": "ms",
+        "Aggregate": "YES",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Lifetime mean; not 1-minute moving mean"
+      },
+      {
+        "Metric": "Min",
+        "Source": "execution",
+        "Unit": "ms",
+        "Aggregate": "YES",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Lifetime min since sampling group initialized"
+      },
+      {
+        "Metric": "MeanRate",
+        "Source": "execution",
+        "Unit": "requests_per_second",
+        "Aggregate": "YES",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Lifetime throughput average"
+      },
+      {
+        "Metric": "OneMinuteRate",
+        "Source": "execution",
+        "Unit": "requests_per_second",
+        "Aggregate": "YES",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "One-minute rolling request rate"
+      },
+      {
+        "Metric": "FiveMinuteRate",
+        "Source": "execution",
+        "Unit": "requests_per_second",
+        "Aggregate": "YES",
+        "Realtime Value": "N/A — NOT MAPPED",
+        "Quality": "NOT MAPPED",
+        "Notes": "Five-minute rolling request rate"
+      }
+    ]
+  },
+  "props": {
+    "defaultSize": {
+      "width": 1500,
+      "height": 980
+    }
+  },
+  "root": {
+    "type": "ia.container.flex",
+    "meta": {
+      "name": "root"
+    },
+    "props": {
+      "direction": "column",
+      "style": {
+        "gap": "16px",
+        "padding": "28px",
+        "backgroundColor": "#f4f7fb",
+        "overflowY": "auto"
+      }
+    },
+    "children": [
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "Kicker"
+        },
+        "props": {
+          "text": "IGNITION 8.3 / DRIVER DIAGNOSTICS",
+          "style": {
+            "fontSize": "12px",
+            "color": "#2563eb",
+            "fontWeight": "bold"
+          }
+        }
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "Title"
+        },
+        "props": {
+          "text": "BUILT-IN DIAGNOSTIC COVERAGE",
+          "style": {
+            "fontSize": "28px",
+            "color": "#14283f",
+            "fontWeight": "bold"
+          }
+        }
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "Subtitle"
+        },
+        "props": {
+          "text": "All 23 documented native-driver metrics. Values remain N/A until a commissioned OPC browse discovers exact item paths.",
+          "style": {
+            "fontSize": "14px",
+            "color": "#64748b",
+            "fontWeight": "normal"
+          }
+        }
+      },
+      {
+        "type": "ia.container.flex",
+        "meta": {
+          "name": "Disclaimer"
+        },
+        "props": {
+          "direction": "column",
+          "style": {
+            "gap": "12px",
+            "padding": "14px",
+            "backgroundColor": "#fff8ea",
+            "border": "1px solid #f2d8a3",
+            "borderRadius": "10px"
+          }
+        },
+        "children": [
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "InfoTitle"
+            },
+            "props": {
+              "text": "NOT ALL METRICS EXIST ON EVERY SOURCE",
+              "style": {
+                "fontSize": "15px",
+                "color": "#a36416",
+                "fontWeight": "bold"
+              }
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "Info"
+            },
+            "props": {
+              "text": "Aggregate does not expose IdealSamplingInterval, ActualSamplingInterval, QueueDuration or OverloadFactor. Each active sampling group has its own metrics. DNP3 IIN is driver/version-specific. External Kepware is not identical to Ignition native drivers.",
+              "style": {
+                "fontSize": "12px",
+                "color": "#14283f",
+                "fontWeight": "normal"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "ia.container.flex",
+        "meta": {
+          "name": "MetricTablePanel"
+        },
+        "props": {
+          "direction": "column",
+          "style": {
+            "gap": "12px",
+            "padding": "18px",
+            "backgroundColor": "#ffffff",
+            "border": "1px solid #dce5f0",
+            "borderRadius": "12px"
+          }
+        },
+        "children": [
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "MetricTableHeading"
+            },
+            "props": {
+              "text": "VENDOR-DOCUMENTED DRIVER PARAMETERS · 23 FIELDS",
+              "style": {
+                "fontSize": "18px",
+                "color": "#14283f",
+                "fontWeight": "bold"
+              }
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "MetricTableSubheading"
+            },
+            "props": {
+              "text": "Static catalog is not evidence of live PLC/OPC connectivity. Browse, map and enable Historian separately.",
+              "style": {
+                "fontSize": "12px",
+                "color": "#64748b",
+                "fontWeight": "normal"
+              }
+            }
+          },
+          {
+            "type": "ia.display.table",
+            "meta": {
+              "name": "CatalogTable"
+            },
+            "position": {
+              "grow": 1,
+              "basis": "auto"
+            },
+            "props": {
+              "data": [
+                {
+                  "Metric": "Connected",
+                  "Source": "root",
+                  "Unit": "bool",
+                  "Aggregate": "N/A",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Device connection to OPC UA server"
+                },
+                {
+                  "Metric": "Hostname",
+                  "Source": "root",
+                  "Unit": "string",
+                  "Aggregate": "N/A",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Configured device hostname, not latency"
+                },
+                {
+                  "Metric": "Name",
+                  "Source": "root",
+                  "Unit": "string",
+                  "Aggregate": "N/A",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Configured device name"
+                },
+                {
+                  "Metric": "Port",
+                  "Source": "root",
+                  "Unit": "number",
+                  "Aggregate": "N/A",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Configured communication port"
+                },
+                {
+                  "Metric": "State",
+                  "Source": "root",
+                  "Unit": "string",
+                  "Aggregate": "N/A",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Driver state"
+                },
+                {
+                  "Metric": "Status",
+                  "Source": "root",
+                  "Unit": "string",
+                  "Aggregate": "N/A",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Granular driver status"
+                },
+                {
+                  "Metric": "Internal Indicator (IIN)",
+                  "Source": "dnp3_optional",
+                  "Unit": "string",
+                  "Aggregate": "N/A",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "DNP3 / DNP3 Legacy only, Ignition 8.3.4+"
+                },
+                {
+                  "Metric": "MonitoredItemCount",
+                  "Source": "sampling_root",
+                  "Unit": "number",
+                  "Aggregate": "N/A",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Includes diagnostic subscriptions"
+                },
+                {
+                  "Metric": "ActualSamplingInterval",
+                  "Source": "sampling",
+                  "Unit": "ms",
+                  "Aggregate": "NO",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Actual execution sampling interval"
+                },
+                {
+                  "Metric": "ActualThroughput",
+                  "Source": "sampling",
+                  "Unit": "count",
+                  "Aggregate": "YES",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Requests completed in previous sample interval"
+                },
+                {
+                  "Metric": "IdealSamplingInterval",
+                  "Source": "sampling",
+                  "Unit": "ms",
+                  "Aggregate": "NO",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Configured/ideal sampling interval"
+                },
+                {
+                  "Metric": "IdealThroughput",
+                  "Source": "sampling",
+                  "Unit": "requests_per_second",
+                  "Aggregate": "YES",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Ideal requests/sec based on RequestCount and sampling interval"
+                },
+                {
+                  "Metric": "OverloadFactor",
+                  "Source": "sampling",
+                  "Unit": "percent",
+                  "Aggregate": "NO",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Sampling group queue pressure; >100% means cannot keep up"
+                },
+                {
+                  "Metric": "QueueDuration",
+                  "Source": "sampling",
+                  "Unit": "ms",
+                  "Aggregate": "NO",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Average time requests wait in device sampling queue"
+                },
+                {
+                  "Metric": "RequestCount",
+                  "Source": "sampling",
+                  "Unit": "count",
+                  "Aggregate": "YES",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Number of scheduled requests, not items nor requests/sec"
+                },
+                {
+                  "Metric": "NthPercentile",
+                  "Source": "execution",
+                  "Unit": "ms",
+                  "Aggregate": "YES",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "N-th percentile execution time; percentile-specific nodes must be discovered"
+                },
+                {
+                  "Metric": "Count",
+                  "Source": "execution",
+                  "Unit": "count",
+                  "Aggregate": "YES",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Lifetime request execution count; resets on initialization"
+                },
+                {
+                  "Metric": "Max",
+                  "Source": "execution",
+                  "Unit": "ms",
+                  "Aggregate": "YES",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Lifetime max since sampling group initialized"
+                },
+                {
+                  "Metric": "Mean",
+                  "Source": "execution",
+                  "Unit": "ms",
+                  "Aggregate": "YES",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Lifetime mean; not 1-minute moving mean"
+                },
+                {
+                  "Metric": "Min",
+                  "Source": "execution",
+                  "Unit": "ms",
+                  "Aggregate": "YES",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Lifetime min since sampling group initialized"
+                },
+                {
+                  "Metric": "MeanRate",
+                  "Source": "execution",
+                  "Unit": "requests_per_second",
+                  "Aggregate": "YES",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Lifetime throughput average"
+                },
+                {
+                  "Metric": "OneMinuteRate",
+                  "Source": "execution",
+                  "Unit": "requests_per_second",
+                  "Aggregate": "YES",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "One-minute rolling request rate"
+                },
+                {
+                  "Metric": "FiveMinuteRate",
+                  "Source": "execution",
+                  "Unit": "requests_per_second",
+                  "Aggregate": "YES",
+                  "Realtime Value": "N/A — NOT MAPPED",
+                  "Quality": "NOT MAPPED",
+                  "Notes": "Five-minute rolling request rate"
+                }
+              ],
+              "enableSelection": true,
+              "show": true
+            },
+            "propConfig": {
+              "props.data": {
+                "binding": {
+                  "type": "property",
+                  "config": {
+                    "path": "view.params.metricRows"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      {
+        "type": "ia.display.label",
+        "meta": {
+          "name": "Footnote"
+        },
+        "props": {
+          "text": "No driver or PLC writes. Performance CPU/memory metrics shown in Gateway Diagnostics are a separate source adapter and are not part of this OPC diagnostic tag catalog.",
+          "style": {
+            "fontSize": "11px",
+            "color": "#64748b",
+            "fontWeight": "normal"
+          }
+        }
+      }
+    ]
+  }
+}

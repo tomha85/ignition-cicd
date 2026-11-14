@@ -1,0 +1,44 @@
+name: Ignition Diagnostics - Native Perspective Source QA (NO DEPLOY)
+
+on:
+  pull_request:
+    paths:
+      - 'examples/ignition-diagnostics-dashboard/**'
+      - 'tests/test_ignition_dashboard_source.py'
+      - 'tests/test_ignition_diagnostic_triage.py'
+      - '.github/workflows/diagnostics-dashboard-ci.yml'
+      - 'reusable_cicd/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  diagnostics-source:
+    name: Verify native View resources, catalog, and evidence-only triage
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compile offline analysis engine and validator
+        run: |
+          python -m compileall -q examples/ignition-diagnostics-dashboard tests/test_ignition_dashboard_source.py tests/test_ignition_diagnostic_triage.py
+      - name: Validate all documented metrics and native Perspective project
+        run: |
+          python -m unittest discover -s tests -p 'test_ignition_dashboard_source.py' -v
+      - name: Test fleet triage with 100 isolated simulated device records
+        run: |
+          python -m unittest discover -s tests -p 'test_ignition_diagnostic_triage.py' -v
+      - name: Write qualification summary
+        run: |
+          echo '### Ignition Diagnostics candidate' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Native Perspective source: structurally validated only' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Metrics: 23 documented native driver fields; mapping NOT performed' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Gateway/OPC/PLC data: NOT CONNECTED' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Historian, Browser FAT, production: NOT VERIFIED / HOLD' >> "$GITHUB_STEP_SUMMARY"
+          echo '- No writes or live EAM deployment in this workflow' >> "$GITHUB_STEP_SUMMARY"

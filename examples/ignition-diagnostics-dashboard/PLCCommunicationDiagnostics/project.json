@@ -1,0 +1,6 @@
+{
+  "title": "PLCCommunicationDiagnostics",
+  "description": "Reusable Ignition 8.3 PLC communication diagnostics candidate. No PLC connections or runtime FAT; read-only source-mapping only.",
+  "enabled": true,
+  "inheritable": false
+}
