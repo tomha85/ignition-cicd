@@ -6,9 +6,11 @@ on:
       - 'config/**'
       - 'scripts/customer_plan.py'
       - 'scripts/customer_topology.py'
+      - 'scripts/customer_network_preflight.py'
       - 'scripts/sync_workflow_choices.py'
       - 'tests/test_customer_plan.py'
       - 'tests/test_customer_topology.py'
+      - 'tests/test_customer_network_preflight.py'
       - 'tests/test_workflow_choice_sync.py'
       - '.github/workflows/customer-framework-demo.yml'
       - 'factories/**'
@@ -32,9 +34,10 @@ jobs:
           python-version: '3.12'
       - name: Validate native factory manifests and customer profile
         run: |
-          python -m compileall -q scripts/customer_plan.py scripts/customer_topology.py tests/test_customer_plan.py tests/test_customer_topology.py
+          python -m compileall -q scripts/customer_plan.py scripts/customer_topology.py scripts/customer_network_preflight.py tests/test_customer_plan.py tests/test_customer_topology.py tests/test_customer_network_preflight.py
           python -m unittest discover -s tests -p 'test_customer_plan.py' -v
           python -m unittest discover -s tests -p 'test_customer_topology.py' -v
+          python -m unittest discover -s tests -p 'test_customer_network_preflight.py' -v
           python -m unittest discover -s tests -p 'test_workflow_choice_sync.py' -v
           python scripts/sync_workflow_choices.py --check
           python framework/cli/check_repo.py
