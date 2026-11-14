@@ -90,6 +90,26 @@ contains API tokens, CA file values or Controller URL**. It declares:
 The hosted workflow `Customer Framework - Multi-Factory TEST Lab Demo
 (NO DEPLOY)` validates both the original v1 and portable v2 examples.
 
+## Optional real network preflight (TLS only)
+
+Run manually from a **trusted machine or dedicated deployment runner** that
+already has a route to the chosen Controller over the company's private LAN,
+VPN, WAN, or private-cloud overlay. Supply the actual trusted CA certificate
+file locally; the file path must not be committed.
+
+```bash
+python scripts/customer_network_preflight.py \
+  --config config/example-company-multi-site.json \
+  --controller hq-controller \
+  --ca-file /path/to/trusted/controller-ca.crt \
+  --confirm READ_ONLY_TLS_PREFLIGHT
+```
+
+This performs a **TLS handshake only**, without HTTP, EAM authentication or
+project deployment. A pass proves HTTPS reachability and certificate trust
+from that machine; it does **not** prove Agent registration, EAM task
+configuration, permission to deploy, or PLC communication.
+
 ## Production deployment requirements (NOT IMPLEMENTED)
 
 A reusable live adapter must be qualified on a separate customer-like Ignition
