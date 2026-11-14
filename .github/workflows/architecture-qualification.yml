@@ -11,6 +11,8 @@ permissions:
 
 jobs:
   architecture:
+    # LAB-only fixture suite; customer forks use customer-config-ci.yml.
+    if: github.repository == 'tomha85/ignition-cicd'
     name: Verify factory manifests, native source parity, safety and regression
     runs-on: ubuntu-latest
     timeout-minutes: 12
