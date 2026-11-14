@@ -7,15 +7,18 @@ This repository demonstrates deployment to an **isolated TEST lab**, not to prod
 
 ```mermaid
 flowchart LR
-    A["GitHub main<br/>Ignition Projects"] --> B["GitHub Actions<br/>Validate + TEST Approval"]
-    B --> C["EAM Controller<br/>Stage Project"]
-    C -->|"Send Project*"| D["EAM Agent<br/>TEST Gateway"]
+    A["GitHub main<br/>Multi-Factory Projects"] --> B["GitHub Actions<br/>CI/CD + TEST Approval"]
+    B --> C["EAM Controller<br/>TEST Lab"]
+    C -->|"Send Project*"| D["Factory A<br/>EAM Agent - TEST"]
+    C -.->|"Planned"| E["Factory B<br/>Agent not commissioned"]
+    C -.->|"Planned"| F["Factory C<br/>Agent not commissioned"]
 ```
 
 **Key distinction:** GitHub Actions stages the project on the **EAM Controller**.
 The Controller's existing **EAM Send Project** task transfers it to the
 **EAM Agent** over Ignition Gateway Network. The Agent does **not** pull
-source code from GitHub. **\*EAM Send Project runs only for a commissioned TEST task; otherwise the workflow stops after Controller staging.**
+source code from GitHub. **\*EAM Send Project runs only for a commissioned TEST task.**
+**Dashed lines show a future architecture, not active deployment:** Factory B/C currently support validation only.
 
 ## Run the TEST deployment
 
