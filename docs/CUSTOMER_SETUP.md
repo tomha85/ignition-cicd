@@ -65,6 +65,12 @@ python scripts/customer_plan.py \
   --output evidence/customer-testlab-plan.json
 ```
 
+To create the real customer's read-only source packages from configuration,
+run **Actions → Customer CI - Validate Configured Sites (NO DEPLOY)** with
+`config/customer.json` or another reviewed `config/*.json`. It emits both
+source-hash evidence and downloadable native Ignition release ZIPs for the
+configured targets. The ZIPs are **not deployed**.
+
 In GitHub Actions choose **Customer Framework - Multi-Factory TEST Lab Demo (NO DEPLOY)**.
 It runs on `ubuntu-latest` with **no runner credentials and no OT network access**. It validates the three sample factories / four site targets, outputs source hashes and uploads a JSON evidence artifact. The result explicitly says `VALIDATED_NOT_DEPLOYED`, `NOT_TESTED` and `HOLD`.
 
