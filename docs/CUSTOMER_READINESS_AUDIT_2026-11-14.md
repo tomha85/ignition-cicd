@@ -49,6 +49,9 @@ Gateway, EAM task or Perspective session was accessed as part of this audit.
 ## Customer usage after providing genuine inputs
 
 ```bash
+python scripts/verify_customer_checkout.py \
+  --sha "$(git rev-parse HEAD)"
+
 python scripts/customer_readiness.py \
   --config config/customer.json \
   --sha "$(git rev-parse HEAD)" \
