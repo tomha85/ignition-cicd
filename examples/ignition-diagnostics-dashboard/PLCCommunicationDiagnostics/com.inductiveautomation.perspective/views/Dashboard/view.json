@@ -14,7 +14,19 @@
       "OverloadFactorPct": "N/A — NOT MAPPED",
       "ActualSamplingIntervalMs": "N/A — NOT MAPPED"
     },
-    "dataState": "NO VERIFIED DATA"
+    "dataState": "NO VERIFIED DATA",
+    "samplingGroupRows": [
+      {
+        "Sampling group": "NOT MAPPED",
+        "Ideal interval (ms)": "N/A",
+        "Actual interval (ms)": "N/A",
+        "Request count": "N/A",
+        "Queue duration (ms)": "N/A",
+        "Overload factor (%)": "N/A",
+        "Timestamp": "N/A",
+        "Quality": "NOT MAPPED"
+      }
+    ]
   },
   "props": {
     "defaultSize": {
@@ -1033,6 +1045,86 @@
                 }
               }
             ]
+          }
+        ]
+      },
+      {
+        "type": "ia.container.flex",
+        "meta": {
+          "name": "SamplingGroupDetailSection"
+        },
+        "props": {
+          "direction": "column",
+          "style": {
+            "gap": "10px",
+            "backgroundColor": "#ffffff",
+            "padding": "18px",
+            "border": "1px solid #dfe6ef",
+            "borderRadius": "12px"
+          }
+        },
+        "children": [
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "SamplingGroupTitle"
+            },
+            "props": {
+              "text": "SAMPLING GROUP DETAILS",
+              "style": {
+                "fontSize": "19px",
+                "color": "#15243b",
+                "fontWeight": "bold"
+              }
+            }
+          },
+          {
+            "type": "ia.display.label",
+            "meta": {
+              "name": "SamplingGroupDesc"
+            },
+            "props": {
+              "text": "Required to identify which Tag Group subscription rate is behind queue pressure. Not an aggregate PLC CPU metric.",
+              "style": {
+                "fontSize": "12px",
+                "color": "#63758c",
+                "fontWeight": "normal"
+              }
+            }
+          },
+          {
+            "type": "ia.display.table",
+            "meta": {
+              "name": "SamplingGroupDetailTable"
+            },
+            "props": {
+              "data": [
+                {
+                  "Sampling group": "NOT MAPPED",
+                  "Ideal interval (ms)": "N/A",
+                  "Actual interval (ms)": "N/A",
+                  "Request count": "N/A",
+                  "Queue duration (ms)": "N/A",
+                  "Overload factor (%)": "N/A",
+                  "Timestamp": "N/A",
+                  "Quality": "NOT MAPPED"
+                }
+              ]
+            },
+            "propConfig": {
+              "props.data": {
+                "binding": {
+                  "type": "property",
+                  "config": {
+                    "path": "view.params.samplingGroupRows"
+                  }
+                }
+              }
+            },
+            "position": {
+              "basis": "auto",
+              "grow": 1
+            }
           }
         ]
       },
