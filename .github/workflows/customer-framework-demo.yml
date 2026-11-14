@@ -1,0 +1,61 @@
+name: Customer Framework - Multi-Factory TEST Lab Demo (NO DEPLOY)
+
+on:
+  pull_request:
+    paths:
+      - 'config/**'
+      - 'scripts/customer_plan.py'
+      - 'scripts/sync_workflow_choices.py'
+      - 'tests/test_customer_plan.py'
+      - 'tests/test_workflow_choice_sync.py'
+      - '.github/workflows/customer-framework-demo.yml'
+      - 'factories/**'
+      - 'reusable_cicd/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  customer-plan:
+    name: Read-only customer-configured TEST plan and evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate native factory manifests and customer profile
+        run: |
+          python -m compileall -q scripts/customer_plan.py tests/test_customer_plan.py
+          python -m unittest discover -s tests -p 'test_customer_plan.py' -v
+          python -m unittest discover -s tests -p 'test_workflow_choice_sync.py' -v
+          python scripts/sync_workflow_choices.py --check
+          python framework/cli/check_repo.py
+      - name: Simulate three customer factories without network or secrets
+        run: |
+          python scripts/customer_plan.py \
+            --config config/example-customer-testlab.json \
+            --sha "$GITHUB_SHA" \
+            --output evidence/customer-testlab-plan.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          report = json.loads(Path("evidence/customer-testlab-plan.json").read_text())
+          assert report["status"] == "VALIDATED_NOT_DEPLOYED"
+          assert report["factory_count"] == 3
+          assert report["target_count"] == 4
+          assert report["external_network"] == "NOT_TESTED"
+          assert report["eam_task"] == "NOT_EXECUTED"
+          assert report["production"] == "HOLD"
+          print("CUSTOMER_TESTLAB_PLAN_PASS: 3 factories, 4 target selections, no deployments")
+          PY
+      - name: Upload read-only factory selection and release hash evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-testlab-read-only-plans
+          path: evidence/customer-testlab-plan.json
+          if-no-files-found: error

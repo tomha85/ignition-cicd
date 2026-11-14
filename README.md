@@ -65,6 +65,21 @@ PLC data collector. Dashed EAM links represent intended delivery paths,
 not verified runtime connections. Factory B/C Agent deployments are not
 commissioned; production deployment remains on HOLD.
 
+## Reusable customer configuration (read-only demo)
+
+To reuse the framework for your own factories, bring **real native Ignition
+project resources** and update factory/Gateway/project manifests plus private
+EAM Controller/Agent connection references. No Python code changes are needed
+to produce a customer-specific **source validation/deployment plan**.
+
+**[Customer setup + TEST Lab walkthrough](docs/CUSTOMER_SETUP.md)** ·
+Example profile: [`config/example-customer-testlab.json`](config/example-customer-testlab.json) ·
+Hosted workflow: [Customer Framework - Multi-Factory TEST Lab Demo](.github/workflows/customer-framework-demo.yml).
+
+**Boundary:** the hosted demo validates and produces evidence without contacting
+any Gateway. Real approved EAM transfer is still qualified only on this repo's
+Factory A TEST Lab; arbitrary customer live deployment is **not yet supported**.
+
 ## Run the TEST deployment
 
 1. Commit your native Ignition project and factory manifest changes, open a PR, and pass CI.
