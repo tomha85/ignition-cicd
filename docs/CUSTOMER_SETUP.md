@@ -25,6 +25,21 @@ factories, or EAM Controllers running on-prem or in a private cloud, use
 Select exact Site → Workshop → Gateway → Project; all dispatch plans remain
 read-only until a separately qualified customer deployment adapter exists.
 
+## Use your own customer profile in GitHub Actions
+
+Copy the [multi-site example](../config/example-company-multi-site.json) to
+[`config/customer.json`](../config/customer.json), replace the example
+site/workshop/controller/Agent values and add actual native project sources.
+Then open **Actions → Customer CI - Validate Configured Sites (NO DEPLOY)**
+and choose `config/customer.json` (or another approved `config/*.json`).
+On PRs, the default customer profile is checked automatically. This workflow
+computes factory/site/workshop/target counts **from the customer's profile**,
+not from the bundled three-factory demonstration.
+
+Configuration-only CI is separate from commissioning Ignition EAM network
+connections, configuring Agent tasks, trusting certificates, backing up
+Gateways and proving live Send Project success. Never paste secrets into JSON.
+
 ## Run the hosted TEST Lab planning demo (safe, no PLC access)
 
 ```bash
