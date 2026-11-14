@@ -26,8 +26,11 @@ def make_releases(root: Path, profile: dict, sha: str, outdir: Path, *,
                       gateway=gateway, project=project)
     if plan["status"] != "VALIDATED_NOT_DEPLOYED":
         raise FrameworkError("CUSTOMER_RELEASE_HOLD: source plan not validated")
-    if len(plan["targets"]) > 100:
-        raise FrameworkError("CUSTOMER_RELEASE_HOLD: select at most 100 targets per batch")
+    # Match the validated v2 topology contract (up to 500 explicit targets).
+    # Never truncate a customer configuration silently. Large CI builds must
+    # have sufficient runner time/storage or be split via exact target filters.
+    if len(plan["targets"]) > 500:
+        raise FrameworkError("CUSTOMER_RELEASE_HOLD: maximum 500 targets per release")
     destination = outdir.resolve()
     if destination.is_relative_to((root / "factories").resolve()):
         raise FrameworkError("CUSTOMER_RELEASE_HOLD: artifacts cannot be inside native sources")
