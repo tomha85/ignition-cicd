@@ -21,6 +21,8 @@ permissions:
 
 jobs:
   validate:
+    # LAB-only fixture suite; customer forks use customer-config-ci.yml.
+    if: github.repository == 'tomha85/ignition-cicd'
     name: Validate native Perspective project
     runs-on: ubuntu-latest
     steps:
