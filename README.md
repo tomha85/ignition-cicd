@@ -20,27 +20,64 @@ The Controller's existing **EAM Send Project** task transfers it to the
 source code from GitHub. **\*EAM Send Project runs only for a commissioned TEST task.**
 **Dashed lines show a future architecture, not active deployment:** Factory B/C currently support validation only.
 
-## Multi-location factory architecture (reference design)
+## Two customer deployment topologies (reference designs)
+
+**One standard CI/CD framework:** customer-specific Site, Workshop, Factory,
+Gateway, EAM Controller, Agent, project and network associations come from
+configuration. The examples below are **architecture diagrams**, not evidence
+that a customer's Gateway/Agent is connected or commissioned.
+
+### Scenario 1 — One factory with multiple workshops (LAN / VLAN)
 
 ```mermaid
 flowchart TB
-    GH["GitHub Main Repository"] --> CI["GitHub Actions CI/CD"]
-    CI --> EAM["Central EAM Controller Server"]
+    G["Customer GitHub Repository"] --> CI["GitHub Actions CI/CD"]
+    CI --> EAM["EAM Controller<br/>On-prem or Private Cloud"]
 
-    EAM <-->|"Secure VPN"| FA["Factory A - Atlanta<br/>Local Ignition Server + EAM Agent"]
-    EAM <-->|"Secure VPN"| FB["Factory B - Dallas<br/>Local Ignition Server + EAM Agent"]
-    EAM <-->|"Secure VPN"| FC["Factory C - Chicago<br/>Local Ignition Server + EAM Agent"]
+    subgraph SITE["Single Factory / Site"]
+        W1["Workshop A<br/>Ignition Gateway + EAM Agent"]
+        W2["Workshop B<br/>Ignition Gateway + EAM Agent"]
+        W3["Workshop C<br/>Ignition Gateway + EAM Agent"]
+    end
 
-    FA --> PA["Local PLC / OPC UA / Database"]
-    FB --> PB["Local PLC / OPC UA / Database"]
-    FC --> PC["Local PLC / OPC UA / Database"]
+    EAM <-->|"Routed LAN / VLAN + Gateway Network"| W1
+    EAM <-->|"Routed LAN / VLAN + Gateway Network"| W2
+    EAM <-->|"Routed LAN / VLAN + Gateway Network"| W3
 ```
 
-**Reference architecture only:** Atlanta, Dallas, and Chicago are example locations,
-not verified deployment sites. Each factory would keep its SCADA/PLC/database
-operations local, with a VPN-protected Gateway Network connection to central EAM.
-Factory B/C EAM Agents are **not commissioned** in this repository; current
-deployment remains isolated TEST-only and production remains on HOLD.
+Workshops may share the same plant LAN or use separate VLANs. VPN is **not
+required** when routing, firewall rules, TLS and Ignition Gateway Network
+trust are correctly configured. Network segmentation still needs verification.
+[Same-site configuration example](config/example-single-factory-workshops.json).
+
+### Scenario 2 — Multiple factories in different locations (VPN / private WAN)
+
+```mermaid
+flowchart TB
+    G["Customer GitHub Repository"] --> CI["GitHub Actions CI/CD"]
+    CI --> EAM["Central EAM Controller<br/>On-prem or Private Cloud"]
+
+    EAM <-->|"Site-to-site VPN / Private WAN / SD-WAN"| F1["Factory A - Location 1<br/>Ignition Gateway + EAM Agent"]
+    EAM <-->|"Site-to-site VPN / Private WAN / SD-WAN"| F2["Factory B - Location 2<br/>Ignition Gateway + EAM Agent"]
+    EAM <-->|"Site-to-site VPN / Private WAN / SD-WAN"| F3["Factory C - Location 3<br/>Ignition Gateway + EAM Agent"]
+
+    F1 --> P1["Local PLC / OPC UA / Database"]
+    F2 --> P2["Local PLC / OPC UA / Database"]
+    F3 --> P3["Local PLC / OPC UA / Database"]
+```
+
+Different locations need private **secured connectivity**, usually a VPN or
+private WAN/overlay; a VPN specifically is not mandatory when equivalent
+protected private connectivity exists. Each factory keeps PLC/OPC/database
+operations local. [Multi-location configuration example](config/example-multi-factory-locations.json).
+
+**Both scenarios use the same source validation, immutable packaging and
+configuration-driven TEST planning logic.** EAM Controller-to-Agent Gateway
+Network trust, endpoint reachability, task bindings, backup and deployment
+authorization must be verified for each real customer environment.
+The bundled **two-local-container Factory A TEST Lab** is a separate
+demonstration. Factory B/C Agents remain uncommissioned and production is
+still on **HOLD**.
 
 ## Multi-factory monitoring architecture (reference design)
 
