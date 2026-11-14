@@ -1,0 +1,51 @@
+{
+  "schema_version": 2,
+  "customer_id": "example-single-factory",
+  "mode": "plan_only",
+  "controllers": [
+    {
+      "controller_id": "campus-eam",
+      "hosting": "on_prem",
+      "controller_url": "https://eam-campus.example.invalid:8043",
+      "network": "site_lan",
+      "api_token_secret": "CAMPUS_EAM_API_TOKEN",
+      "ca_file_variable": "CAMPUS_EAM_CA_FILE"
+    }
+  ],
+  "sites": [
+    {
+      "site_id": "main-campus",
+      "display_name": "Example Factory - Main Site",
+      "workshops": [
+        "assembly",
+        "utilities"
+      ]
+    }
+  ],
+  "targets": [
+    {
+      "site_id": "main-campus",
+      "workshop_id": "assembly",
+      "factory_id": "lab-assembly",
+      "gateway_id": "assembly-main",
+      "project": "ConveyorHMI",
+      "controller_id": "campus-eam",
+      "agent_name": "Assembly-Agent",
+      "eam_task_name": "Send-ConveyorHMI",
+      "connection_scope": "same_site",
+      "agent_network": "site_lan"
+    },
+    {
+      "site_id": "main-campus",
+      "workshop_id": "utilities",
+      "factory_id": "lab-assembly",
+      "gateway_id": "utilities-main",
+      "project": "PackagingHMI",
+      "controller_id": "campus-eam",
+      "agent_name": "Utilities-Agent",
+      "eam_task_name": "Send-PackagingHMI",
+      "connection_scope": "same_site",
+      "agent_network": "site_lan"
+    }
+  ]
+}
