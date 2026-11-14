@@ -10,12 +10,14 @@ from __future__ import annotations
 import argparse
 import re
 import subprocess
+import sys
 from pathlib import Path
 
-from reusable_cicd.core import FrameworkError
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from reusable_cicd.core import FrameworkError  # noqa: E402
 
 COMMIT_SHA = re.compile(r"[0-9a-f]{40}\Z")
-ROOT = Path(__file__).resolve().parents[1]
 
 
 def verify_checkout(root: Path, sha: str, *, runner=subprocess.run) -> dict:
