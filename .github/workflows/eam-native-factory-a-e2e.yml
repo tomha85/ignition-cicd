@@ -10,6 +10,8 @@ permissions:
 
 jobs:
   validate:
+    # LAB-only workflow; never target customer-owned GitHub forks.
+    if: github.repository == 'tomha85/ignition-cicd'
     name: Qualify source, EAM safety and regression
     runs-on: ubuntu-latest
     timeout-minutes: 10
