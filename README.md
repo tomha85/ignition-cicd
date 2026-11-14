@@ -149,6 +149,19 @@ This workflow reads the selected profile dynamically (no fixed demo site count).
 It validates native project hashes and produces a read-only plan, **not** an
 EAM deployment or proof of network/PLC connectivity.
 
+## Before using customer configuration
+
+**[Customer input checklist](config/README.md)** ·
+**[Customer readiness audit & release blockers](docs/CUSTOMER_READINESS_AUDIT_2026-11-14.md)**
+
+Run `scripts/customer_readiness.py` before interpreting a customer's offline
+CI results. It detects unedited example values and emits explicit
+`CUSTOMER_INPUT_REQUIRED` or `OFFLINE_VALIDATED_REMOTE_DEPLOY_UNQUALIFIED`.
+Neither status authorizes EAM execution. Customer forks use the read-only
+`customer-config-ci.yml`; the Warehouse two-container LAB workflows are
+restricted to this repository. Generic EAM Controller staging, Send Project
+and browser FAT remain **unqualified for external customers**.
+
 ## Run the TEST deployment
 
 1. Commit your native Ignition project and factory manifest changes, open a PR, and pass CI.
