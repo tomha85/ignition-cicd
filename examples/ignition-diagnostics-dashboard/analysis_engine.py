@@ -56,6 +56,10 @@ def _metric(device, name, now, *, stale_seconds):
         return None, "STALE"
     if quality != "GOOD":
         return None, "QUALITY_" + quality
+    # OverloadFactor exists only in actual sampling group diagnostics,
+    # not in the device-wide Aggregate. Prevent unscoped aggregate claims.
+    if name == "overload_factor_pct" and not source.startswith("sampling_group:"):
+        return None, "MISSING_SAMPLE_GROUP_PROVENANCE"
     value = metric["value"]
     if value is None:
         return None, "NULL"
@@ -166,16 +170,25 @@ def evaluate(snapshot, *, stale_seconds=DEFAULT_STALE_SECONDS):
             # The response value is reported, not evaluated as 'slow' without
             # an independent and comparable driver baseline.
             pass
+        # Write outcomes and bad-quality aggregates are NOT guaranteed
+        # native driver metrics; missing optional instrumentation is normal.
+        required_builtin = (
+            "connected", "overload_factor_pct",
+            "response_mean_ms", "requests_per_second_1m"
+        )
         missing = [name for name, (_v, status) in vals.items()
                    if status != "VERIFIED"]
+        missing_required = [name for name in required_builtin
+                            if vals[name][1] != "VERIFIED"]
         inventory.append({
             "gateway_id": device["gateway_id"], "opc_server": device["opc_server"],
             "device_id": device["device_id"], "protocol": device["protocol"],
             "issue_count": len(local_codes),
             "issues": local_codes,
             "missing_or_invalid": missing,
+            "missing_required_builtin": missing_required,
             "diagnostic_state": ("INVESTIGATE" if local_codes else
-                                 "NO_ALERT_RULE_TRIGGERED" if not missing else
+                                 "NO_ALERT_RULE_TRIGGERED" if not missing_required else
                                  "INSUFFICIENT_DATA"),
             "live_metrics": {
                 name: (value if status == "VERIFIED" else None)
