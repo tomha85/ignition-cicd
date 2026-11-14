@@ -16,6 +16,15 @@ Use a **private fork** for any real plant network inventory.
 
 One `targets[]` record means **one project on one Gateway**, so a factory can have many Gateways and a project may explicitly target a particular Gateway.
 
+## Multiple locations, workshops or cloud-hosted EAM
+
+For a company with multiple workshops at one location, multiple remote
+factories, or EAM Controllers running on-prem or in a private cloud, use
+[the portable v2 topology guide](CUSTOMER_TOPOLOGY.md) and the
+[v2 example profile](../config/example-company-multi-site.json).
+Select exact Site → Workshop → Gateway → Project; all dispatch plans remain
+read-only until a separately qualified customer deployment adapter exists.
+
 ## Run the hosted TEST Lab planning demo (safe, no PLC access)
 
 ```bash
