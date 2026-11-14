@@ -67,6 +67,15 @@ Example names and `.example.invalid` URLs are **nonfunctional**.
 The real task must exist, must be reviewed, and must target exactly the intended
 EAM Agent before any execution.
 
+## Configuration-driven GitHub workflow
+
+Update [`config/customer.json`](../config/customer.json) with the customer's
+own IDs and verified connection references. Use
+[Customer CI - Validate Configured Sites](../.github/workflows/customer-config-ci.yml)
+to run the same source validation against the selected `config/*.json`
+without hardcoded numbers of factories, sites, workshops or Agents.
+Only actual customers' data controls the plan; no EAM task is executed.
+
 ## Validate a multi-site customer configuration
 
 ```bash
