@@ -42,6 +42,29 @@ operations local, with a VPN-protected Gateway Network connection to central EAM
 Factory B/C EAM Agents are **not commissioned** in this repository; current
 deployment remains isolated TEST-only and production remains on HOLD.
 
+## Multi-factory monitoring architecture (reference design)
+
+```mermaid
+flowchart TB
+    GH["GitHub - Monitoring Project"] --> EAM["Central EAM Controller"]
+
+    EAM -.-> FA["Factory A - Ignition"]
+    EAM -.-> FB["Factory B - Ignition"]
+    EAM -.-> FC["Factory C - Ignition"]
+
+    FA --> HA["Local Historian + Dashboard"]
+    FB --> HB["Local Historian + Dashboard"]
+    FC --> HC["Local Historian + Dashboard"]
+```
+
+**Reference design, not deployed monitoring infrastructure.** Each factory collects
+Ignition device diagnostics and verified PLC metrics locally, stores historical
+data in its own Historian, and displays a local Perspective dashboard.
+The EAM Controller manages approved project delivery; it is **not** the central
+PLC data collector. Dashed EAM links represent intended delivery paths,
+not verified runtime connections. Factory B/C Agent deployments are not
+commissioned; production deployment remains on HOLD.
+
 ## Run the TEST deployment
 
 1. Commit your native Ignition project and factory manifest changes, open a PR, and pass CI.
