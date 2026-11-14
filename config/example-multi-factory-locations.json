@@ -1,0 +1,76 @@
+{
+  "schema_version": 2,
+  "customer_id": "example-remote-factories",
+  "mode": "plan_only",
+  "controllers": [
+    {
+      "controller_id": "central-eam",
+      "hosting": "private_cloud",
+      "controller_url": "https://eam-cloud.example.invalid:8043",
+      "network": "private_overlay",
+      "api_token_secret": "CENTRAL_EAM_API_TOKEN",
+      "ca_file_variable": "CENTRAL_EAM_CA_FILE"
+    }
+  ],
+  "sites": [
+    {
+      "site_id": "factory-east",
+      "display_name": "Factory East Example",
+      "workshops": [
+        "warehouse"
+      ]
+    },
+    {
+      "site_id": "factory-central",
+      "display_name": "Factory Central Example",
+      "workshops": [
+        "assembly"
+      ]
+    },
+    {
+      "site_id": "factory-west",
+      "display_name": "Factory West Example",
+      "workshops": [
+        "packaging"
+      ]
+    }
+  ],
+  "targets": [
+    {
+      "site_id": "factory-east",
+      "workshop_id": "warehouse",
+      "factory_id": "lab-warehouse",
+      "gateway_id": "warehouse-main",
+      "project": "WarehouseHMI",
+      "controller_id": "central-eam",
+      "agent_name": "Warehouse-Agent",
+      "eam_task_name": "Send-WarehouseHMI",
+      "connection_scope": "cross_site",
+      "agent_network": "private_vpn"
+    },
+    {
+      "site_id": "factory-central",
+      "workshop_id": "assembly",
+      "factory_id": "lab-assembly",
+      "gateway_id": "assembly-main",
+      "project": "ConveyorHMI",
+      "controller_id": "central-eam",
+      "agent_name": "Assembly-Agent",
+      "eam_task_name": "Send-ConveyorHMI",
+      "connection_scope": "cross_site",
+      "agent_network": "private_vpn"
+    },
+    {
+      "site_id": "factory-west",
+      "workshop_id": "packaging",
+      "factory_id": "lab-packaging",
+      "gateway_id": "packaging-main",
+      "project": "PackagingLineHMI",
+      "controller_id": "central-eam",
+      "agent_name": "Packaging-Agent",
+      "eam_task_name": "Send-PackagingLineHMI",
+      "connection_scope": "cross_site",
+      "agent_network": "private_overlay"
+    }
+  ]
+}

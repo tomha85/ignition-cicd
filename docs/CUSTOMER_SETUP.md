@@ -16,6 +16,44 @@ Use a **private fork** for any real plant network inventory.
 
 One `targets[]` record means **one project on one Gateway**, so a factory can have many Gateways and a project may explicitly target a particular Gateway.
 
+## Supported configuration layouts
+
+The exact same source-validation/release-planning engine serves:
+
+- **One factory with several workshops/networks:** one Site, multiple Workshop IDs,
+  separate Gateway/Project mappings and an approved LAN/VLAN/firewall path
+  (or a private VPN where needed).
+- **Several factories at different locations:** separate Site/Factory IDs,
+  independent Gateways, and private VPN/WAN/overlay for Controller-to-Agent EAM.
+
+`controllers[].network` defines runner-to-Controller reachability;
+`targets[].agent_network` describes Controller-to-Agent connectivity.
+Do not reuse one Controller-wide network value for every remote Agent.
+
+## Multiple locations, workshops or cloud-hosted EAM
+
+For a company with multiple workshops at one location, multiple remote
+factories, or EAM Controllers running on-prem or in a private cloud, use
+[the portable v2 topology guide](CUSTOMER_TOPOLOGY.md) and the
+[v2 example profile](../config/example-company-multi-site.json).
+Select exact Site → Workshop → Gateway → Project; all dispatch plans remain
+read-only until a separately qualified customer deployment adapter exists.
+
+## Use your own customer profile in GitHub Actions
+
+Copy the [multi-site example](../config/example-company-multi-site.json) to
+[`config/customer.json`](../config/customer.json), replace the example
+site/workshop/controller/Agent values and add actual native project sources.
+Then open **Actions → Customer CI - Validate Configured Sites (NO DEPLOY)**
+and choose `config/customer.json` (or another approved `config/*.json`).
+On PRs, the default customer profile is checked automatically. This workflow
+computes factory/site/workshop/target counts **from the customer's profile**,
+not from the bundled three-factory demonstration.
+
+Configuration-only CI is separate from commissioning Ignition EAM network
+connections, configuring Agent tasks, trusting certificates, backing up
+Gateways and proving live Send Project success. Never paste secrets into JSON.
+
 ## Run the hosted TEST Lab planning demo (safe, no PLC access)
 
 ```bash
@@ -26,6 +64,12 @@ python scripts/customer_plan.py \
   --sha "$(git rev-parse HEAD)" \
   --output evidence/customer-testlab-plan.json
 ```
+
+To create the real customer's read-only source packages from configuration,
+run **Actions → Customer CI - Validate Configured Sites (NO DEPLOY)** with
+`config/customer.json` or another reviewed `config/*.json`. It emits both
+source-hash evidence and downloadable native Ignition release ZIPs for the
+configured targets. The ZIPs are **not deployed**.
 
 In GitHub Actions choose **Customer Framework - Multi-Factory TEST Lab Demo (NO DEPLOY)**.
 It runs on `ubuntu-latest` with **no runner credentials and no OT network access**. It validates the three sample factories / four site targets, outputs source hashes and uploads a JSON evidence artifact. The result explicitly says `VALIDATED_NOT_DEPLOYED`, `NOT_TESTED` and `HOLD`.

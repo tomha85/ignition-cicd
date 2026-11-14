@@ -1,0 +1,113 @@
+name: Customer CI - Validate Configured Sites (NO DEPLOY)
+
+on:
+  pull_request:
+    paths:
+      - 'config/**'
+      - 'factories/**'
+      - 'scripts/customer_plan.py'
+      - 'scripts/customer_build_release.py'
+      - 'scripts/build_release_v3.py'
+      - 'scripts/customer_topology.py'
+      - '.github/workflows/customer-config-ci.yml'
+  workflow_dispatch:
+    inputs:
+      profile_path:
+        description: 'Approved customer profile under config/'
+        type: string
+        required: true
+        default: 'config/customer.json'
+
+permissions:
+  contents: read
+
+jobs:
+  customer-config-validation:
+    name: Validate customer config, native Ignition source and exact targets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate selected profile path and build read-only plan
+        env:
+          CUSTOMER_PROFILE: ${{ inputs.profile_path || 'config/customer.json' }}
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          path = Path(os.environ['CUSTOMER_PROFILE'])
+          assert not path.is_absolute()
+          assert '..' not in path.parts
+          assert len(path.parts) == 2 and path.parts[0] == 'config'
+          assert path.suffix == '.json' and path.is_file() and not path.is_symlink()
+          print('CUSTOMER_PROFILE_PATH_VALID')
+          PY
+          python -m compileall -q reusable_cicd scripts/customer_plan.py scripts/customer_topology.py
+          python scripts/customer_plan.py \
+            --config "$CUSTOMER_PROFILE" \
+            --sha "$GITHUB_SHA" \
+            --output evidence/customer-config-plan.json
+      - name: Check actual input cardinality and hold boundaries
+        env:
+          CUSTOMER_PROFILE: ${{ inputs.profile_path || 'config/customer.json' }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          plan = json.loads(Path('evidence/customer-config-plan.json').read_text())
+          profile = json.loads(Path(os.environ['CUSTOMER_PROFILE']).read_text())
+          expected = len(profile['targets'])
+          assert plan['target_count'] == expected
+          assert plan['status'] == 'VALIDATED_NOT_DEPLOYED'
+          assert plan['production'] == 'HOLD'
+          assert plan['eam_task'] == 'NOT_EXECUTED'
+          assert all(not item['deployment_authorized'] for item in plan['targets'])
+          if profile['schema_version'] == 2:
+              assert plan['site_count'] == len({x['site_id'] for x in profile['targets']})
+              assert plan['workshop_count'] == len(
+                  {(x['site_id'], x['workshop_id']) for x in profile['targets']})
+              assert plan['controller_count'] == len(
+                  {x['controller_id'] for x in profile['targets']})
+          print('CONFIG_DRIVEN_CUSTOMER_VALIDATION_PASS: {} targets, no deployment'.format(expected))
+          PY
+      - name: Build native Ignition ZIP artifacts for configured targets (NO DEPLOY)
+        env:
+          CUSTOMER_PROFILE: ${{ inputs.profile_path || 'config/customer.json' }}
+        run: |
+          python scripts/customer_build_release.py \
+            --config "$CUSTOMER_PROFILE" \
+            --sha "$GITHUB_SHA" \
+            --output-dir dist/customer-releases \
+            --evidence evidence/customer-release-manifest.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          plan = json.loads(Path('evidence/customer-config-plan.json').read_text())
+          release = json.loads(Path('evidence/customer-release-manifest.json').read_text())
+          assert release['release_count'] == plan['target_count']
+          assert release['status'] == 'CUSTOMER_NATIVE_RELEASES_BUILT_NOT_DEPLOYED'
+          assert release['runtime_fat'] == 'NOT_TESTED'
+          assert release['eam_task'] == 'NOT_RUN'
+          assert release['production'] == 'HOLD'
+          print('CUSTOMER_RELEASE_BUILD_PASS: native ZIPs only, NO EAM DEPLOYMENT')
+          PY
+      - name: Upload immutable native release ZIPs (not deployed)
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-native-project-releases
+          path: dist/customer-releases/
+          if-no-files-found: error
+      - name: Upload validated source hashes and customer target plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-config-plan-evidence
+          path: |
+            evidence/customer-config-plan.json
+            evidence/customer-release-manifest.json
+          if-no-files-found: error

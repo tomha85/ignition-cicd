@@ -80,6 +80,38 @@ Hosted workflow: [Customer Framework - Multi-Factory TEST Lab Demo](.github/work
 any Gateway. Real approved EAM transfer is still qualified only on this repo's
 Factory A TEST Lab; arbitrary customer live deployment is **not yet supported**.
 
+**Two supported customer configuration scenarios (one CI engine):**
+
+| Customer topology | Configuration example | EAM Controller ↔ Agents |
+| --- | --- | --- |
+| One factory, multiple workshops | [Same-site workshop config](config/example-single-factory-workshops.json) | Routed `site_lan` or approved private tunnel |
+| Multiple factories, different locations | [Multi-location factory config](config/example-multi-factory-locations.json) | Private VPN, private WAN or overlay |
+
+The reusable customer workflow validates the selected configuration and builds
+native Ignition source ZIPs with SHA-256 evidence. **No EAM deployment occurs.**
+
+- **One factory, many workshops:** `same_site` links using trusted routed LAN/VLANs.
+- **Many factories, different locations:** `cross_site` links using private VPN/WAN/overlay.
+
+Both support an on-prem or private-cloud EAM Controller. Real network
+connectivity, EAM Agent trust, commissioning and runtime deployment remain
+separate from the read-only source plan.
+
+**Multi-site/workshop configuration:** A company can use on-prem and
+private-cloud EAM Controllers, multiple remote locations, and multiple
+workshops under one site in a single versioned profile.
+See [portable customer topology](docs/CUSTOMER_TOPOLOGY.md) and
+[the multi-site sample](config/example-company-multi-site.json).
+Only read-only planning and optional TLS reachability have been implemented
+for arbitrary customers; **generic EAM deployment is not yet verified**.
+
+**Customer-specific CI:** Update [`config/customer.json`](config/customer.json)
+with your company's sites, workshops, EAM Controllers and exact Agent targets;
+then run [Customer CI - Validate Configured Sites](.github/workflows/customer-config-ci.yml).
+This workflow reads the selected profile dynamically (no fixed demo site count).
+It validates native project hashes and produces a read-only plan, **not** an
+EAM deployment or proof of network/PLC connectivity.
+
 ## Run the TEST deployment
 
 1. Commit your native Ignition project and factory manifest changes, open a PR, and pass CI.
