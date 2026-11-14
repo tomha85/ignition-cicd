@@ -1,0 +1,230 @@
+{
+  "schema_version": 1,
+  "project": "PLCCommunicationDiagnostics",
+  "scope": "ignition_8_3_native_driver_diagnostics",
+  "documentation": "https://docs.inductiveautomation.com/docs/8.3/ignition-modules/opc-ua/opc-ua-drivers",
+  "note": "This is a vendor-documented semantic catalog, NOT discovered OPC paths. All OPC Item Paths and sampling group names must be browsed from the target Gateway before use. External OPC UA/Kepware do not inherit native driver metrics.",
+  "metrics": [
+    {
+      "name": "Connected",
+      "section": "root",
+      "unit": "bool",
+      "interpretation": "Device connection to OPC UA server",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "Hostname",
+      "section": "root",
+      "unit": "string",
+      "interpretation": "Configured device hostname, not latency",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "Name",
+      "section": "root",
+      "unit": "string",
+      "interpretation": "Configured device name",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "Port",
+      "section": "root",
+      "unit": "number",
+      "interpretation": "Configured communication port",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "State",
+      "section": "root",
+      "unit": "string",
+      "interpretation": "Driver state",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "Status",
+      "section": "root",
+      "unit": "string",
+      "interpretation": "Granular driver status",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "Internal Indicator (IIN)",
+      "section": "dnp3_optional",
+      "unit": "string",
+      "interpretation": "DNP3 / DNP3 Legacy only, Ignition 8.3.4+",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "MonitoredItemCount",
+      "section": "sampling_root",
+      "unit": "number",
+      "interpretation": "Includes diagnostic subscriptions",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "ActualSamplingInterval",
+      "section": "sampling",
+      "unit": "ms",
+      "aggregate_available": false,
+      "interpretation": "Actual execution sampling interval",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "ActualThroughput",
+      "section": "sampling",
+      "unit": "count",
+      "aggregate_available": true,
+      "interpretation": "Requests completed in previous sample interval",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "IdealSamplingInterval",
+      "section": "sampling",
+      "unit": "ms",
+      "aggregate_available": false,
+      "interpretation": "Configured/ideal sampling interval",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "IdealThroughput",
+      "section": "sampling",
+      "unit": "requests_per_second",
+      "aggregate_available": true,
+      "interpretation": "Ideal requests/sec based on RequestCount and sampling interval",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "OverloadFactor",
+      "section": "sampling",
+      "unit": "percent",
+      "aggregate_available": false,
+      "interpretation": "Sampling group queue pressure; >100% means cannot keep up",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "QueueDuration",
+      "section": "sampling",
+      "unit": "ms",
+      "aggregate_available": false,
+      "interpretation": "Average time requests wait in device sampling queue",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "RequestCount",
+      "section": "sampling",
+      "unit": "count",
+      "aggregate_available": true,
+      "interpretation": "Number of scheduled requests, not items nor requests/sec",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "NthPercentile",
+      "section": "execution",
+      "unit": "ms",
+      "aggregate_available": true,
+      "interpretation": "N-th percentile execution time; percentile-specific nodes must be discovered",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "Count",
+      "section": "execution",
+      "unit": "count",
+      "aggregate_available": true,
+      "interpretation": "Lifetime request execution count; resets on initialization",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "Max",
+      "section": "execution",
+      "unit": "ms",
+      "aggregate_available": true,
+      "interpretation": "Lifetime max since sampling group initialized",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "Mean",
+      "section": "execution",
+      "unit": "ms",
+      "aggregate_available": true,
+      "interpretation": "Lifetime mean; not 1-minute moving mean",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "Min",
+      "section": "execution",
+      "unit": "ms",
+      "aggregate_available": true,
+      "interpretation": "Lifetime min since sampling group initialized",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "MeanRate",
+      "section": "execution",
+      "unit": "requests_per_second",
+      "aggregate_available": true,
+      "interpretation": "Lifetime throughput average",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "OneMinuteRate",
+      "section": "execution",
+      "unit": "requests_per_second",
+      "aggregate_available": true,
+      "interpretation": "One-minute rolling request rate",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    },
+    {
+      "name": "FiveMinuteRate",
+      "section": "execution",
+      "unit": "requests_per_second",
+      "aggregate_available": true,
+      "interpretation": "Five-minute rolling request rate",
+      "source_status": "REQUIRES_GATEWAY_DISCOVERY",
+      "source_path": null
+    }
+  ],
+  "gateway_diagnostics": {
+    "source": "Gateway Diagnostics UI / registered Metrics Dashboard only; independent authorized adapter required to feed Perspective. Do not claim automatic tag availability.",
+    "categories": [
+      "performance.cpu",
+      "performance.heap",
+      "performance.disk",
+      "performance.committed-non-heap",
+      "execution.tag_group_duration",
+      "threads.cpu_usage",
+      "opc_connection_server_client",
+      "gateway_network.ping_latency",
+      "logs.device_errors",
+      "database.query_duration",
+      "historian.store_forward_queue",
+      "tag_quality_and_counts"
+    ]
+  },
+  "writes": {
+    "native_per_plc_read_write_success_counters": "NOT_GUARANTEED",
+    "instrumentation_required": true,
+    "description": "Built-in sampling/read execution statistics do not prove write success/failure. Add approved write-result auditing separately, without initiating writes."
+  }
+}
