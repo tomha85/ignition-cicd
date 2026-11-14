@@ -16,6 +16,20 @@ Use a **private fork** for any real plant network inventory.
 
 One `targets[]` record means **one project on one Gateway**, so a factory can have many Gateways and a project may explicitly target a particular Gateway.
 
+## Supported configuration layouts
+
+The exact same source-validation/release-planning engine serves:
+
+- **One factory with several workshops/networks:** one Site, multiple Workshop IDs,
+  separate Gateway/Project mappings and an approved LAN/VLAN/firewall path
+  (or a private VPN where needed).
+- **Several factories at different locations:** separate Site/Factory IDs,
+  independent Gateways, and private VPN/WAN/overlay for Controller-to-Agent EAM.
+
+`controllers[].network` defines runner-to-Controller reachability;
+`targets[].agent_network` describes Controller-to-Agent connectivity.
+Do not reuse one Controller-wide network value for every remote Agent.
+
 ## Multiple locations, workshops or cloud-hosted EAM
 
 For a company with multiple workshops at one location, multiple remote
