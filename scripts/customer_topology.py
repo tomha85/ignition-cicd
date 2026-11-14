@@ -27,7 +27,10 @@ SITE_KEYS = {"site_id", "display_name", "workshops"}
 TARGET_KEYS = {
     "site_id", "workshop_id", "factory_id", "gateway_id", "project",
     "controller_id", "agent_name", "eam_task_name",
+    "connection_scope", "agent_network",
 }
+CONNECTION_SCOPE = {"same_site", "cross_site"}
+CROSS_SITE_NETWORKS = {"private_vpn", "private_wan", "private_overlay"}
 
 
 def require(condition, message):
@@ -115,6 +118,8 @@ def validate_topology(profile):
     site_targets = set()
     gateway_targets = set()
     task_targets = set()
+    factory_site = {}
+    agent_gateway = {}
     for item in targets:
         require(isinstance(item, dict) and set(item) == TARGET_KEYS,
                 "unexpected target fields")
@@ -123,6 +128,13 @@ def validate_topology(profile):
                 "target references unregistered workshop")
         require(item["controller_id"] in controller_by_id,
                 "target references unknown EAM Controller")
+        require(item["connection_scope"] in CONNECTION_SCOPE,
+                "connection_scope must be same_site or cross_site")
+        require(item["agent_network"] in TRANSPORT,
+                "invalid EAM Controller to Agent private network transport")
+        if item["connection_scope"] == "cross_site":
+            require(item["agent_network"] in CROSS_SITE_NETWORKS,
+                    "cross_site EAM requires verified VPN, private WAN or overlay")
         for key in ("factory_id", "gateway_id"):
             require(valid_id(item[key]), "invalid " + key)
         require(isinstance(item["project"], str) and
@@ -131,6 +143,17 @@ def validate_topology(profile):
             require(isinstance(item[key], str) and
                     bool(AGENT.fullmatch(item[key])),
                     "invalid/unsafe " + key)
+        # One factory must map to one physical Site; workshops may share it.
+        former_site = factory_site.setdefault(item["factory_id"], item["site_id"])
+        require(former_site == item["site_id"],
+                "a factory cannot be silently assigned to multiple Sites")
+        # The same Agent can accept multiple projects, but must not silently
+        # point to two different Gateways or physical Sites.
+        agent_key = (item["controller_id"], item["agent_name"])
+        physical_gateway = (item["site_id"], item["factory_id"], item["gateway_id"])
+        previous_gateway = agent_gateway.setdefault(agent_key, physical_gateway)
+        require(previous_gateway == physical_gateway,
+                "same Controller/Agent cannot map to different physical Gateways")
         physical_target = (item["factory_id"], item["gateway_id"], item["project"])
         logical_target = (item["site_id"], item["workshop_id"],
                           item["controller_id"], item["agent_name"], item["project"])
@@ -161,7 +184,7 @@ def flatten(profile):
             "eam": {
                 "controller_url": c["controller_url"],
                 "agent_name": t["agent_name"],
-                "network": c["network"],
+                "network": t["agent_network"],
                 "api_token_secret": c["api_token_secret"],
                 "ca_file_variable": c["ca_file_variable"],
             },
@@ -184,6 +207,9 @@ def annotate(plan, profile):
             "workshop_id": t["workshop_id"],
             "controller_id": t["controller_id"],
             "controller_hosting": c["hosting"],
+            "controller_access_network": c["network"],
+            "agent_network": t["agent_network"],
+            "connection_scope": t["connection_scope"],
             "eam_task_name": t["eam_task_name"],
             "network_access": "NOT_VERIFIED",
             "eam_task_binding": "NOT_VERIFIED",
