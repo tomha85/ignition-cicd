@@ -77,12 +77,20 @@ def replace_region(workflow: str, kind: str, options: list[str]) -> str:
 def render(workflow: str, factory_choices: list[str], project_choices: list[str]) -> str:
     results = workflow
     for kind, choices in (("factory", factory_choices), ("project", project_choices)):
+        if not choices:
+            raise FrameworkError(f"no {kind} choices available")
         preferred = PREFERRED_DEFAULTS[kind]
-        if preferred not in choices:
-            raise FrameworkError(
-                f"{kind} default {preferred} is missing; review/select a new default"
-            )
-        results = replace_region(results, kind, prioritized(choices, preferred))
+        # Customer forks may remove all sample factories and projects. Keep the
+        # lab default if it exists, otherwise choose the first validated choice.
+        default = preferred if preferred in choices else sorted(choices)[0]
+        results = replace_region(results, kind, prioritized(choices, default))
+        pattern = rf"(^      {re.escape(kind)}:\n[\s\S]*?^        default: )[A-Za-z0-9_.-]+(?=\n)"
+        results, replacements = re.subn(
+            pattern, lambda match: match.group(1) + default,
+            results, count=1, flags=re.MULTILINE,
+        )
+        if replacements != 1:
+            raise FrameworkError(f"missing/ambiguous {kind} default in workflow")
     return results
 
 
