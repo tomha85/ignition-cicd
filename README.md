@@ -80,6 +80,14 @@ Hosted workflow: [Customer Framework - Multi-Factory TEST Lab Demo](.github/work
 any Gateway. Real approved EAM transfer is still qualified only on this repo's
 Factory A TEST Lab; arbitrary customer live deployment is **not yet supported**.
 
+**Multi-site/workshop configuration:** A company can use on-prem and
+private-cloud EAM Controllers, multiple remote locations, and multiple
+workshops under one site in a single versioned profile.
+See [portable customer topology](docs/CUSTOMER_TOPOLOGY.md) and
+[the multi-site sample](config/example-company-multi-site.json).
+Only read-only planning and optional TLS reachability have been implemented
+for arbitrary customers; **generic EAM deployment is not yet verified**.
+
 ## Run the TEST deployment
 
 1. Commit your native Ignition project and factory manifest changes, open a PR, and pass CI.
