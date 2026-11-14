@@ -102,8 +102,30 @@ class IgnitionDashboardSourceTests(unittest.TestCase):
                 bindings.append(binding)
                 self.assertEqual(binding["type"], "property")
                 self.assertNotIn("bidirectional", str(config).lower())
-        self.assertEqual(len(bindings), 8)
+        self.assertEqual(len(bindings), 9)
 
+    def test_all_23_metric_table_rows_accept_live_parameter_input(self):
+        view = load(VIEWS / "MetricCatalog" / "view.json")
+        self.assertEqual(len(view["params"]["metricRows"]), 23)
+        catalog = [n for n in nodes(view["root"])
+                   if n.get("meta", {}).get("name") == "CatalogTable"][0]
+        self.assertEqual(
+            catalog["propConfig"]["props.data"]["binding"]["config"]["path"],
+            "view.params.metricRows",
+        )
+
+    def test_sampling_group_comparison_has_quality_and_timestamp(self):
+        view = load(VIEWS / "Dashboard" / "view.json")
+        self.assertEqual(len(view["params"]["samplingGroupRows"]), 1)
+        example = view["params"]["samplingGroupRows"][0]
+        self.assertEqual(example["Quality"], "NOT MAPPED")
+        self.assertIn("Timestamp", example)
+        table = [n for n in nodes(view["root"])
+                 if n.get("meta", {}).get("name") == "SamplingGroupDetailTable"][0]
+        self.assertEqual(
+            table["propConfig"]["props.data"]["binding"]["config"]["path"],
+            "view.params.samplingGroupRows",
+        )
     def test_historian_chart_has_no_fabricated_pens_or_data(self):
         view = load(VIEWS / "Dashboard" / "view.json")
         charts = [item for item in nodes(view["root"])
