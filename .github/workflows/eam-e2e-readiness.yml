@@ -12,6 +12,8 @@ permissions:
 
 jobs:
   hosted-validation:
+    # LAB-only workflow; never target customer-owned GitHub forks.
+    if: github.repository == 'tomha85/ignition-cicd'
     name: Source, target and EAM commissioning safety tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
