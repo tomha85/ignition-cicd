@@ -17,6 +17,7 @@ Gateway integration has been completed. All example metric values remain
 | `/` | `Fleet` | Multi-PLC overview (customer-provided rows), ordered by Gateway / OPC server / device |
 | `/device` | `Dashboard` | Device KPI cards, Historian Power Chart and evidence/investigation panel |
 | `/metrics` | `MetricCatalog` | 23 documented fields from the native Ignition 8.3 driver diagnostics catalog |
+| `/gateway` | `Gateway` | Gateway CPU, heap, threads, Tag Group execution, DB/OPC and Historian source categories (requires separate trusted adapter) |
 
 Project source: `PLCCommunicationDiagnostics/` (native Perspective
 `project.json`, `resource.json`, `view.json` and page config).
@@ -62,16 +63,18 @@ diagnostics and document missing coverage separately.
    reusable Embedded View. Supply the corresponding data-quality/status
    evidence independently. An OPC/BAD/STALE quality must **never** be shown
    as a healthy numeric value.
-4. For `Fleet`, provide `view.params.deviceRows` from
+4. For `MetricCatalog`, populate `view.params.metricRows` with **all 23** discovered and quality-qualified diagnostic values. For `Dashboard`, also populate `view.params.samplingGroupRows` by the **actual** sampling group (e.g. a browsed 1000ms group); never collapse group-only OverloadFactor into an Aggregate field.
+5. For `Gateway`, populate `view.params.gatewayRows` only from a commissioned Gateway Diagnostics adapter; this is a different information source from device OPC diagnostics.
+6. For `Fleet`, provide `view.params.deviceRows` from
    commissioned Tag or Named Query data. A device row should include Gateway,
    OPC server, Device ID, status, metric Quality, last timestamp, and the
    last observed numeric values. Its default is intentionally empty.
-5. Enable Historian **only for approved diagnostic Tags**. In the
+7. Enable Historian **only for approved diagnostic Tags**. In the
    `Dashboard` Power Chart, choose actual historian-backed pens,
    e.g., OneMinuteRate, Mean, QueueDuration or OverloadFactor for a
    **specific** device/group. Do not assume the Power Chart auto-creates
    history. A licensed Historian provider is required.
-6. Only after TEST Gateway validation, compare short realtime windows with
+8. Only after TEST Gateway validation, compare short realtime windows with
    1h/24h/7d history; use proper time zones, Quality filters, event timelines
    and connection-reset markers. Record a baseline before tuning any Tag Group.
 
