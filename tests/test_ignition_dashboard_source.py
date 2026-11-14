@@ -72,10 +72,11 @@ class IgnitionDashboardSourceTests(unittest.TestCase):
 
     def test_pages_route_to_real_native_view_names(self):
         pages = load(PAGES)["pages"]
-        self.assertEqual(set(pages), {"/", "/device", "/metrics"})
+        self.assertEqual(set(pages), {"/", "/device", "/metrics", "/gateway"})
         self.assertEqual(pages["/"]["viewPath"], "Fleet")
         self.assertEqual(pages["/device"]["viewPath"], "Dashboard")
         self.assertEqual(pages["/metrics"]["viewPath"], "MetricCatalog")
+        self.assertEqual(pages["/gateway"]["viewPath"], "Gateway")
         for page in pages.values():
             self.assertTrue((VIEWS / page["viewPath"] / "view.json").is_file())
 
@@ -143,6 +144,15 @@ class IgnitionDashboardSourceTests(unittest.TestCase):
             self.assertEqual(item["Quality"], "NOT MAPPED")
             self.assertTrue(item["Realtime Value"].startswith("N/A"))
 
+    def test_gateway_layer_is_separate_and_not_claimed_as_opc_tags(self):
+        view = load(VIEWS / "Gateway" / "view.json")
+        self.assertEqual(len(view["params"]["gatewayRows"]), 12)
+        table = [x for x in nodes(view["root"])
+                 if x.get("meta", {}).get("name") == "GatewayMetricsTable"][0]
+        self.assertEqual(table["propConfig"]["props.data"]["binding"]["type"],
+                         "property")
+        self.assertTrue(all(row["Quality"] == "NOT MAPPED"
+                            for row in view["params"]["gatewayRows"]))
     def test_no_scripts_can_write_to_plc_or_change_gateway(self):
         for f in PROJECT.rglob("*.json"):
             serialized = f.read_text(encoding="utf-8")
