@@ -20,6 +20,8 @@ permissions:
 
 jobs:
   source:
+    # LAB-only fixture suite; customer forks use customer-config-ci.yml.
+    if: github.repository == 'tomha85/ignition-cicd'
     name: Structure, native source, security and integration (Python 3.12/3.13)
     runs-on: ubuntu-latest
     timeout-minutes: 12
