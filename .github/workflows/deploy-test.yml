@@ -19,6 +19,8 @@ permissions:
 
 jobs:
   reusable-controller-stage:
+    # LAB-only workflow; never target customer-owned GitHub forks.
+    if: github.repository == 'tomha85/ignition-cicd'
     name: Execute reviewed TEST staging from shared deployment workflow
     uses: ./.github/workflows/reusable-deploy.yml
     with:
