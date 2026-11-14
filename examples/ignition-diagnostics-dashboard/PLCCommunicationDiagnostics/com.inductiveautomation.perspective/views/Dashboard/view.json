@@ -1,10 +1,20 @@
 {
   "custom": {},
   "params": {
-    "siteName": "CUSTOMER SITE — NOT CONFIGURED",
-    "gatewayName": "IGNITION GATEWAY — NOT CONFIGURED",
+    "siteName": "SITE — NOT CONFIGURED",
+    "gatewayName": "GATEWAY — NOT CONFIGURED",
     "deviceName": "DEVICE — NOT CONFIGURED",
-    "tagRoot": "[default]Diagnostics/UNMAPPED"
+    "metrics": {
+      "Connected": "N/A — NOT MAPPED",
+      "MonitoredItems": "N/A — NOT MAPPED",
+      "RequestsPerSecond1m": "N/A — NOT MAPPED",
+      "ResponseMeanMs": "N/A — NOT MAPPED",
+      "ResponseMaxMs": "N/A — NOT MAPPED",
+      "QueueDurationMs": "N/A — NOT MAPPED",
+      "OverloadFactorPct": "N/A — NOT MAPPED",
+      "ActualSamplingIntervalMs": "N/A — NOT MAPPED"
+    },
+    "dataState": "NO VERIFIED DATA"
   },
   "props": {
     "defaultSize": {
@@ -106,7 +116,7 @@
           "basis": "auto"
         },
         "props": {
-          "text": "For all factories, locations and workshops. Select a verified diagnostic tagRoot per device; never infer physical PLC metrics.",
+          "text": "Reusable device detail view. No PLC CPU or scan-time values are inferred from Ignition driver statistics.",
           "style": {
             "fontSize": "12px",
             "color": "#63758c",
@@ -141,7 +151,7 @@
               "basis": "auto"
             },
             "props": {
-              "text": "SOURCE STATUS: UNMAPPED / NOT VERIFIED",
+              "text": "SOURCE STATUS: NO VERIFIED MAPPINGS",
               "style": {
                 "fontSize": "14px",
                 "color": "#8f5525",
@@ -242,20 +252,10 @@
                 "propConfig": {
                   "props.text": {
                     "binding": {
-                      "type": "tag",
+                      "type": "property",
                       "config": {
-                        "mode": "indirect",
-                        "tagPath": "{1}/Connected",
-                        "references": {
-                          "1": "{view.params.tagRoot}"
-                        }
-                      },
-                      "transforms": [
-                        {
-                          "type": "script",
-                          "code": "if value is None:\n    return 'N/A'\ntry:\n    return str(value)\nexcept Exception:\n    return 'N/A'"
-                        }
-                      ]
+                        "path": "view.params.metrics.Connected"
+                      }
                     }
                   }
                 }
@@ -355,20 +355,10 @@
                 "propConfig": {
                   "props.text": {
                     "binding": {
-                      "type": "tag",
+                      "type": "property",
                       "config": {
-                        "mode": "indirect",
-                        "tagPath": "{1}/MonitoredItems",
-                        "references": {
-                          "1": "{view.params.tagRoot}"
-                        }
-                      },
-                      "transforms": [
-                        {
-                          "type": "script",
-                          "code": "if value is None:\n    return 'N/A'\ntry:\n    return str(value)\nexcept Exception:\n    return 'N/A'"
-                        }
-                      ]
+                        "path": "view.params.metrics.MonitoredItems"
+                      }
                     }
                   }
                 }
@@ -468,20 +458,10 @@
                 "propConfig": {
                   "props.text": {
                     "binding": {
-                      "type": "tag",
+                      "type": "property",
                       "config": {
-                        "mode": "indirect",
-                        "tagPath": "{1}/RequestsPerSecond1m",
-                        "references": {
-                          "1": "{view.params.tagRoot}"
-                        }
-                      },
-                      "transforms": [
-                        {
-                          "type": "script",
-                          "code": "if value is None:\n    return 'N/A'\ntry:\n    return str(value)\nexcept Exception:\n    return 'N/A'"
-                        }
-                      ]
+                        "path": "view.params.metrics.RequestsPerSecond1m"
+                      }
                     }
                   }
                 }
@@ -581,20 +561,10 @@
                 "propConfig": {
                   "props.text": {
                     "binding": {
-                      "type": "tag",
+                      "type": "property",
                       "config": {
-                        "mode": "indirect",
-                        "tagPath": "{1}/ResponseMeanMs",
-                        "references": {
-                          "1": "{view.params.tagRoot}"
-                        }
-                      },
-                      "transforms": [
-                        {
-                          "type": "script",
-                          "code": "if value is None:\n    return 'N/A'\ntry:\n    return str(value)\nexcept Exception:\n    return 'N/A'"
-                        }
-                      ]
+                        "path": "view.params.metrics.ResponseMeanMs"
+                      }
                     }
                   }
                 }
@@ -711,20 +681,10 @@
                 "propConfig": {
                   "props.text": {
                     "binding": {
-                      "type": "tag",
+                      "type": "property",
                       "config": {
-                        "mode": "indirect",
-                        "tagPath": "{1}/ResponseMaxMs",
-                        "references": {
-                          "1": "{view.params.tagRoot}"
-                        }
-                      },
-                      "transforms": [
-                        {
-                          "type": "script",
-                          "code": "if value is None:\n    return 'N/A'\ntry:\n    return str(value)\nexcept Exception:\n    return 'N/A'"
-                        }
-                      ]
+                        "path": "view.params.metrics.ResponseMaxMs"
+                      }
                     }
                   }
                 }
@@ -824,20 +784,10 @@
                 "propConfig": {
                   "props.text": {
                     "binding": {
-                      "type": "tag",
+                      "type": "property",
                       "config": {
-                        "mode": "indirect",
-                        "tagPath": "{1}/QueueDurationMs",
-                        "references": {
-                          "1": "{view.params.tagRoot}"
-                        }
-                      },
-                      "transforms": [
-                        {
-                          "type": "script",
-                          "code": "if value is None:\n    return 'N/A'\ntry:\n    return str(value)\nexcept Exception:\n    return 'N/A'"
-                        }
-                      ]
+                        "path": "view.params.metrics.QueueDurationMs"
+                      }
                     }
                   }
                 }
@@ -937,20 +887,10 @@
                 "propConfig": {
                   "props.text": {
                     "binding": {
-                      "type": "tag",
+                      "type": "property",
                       "config": {
-                        "mode": "indirect",
-                        "tagPath": "{1}/OverloadFactorPct",
-                        "references": {
-                          "1": "{view.params.tagRoot}"
-                        }
-                      },
-                      "transforms": [
-                        {
-                          "type": "script",
-                          "code": "if value is None:\n    return 'N/A'\ntry:\n    return str(value)\nexcept Exception:\n    return 'N/A'"
-                        }
-                      ]
+                        "path": "view.params.metrics.OverloadFactorPct"
+                      }
                     }
                   }
                 }
@@ -1050,20 +990,10 @@
                 "propConfig": {
                   "props.text": {
                     "binding": {
-                      "type": "tag",
+                      "type": "property",
                       "config": {
-                        "mode": "indirect",
-                        "tagPath": "{1}/ActualSamplingIntervalMs",
-                        "references": {
-                          "1": "{view.params.tagRoot}"
-                        }
-                      },
-                      "transforms": [
-                        {
-                          "type": "script",
-                          "code": "if value is None:\n    return 'N/A'\ntry:\n    return str(value)\nexcept Exception:\n    return 'N/A'"
-                        }
-                      ]
+                        "path": "view.params.metrics.ActualSamplingIntervalMs"
+                      }
                     }
                   }
                 }
@@ -1268,7 +1198,7 @@
           "basis": "auto"
         },
         "props": {
-          "text": "ENGINEERING CANDIDATE · NOT GATEWAY/BROWSER FAT VERIFIED · NO CONTROL OR WRITE FUNCTIONS",
+          "text": "SOURCE CANDIDATE · NO GATEWAY/BROWSER FAT · READ ONLY · NO AUTOMATIC TAGS OR WRITES",
           "style": {
             "fontSize": "11px",
             "color": "#63758c",
