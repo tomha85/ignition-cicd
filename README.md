@@ -6,28 +6,16 @@ This repository demonstrates deployment to an **isolated TEST lab**, not to prod
 ## CI/CD deployment flow
 
 ```mermaid
-flowchart TD
-    A["Developers update Ignition project source"] --> B["Pull request + CI validation"]
-    B --> C["Merge to main"]
-    C --> D["Manually run GitHub Actions<br/>Select Factory + Project"]
-    D --> E["Validate project resources<br/>and approved TEST target mapping"]
-    E -->|Not commissioned| H["VALIDATE ONLY / HOLD"]
-    E -->|Eligible TEST target| F["ignition-test<br/>Required reviewer approval"]
-    F --> G["Self-hosted ignition-lab runner"]
-    G --> I["Back up TEST project trees<br/>Stage + scan EAM Controller"]
-    I --> J{"Existing EAM Send Project task<br/>commissioned for this project?"}
-    J -->|No| K["CONTROLLER STAGED ONLY"]
-    J -->|Yes + safety checks pass| L["Invoke existing EAM task once"]
-    L --> M["Ignition Gateway Network / EAM"]
-    M --> N["EAM Agent on TEST Gateway"]
-    N --> O["Verify Agent project resources<br/>and upload evidence"]
-    O --> P["Separate browser/FAT checks<br/>+ engineer review"]
+flowchart LR
+    A["GitHub main<br/>Ignition Projects"] --> B["GitHub Actions<br/>Validate + TEST Approval"]
+    B --> C["EAM Controller<br/>Stage Project"]
+    C -->|"Send Project*"| D["EAM Agent<br/>TEST Gateway"]
 ```
 
 **Key distinction:** GitHub Actions stages the project on the **EAM Controller**.
 The Controller's existing **EAM Send Project** task transfers it to the
 **EAM Agent** over Ignition Gateway Network. The Agent does **not** pull
-source code from GitHub.
+source code from GitHub. **\*EAM Send Project runs only for a commissioned TEST task; otherwise the workflow stops after Controller staging.**
 
 ## Run the TEST deployment
 
