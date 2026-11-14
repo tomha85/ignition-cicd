@@ -1,6 +1,29 @@
 # Portable customer topology — sites, workshops, EAM on-prem or private cloud
 
 The CI/CD engine is **customer-agnostic for source validation and TEST planning**.
+
+## Two network topologies — same CI/CD engine
+
+| Topology | Physical layout | Gateway Network between EAM Controller and Agent |
+| --- | --- | --- |
+| **Single Factory / Multi-Workshop** | Multiple workshops share one location, optionally segmented by VLAN/firewall | Use `connection_scope=same_site`, `agent_network=site_lan` if trusted routed LAN; or a reviewed private VPN/overlay when required |
+| **Multi-Factory / Multi-Location** | Factories at physically different sites | Use `connection_scope=cross_site` with `agent_network=private_vpn`, `private_wan` or `private_overlay`; public Internet access is **not** a supported mode |
+
+The **deployment planner and native-project packaging logic do not change**
+between these cases. Each target explicitly identifies its factory, site,
+workshop, Gateway, project, EAM Controller, Agent and existing task.
+`controllers[].network` is the **runner → Controller** transport; 
+`targets[].agent_network` is the **Controller ↔ Agent** transport.
+These must be configured and verified independently. Different locations
+often require a site-to-site VPN, but a properly secured private WAN, SD-WAN
+or overlay can serve the same purpose; physical distance alone does not
+technically force a VPN.
+
+For a single campus with multiple VLANs, being at the same location does
+**not** guarantee connectivity: firewall rules, segmentation, routing and
+Gateway Network trust must still be checked. A VPN field in JSON never
+creates a real VPN, and this framework does not modify PLC communication.
+
 A company can have multiple workshops at the same location, multiple factories
 in different locations, and one or more EAM Controllers hosted on-prem or in a
 private cloud. The **same versioned schema** is used in each case.
@@ -22,7 +45,8 @@ private cloud. The **same versioned schema** is used in each case.
      HTTPS management base URLs, private network type, secret/CA variable names
    - `sites[]` — site IDs, display labels, workshop IDs
    - `targets[]` — exact Site + Workshop + Factory + Gateway + Project +
-     EAM Controller ID + Agent name + already-configured EAM Send Project task name
+     EAM Controller ID + Agent name + already-configured EAM Send Project task name,
+     plus `connection_scope` and `agent_network` for each Agent link
 4. Maintain Gateway/DB/PLC/OPC UA **connection inventory separately** per
    factory as documented in [Factory connections](FACTORY_CONNECTIONS.md).
    Those files do not establish live OPC UA connections.
@@ -59,7 +83,9 @@ do not create overlapping or circular Gateway Networks.
   "project": "PackagingHMI",
   "controller_id": "hq-controller",
   "agent_name": "Utilities-Agent-EXAMPLE",
-  "eam_task_name": "SEND-PackagingHMI-EXAMPLE"
+  "eam_task_name": "SEND-PackagingHMI-EXAMPLE",
+  "connection_scope": "same_site",
+  "agent_network": "site_lan"
 }
 ```
 
