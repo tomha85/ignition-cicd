@@ -1,0 +1,89 @@
+{
+  "schema_version": 2,
+  "customer_id": "example-customer-edit-this",
+  "mode": "plan_only",
+  "controllers": [
+    {
+      "controller_id": "hq-controller",
+      "hosting": "on_prem",
+      "controller_url": "https://hq-eam.example.invalid:8043",
+      "network": "site_lan",
+      "api_token_secret": "HQ_EAM_API_TOKEN",
+      "ca_file_variable": "HQ_EAM_CA_FILE"
+    },
+    {
+      "controller_id": "regional-cloud-controller",
+      "hosting": "private_cloud",
+      "controller_url": "https://eam.private.example.invalid:8043",
+      "network": "private_overlay",
+      "api_token_secret": "CLOUD_EAM_API_TOKEN",
+      "ca_file_variable": "CLOUD_EAM_CA_FILE"
+    }
+  ],
+  "sites": [
+    {
+      "site_id": "headquarters-campus",
+      "display_name": "Headquarters / Main Campus (example)",
+      "workshops": [
+        "assembly-shop",
+        "utilities-shop"
+      ]
+    },
+    {
+      "site_id": "remote-factory-east",
+      "display_name": "Remote Factory East (example)",
+      "workshops": [
+        "packaging-shop"
+      ]
+    },
+    {
+      "site_id": "remote-factory-west",
+      "display_name": "Remote Factory West (example)",
+      "workshops": [
+        "warehouse-shop"
+      ]
+    }
+  ],
+  "targets": [
+    {
+      "site_id": "headquarters-campus",
+      "workshop_id": "assembly-shop",
+      "factory_id": "lab-assembly",
+      "gateway_id": "assembly-main",
+      "project": "ConveyorHMI",
+      "controller_id": "hq-controller",
+      "agent_name": "Assembly-Agent-EXAMPLE",
+      "eam_task_name": "SEND-ConveyorHMI-EXAMPLE"
+    },
+    {
+      "site_id": "headquarters-campus",
+      "workshop_id": "utilities-shop",
+      "factory_id": "lab-assembly",
+      "gateway_id": "utilities-main",
+      "project": "PackagingHMI",
+      "controller_id": "hq-controller",
+      "agent_name": "Utilities-Agent-EXAMPLE",
+      "eam_task_name": "SEND-PackagingHMI-EXAMPLE"
+    },
+    {
+      "site_id": "remote-factory-east",
+      "workshop_id": "packaging-shop",
+      "factory_id": "lab-packaging",
+      "gateway_id": "packaging-main",
+      "project": "PackagingLineHMI",
+      "controller_id": "regional-cloud-controller",
+      "agent_name": "Packaging-Agent-EXAMPLE",
+      "eam_task_name": "SEND-PackagingLineHMI-EXAMPLE"
+    },
+    {
+      "site_id": "remote-factory-west",
+      "workshop_id": "warehouse-shop",
+      "factory_id": "lab-warehouse",
+      "gateway_id": "warehouse-main",
+      "project": "WarehouseHMI",
+      "controller_id": "regional-cloud-controller",
+      "agent_name": "Warehouse-Agent-EXAMPLE",
+      "eam_task_name": "SEND-WarehouseHMI-EXAMPLE"
+    }
+  ]
+}
