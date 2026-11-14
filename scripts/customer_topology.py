@@ -84,9 +84,9 @@ def validate_topology(profile):
         cid = item["controller_id"]
         require(valid_id(cid) and cid not in controller_by_id,
                 "duplicate or invalid controller_id")
-        require(item["hosting"] in HOSTING,
+        require(isinstance(item["hosting"], str) and item["hosting"] in HOSTING,
                 "Controller hosting must be on_prem or private_cloud")
-        require(item["network"] in TRANSPORT,
+        require(isinstance(item["network"], str) and item["network"] in TRANSPORT,
                 "Controller network must be a trusted private transport")
         require(url_is_secure(item["controller_url"]),
                 "Controller URL must be HTTPS base with explicit port")
@@ -123,14 +123,19 @@ def validate_topology(profile):
     for item in targets:
         require(isinstance(item, dict) and set(item) == TARGET_KEYS,
                 "unexpected target fields")
-        require(item["site_id"] in site_by_id, "target references unknown Site")
-        require(item["workshop_id"] in site_by_id[item["site_id"]],
+        require(valid_id(item["site_id"]) and item["site_id"] in site_by_id,
+                "target references unknown Site")
+        require(valid_id(item["workshop_id"]) and
+                item["workshop_id"] in site_by_id[item["site_id"]],
                 "target references unregistered workshop")
-        require(item["controller_id"] in controller_by_id,
+        require(valid_id(item["controller_id"]) and
+                item["controller_id"] in controller_by_id,
                 "target references unknown EAM Controller")
-        require(item["connection_scope"] in CONNECTION_SCOPE,
+        require(isinstance(item["connection_scope"], str) and
+                item["connection_scope"] in CONNECTION_SCOPE,
                 "connection_scope must be same_site or cross_site")
-        require(item["agent_network"] in TRANSPORT,
+        require(isinstance(item["agent_network"], str) and
+                item["agent_network"] in TRANSPORT,
                 "invalid EAM Controller to Agent private network transport")
         if item["connection_scope"] == "cross_site":
             require(item["agent_network"] in CROSS_SITE_NETWORKS,
