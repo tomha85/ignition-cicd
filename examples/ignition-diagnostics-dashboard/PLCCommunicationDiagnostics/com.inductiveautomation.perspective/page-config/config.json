@@ -8,6 +8,9 @@
     },
     "/metrics": {
       "viewPath": "MetricCatalog"
+    },
+    "/gateway": {
+      "viewPath": "Gateway"
     }
   }
 }
