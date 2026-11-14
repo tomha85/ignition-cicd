@@ -61,12 +61,56 @@ class PortableCustomerTopologyTests(unittest.TestCase):
         self.assertEqual({p["controller_hosting"] for p in plan["targets"]},
                          {"on_prem", "private_cloud"})
         self.assertEqual({p["transport"] for p in plan["targets"]},
+                         {"site_lan", "private_vpn", "private_overlay"})
+        self.assertEqual({p["controller_access_network"] for p in plan["targets"]},
                          {"site_lan", "private_overlay"})
         output = json.dumps(plan)
         self.assertNotIn("eam.private.example.invalid", output)
         self.assertNotIn("HQ_EAM_API_TOKEN", output)
         self.assertNotIn("CLOUD_EAM_API_TOKEN", output)
         self.assertNotIn("HQ_EAM_CA_FILE", output)
+
+    def test_two_topologies_share_one_plan_engine(self):
+        same_site = build_plan(ROOT, self.profile, SHA, factory="lab-assembly")
+        remote = build_plan(ROOT, self.profile, SHA, factory="lab-packaging")
+        self.assertEqual({t["connection_scope"] for t in same_site["targets"]},
+                         {"same_site"})
+        self.assertEqual({t["agent_network"] for t in same_site["targets"]},
+                         {"site_lan"})
+        self.assertEqual({t["connection_scope"] for t in remote["targets"]},
+                         {"cross_site"})
+        self.assertEqual({t["agent_network"] for t in remote["targets"]},
+                         {"private_vpn"})
+        self.assertEqual(same_site["status"], remote["status"])
+        self.assertEqual(same_site["status"], "VALIDATED_NOT_DEPLOYED")
+        self.assertTrue(all(not t["deployment_authorized"]
+                            for t in same_site["targets"] + remote["targets"]))
+
+    def test_remote_site_cannot_claim_site_lan(self):
+        p = copy.deepcopy(self.profile)
+        p["targets"][2]["agent_network"] = "site_lan"
+        self.check_rejected(p)
+
+    def test_unknown_agent_network_and_connection_scope_rejected(self):
+        p = copy.deepcopy(self.profile)
+        p["targets"][0]["agent_network"] = "public_internet"
+        self.check_rejected(p)
+        p = copy.deepcopy(self.profile)
+        p["targets"][0]["connection_scope"] = "unverified"
+        self.check_rejected(p)
+
+    def test_one_factory_cannot_map_to_multiple_sites(self):
+        p = copy.deepcopy(self.profile)
+        p["targets"][1]["site_id"] = "remote-factory-west"
+        p["targets"][1]["workshop_id"] = "warehouse-shop"
+        p["targets"][1]["connection_scope"] = "cross_site"
+        p["targets"][1]["agent_network"] = "private_vpn"
+        self.check_rejected(p)
+
+    def test_agent_cannot_map_to_different_gateways(self):
+        p = copy.deepcopy(self.profile)
+        p["targets"][1]["agent_name"] = p["targets"][0]["agent_name"]
+        self.check_rejected(p)
 
     def test_select_exact_factory_gateway_project(self):
         plan = build_plan(ROOT, self.profile, SHA,
