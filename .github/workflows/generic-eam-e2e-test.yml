@@ -31,6 +31,8 @@ permissions:
   actions: read
 jobs:
   validate:
+    # LAB-only fixture suite; customer forks use customer-config-ci.yml.
+    if: github.repository == 'tomha85/ignition-cicd'
     name: Validate generic factory config + immutable source
     runs-on: ubuntu-latest
     timeout-minutes: 12
