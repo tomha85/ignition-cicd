@@ -47,6 +47,9 @@ by exact target after commissioning. Never publish real OT topology publicly.
 ## Validate the customer inputs (NO Gateway writes)
 
 ```bash
+python scripts/verify_customer_checkout.py \
+  --sha "$(git rev-parse HEAD)"
+
 python scripts/customer_readiness.py \
   --config config/customer.json \
   --sha "$(git rev-parse HEAD)" \
