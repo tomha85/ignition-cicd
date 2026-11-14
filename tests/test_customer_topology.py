@@ -112,6 +112,29 @@ class PortableCustomerTopologyTests(unittest.TestCase):
         p["targets"][1]["agent_name"] = p["targets"][0]["agent_name"]
         self.check_rejected(p)
 
+    def test_dedicated_customer_topology_examples_use_same_planner(self):
+        cases = [
+            ("example-single-factory-workshops.json", 1, 1, 2, "same_site",
+             "site_lan"),
+            ("example-multi-factory-locations.json", 3, 3, 3, "cross_site",
+             None),
+        ]
+        for filename, factories, sites, targets, scope, transport in cases:
+            with self.subTest(profile=filename):
+                profile = load_profile(ROOT / "config" / filename)
+                plan = build_plan(ROOT, profile, SHA)
+                self.assertEqual(plan["factory_count"], factories)
+                self.assertEqual(plan["site_count"], sites)
+                self.assertEqual(plan["target_count"], targets)
+                self.assertEqual({t["connection_scope"] for t in plan["targets"]},
+                                 {scope})
+                if transport:
+                    self.assertEqual({t["agent_network"] for t in plan["targets"]},
+                                     {transport})
+                self.assertTrue(all(t["eam_send_project"] == "NOT_RUN"
+                                    for t in plan["targets"]))
+                self.assertEqual(plan["production"], "HOLD")
+
     def test_select_exact_factory_gateway_project(self):
         plan = build_plan(ROOT, self.profile, SHA,
                           factory="lab-assembly", gateway="utilities-main",
