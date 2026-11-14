@@ -6,6 +6,8 @@ on:
       - 'config/**'
       - 'factories/**'
       - 'scripts/customer_plan.py'
+      - 'scripts/customer_build_release.py'
+      - 'scripts/build_release_v3.py'
       - 'scripts/customer_topology.py'
       - '.github/workflows/customer-config-ci.yml'
   workflow_dispatch:
@@ -74,9 +76,38 @@ jobs:
                   {x['controller_id'] for x in profile['targets']})
           print('CONFIG_DRIVEN_CUSTOMER_VALIDATION_PASS: {} targets, no deployment'.format(expected))
           PY
+      - name: Build native Ignition ZIP artifacts for configured targets (NO DEPLOY)
+        env:
+          CUSTOMER_PROFILE: ${{ inputs.profile_path || 'config/customer.json' }}
+        run: |
+          python scripts/customer_build_release.py \
+            --config "$CUSTOMER_PROFILE" \
+            --sha "$GITHUB_SHA" \
+            --output-dir dist/customer-releases \
+            --evidence evidence/customer-release-manifest.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          plan = json.loads(Path('evidence/customer-config-plan.json').read_text())
+          release = json.loads(Path('evidence/customer-release-manifest.json').read_text())
+          assert release['release_count'] == plan['target_count']
+          assert release['status'] == 'CUSTOMER_NATIVE_RELEASES_BUILT_NOT_DEPLOYED'
+          assert release['runtime_fat'] == 'NOT_TESTED'
+          assert release['eam_task'] == 'NOT_RUN'
+          assert release['production'] == 'HOLD'
+          print('CUSTOMER_RELEASE_BUILD_PASS: native ZIPs only, NO EAM DEPLOYMENT')
+          PY
+      - name: Upload immutable native release ZIPs (not deployed)
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-native-project-releases
+          path: dist/customer-releases/
+          if-no-files-found: error
       - name: Upload validated source hashes and customer target plan
         uses: actions/upload-artifact@v4
         with:
           name: customer-config-plan-evidence
-          path: evidence/customer-config-plan.json
+          path: |
+            evidence/customer-config-plan.json
+            evidence/customer-release-manifest.json
           if-no-files-found: error
