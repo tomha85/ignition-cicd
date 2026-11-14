@@ -19,6 +19,7 @@ sys.path.insert(0, str(ROOT))
 from reusable_cicd.core import (  # noqa: E402
     FrameworkError, load_factory, plan_release, validate_catalog,
 )
+from scripts.customer_topology import annotate, flatten, validate_topology  # noqa: E402
 
 CUSTOMER_ID = re.compile(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)*\Z")
 REF = re.compile(r"[A-Z][A-Z0-9_]*\Z")
@@ -52,6 +53,8 @@ def load_profile(path: Path) -> dict:
                              object_pairs_hook=reject_duplicate_keys)
     except (UnicodeError, ValueError) as exc:
         raise FrameworkError("CUSTOMER_CONFIG_HOLD: invalid JSON") from exc
+    if isinstance(profile, dict) and profile.get("schema_version") == 2:
+        return validate_topology(profile)
     require(isinstance(profile, dict) and set(profile) == PROFILE_KEYS,
             "invalid profile fields")
     require(type(profile["schema_version"]) is int and profile["schema_version"] == 1,
@@ -104,6 +107,13 @@ def load_profile(path: Path) -> dict:
 
 def build_plan(root: Path, profile: dict, sha: str, *, factory=None,
                gateway=None, project=None) -> dict:
+    if profile.get("schema_version") == 2:
+        # V2 is still read-only. Reuse the proven v1 native-source checks,
+        # then attach validated site/workshop/controller metadata.
+        flattened = flatten(profile)
+        plan = build_plan(root, flattened, sha, factory=factory,
+                          gateway=gateway, project=project)
+        return annotate(plan, profile)
     validate_catalog(root / "factories")
     selected = []
     for target in profile["targets"]:
