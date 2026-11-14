@@ -46,6 +46,15 @@ class ManifestGeneratedChoicesTests(unittest.TestCase):
         self.assertEqual(rendered.count("        type: choice\n"), 2)
         self.assertIn("environment: ignition-test", rendered)
 
+    def test_customer_fork_can_remove_all_lab_defaults(self):
+        rendered = dropdowns.render(
+            WORKFLOW.read_text(), ["customer-plant"], ["CustomMixerHMI"]
+        )
+        self.assertIn("          - customer-plant\n", rendered)
+        self.assertIn("          - CustomMixerHMI\n", rendered)
+        self.assertIn("        default: customer-plant\n", rendered)
+        self.assertIn("        default: CustomMixerHMI\n", rendered)
+        self.assertNotIn("        default: lab-warehouse\n", rendered)
     def test_check_detects_drift_without_mutating_workflow(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)
