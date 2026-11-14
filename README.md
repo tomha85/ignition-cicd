@@ -82,6 +82,14 @@ Factory A TEST Lab; arbitrary customer live deployment is **not yet supported**.
 
 **Two supported customer configuration scenarios (one CI engine):**
 
+| Customer topology | Configuration example | EAM Controller ↔ Agents |
+| --- | --- | --- |
+| One factory, multiple workshops | [Same-site workshop config](config/example-single-factory-workshops.json) | Routed `site_lan` or approved private tunnel |
+| Multiple factories, different locations | [Multi-location factory config](config/example-multi-factory-locations.json) | Private VPN, private WAN or overlay |
+
+The reusable customer workflow validates the selected configuration and builds
+native Ignition source ZIPs with SHA-256 evidence. **No EAM deployment occurs.**
+
 - **One factory, many workshops:** `same_site` links using trusted routed LAN/VLANs.
 - **Many factories, different locations:** `cross_site` links using private VPN/WAN/overlay.
 
