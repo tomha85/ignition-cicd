@@ -32,6 +32,8 @@ permissions:
 
 jobs:
   release:
+    # LAB-only fixture suite; customer forks use customer-config-ci.yml.
+    if: github.repository == 'tomha85/ignition-cicd'
     name: Build zip + source-hash evidence; NO GATEWAY DEPLOY
     runs-on: ubuntu-latest
     timeout-minutes: 10

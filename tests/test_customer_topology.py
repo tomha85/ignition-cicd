@@ -159,6 +159,23 @@ class PortableCustomerTopologyTests(unittest.TestCase):
                 else:
                     self.check_rejected(p)
 
+    def test_malformed_nested_json_types_fail_closed_without_type_error(self):
+        # Customer input is untrusted. No traceback from unhashable JSON values.
+        fields = [
+            ("controllers", 0, "hosting"),
+            ("controllers", 0, "network"),
+            ("targets", 0, "site_id"),
+            ("targets", 0, "workshop_id"),
+            ("targets", 0, "controller_id"),
+            ("targets", 0, "connection_scope"),
+            ("targets", 0, "agent_network"),
+        ]
+        for section, index, key in fields:
+            for bad_value in ([], {}):
+                with self.subTest(section=section, key=key, bad=type(bad_value).__name__):
+                    p = copy.deepcopy(self.profile)
+                    p[section][index][key] = bad_value
+                    self.check_rejected(p)
     def test_no_inline_passwords_or_unknown_fields(self):
         for key in ("password", "token", "private_key", "ssh_key"):
             with self.subTest(key=key):

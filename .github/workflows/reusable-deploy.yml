@@ -19,6 +19,8 @@ permissions:
 
 jobs:
   select-and-validate:
+    # LAB-only workflow; never target customer-owned GitHub forks.
+    if: github.repository == 'tomha85/ignition-cicd'
     name: Verify selected factory/Gateway/project against approved native source
     runs-on: ubuntu-latest
     timeout-minutes: 10

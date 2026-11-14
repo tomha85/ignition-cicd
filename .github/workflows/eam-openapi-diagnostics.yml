@@ -16,6 +16,8 @@ permissions:
 
 jobs:
   validate:
+    # LAB-only workflow; never target customer-owned GitHub forks.
+    if: github.repository == 'tomha85/ignition-cicd'
     runs-on: ubuntu-latest
     name: Validate diagnostic read-only safety
     steps:

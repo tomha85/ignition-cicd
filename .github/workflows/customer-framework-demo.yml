@@ -22,6 +22,8 @@ permissions:
 
 jobs:
   customer-plan:
+    # LAB-only fixture suite; customer forks use customer-config-ci.yml.
+    if: github.repository == 'tomha85/ignition-cicd'
     name: Read-only customer-configured TEST plan and evidence
     runs-on: ubuntu-latest
     timeout-minutes: 10

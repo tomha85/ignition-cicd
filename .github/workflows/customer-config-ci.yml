@@ -9,6 +9,14 @@ on:
       - 'scripts/customer_build_release.py'
       - 'scripts/build_release_v3.py'
       - 'scripts/customer_topology.py'
+      - 'scripts/customer_readiness.py'
+      - 'scripts/verify_customer_checkout.py'
+      - 'tests/test_customer_checkout.py'
+      - 'tests/test_customer_cleanroom.py'
+      - 'tests/test_customer_readiness.py'
+      - 'framework/**'
+      - 'reusable_cicd/**'
+      - 'shared/**'
       - '.github/workflows/customer-config-ci.yml'
   workflow_dispatch:
     inputs:
@@ -25,7 +33,8 @@ jobs:
   customer-config-validation:
     name: Validate customer config, native Ignition source and exact targets
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Real native projects can be large; safe offline build only, never OT writes.
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,6 +42,11 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Verify exact Git SHA and committed factory/config/source inputs
+        run: |
+          python -m unittest discover -s tests -p 'test_customer_checkout.py' -v
+          python scripts/verify_customer_checkout.py --sha "$GITHUB_SHA"
+
       - name: Validate selected profile path and build read-only plan
         env:
           CUSTOMER_PROFILE: ${{ inputs.profile_path || 'config/customer.json' }}
@@ -48,10 +62,40 @@ jobs:
           print('CUSTOMER_PROFILE_PATH_VALID')
           PY
           python -m compileall -q reusable_cicd scripts/customer_plan.py scripts/customer_topology.py
+          python -m unittest discover -s tests -p 'test_customer_cleanroom.py' -v
+          python -m unittest discover -s tests -p 'test_customer_readiness.py' -v
           python scripts/customer_plan.py \
             --config "$CUSTOMER_PROFILE" \
             --sha "$GITHUB_SHA" \
             --output evidence/customer-config-plan.json
+      - name: Audit customer input completeness (never authorizes deployment)
+        env:
+          CUSTOMER_PROFILE: ${{ inputs.profile_path || 'config/customer.json' }}
+        run: |
+          python scripts/customer_readiness.py \
+            --config "$CUSTOMER_PROFILE" \
+            --sha "$GITHUB_SHA" \
+            --output evidence/customer-readiness.json
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          report = json.loads(Path('evidence/customer-readiness.json').read_text())
+          assert report['real_eam_deployment_authorized'] is False
+          assert report['production_deployment_authorized'] is False
+          assert report['readiness']['customer_eam_remote_deployer'] == 'NOT_IMPLEMENTED_OR_NOT_QUALIFIED'
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('### Customer readiness\n\n')
+              summary.write('- Input status: **{}**\n'.format(report['status']))
+              summary.write('- Native source plan: **{}**\n'.format(report['source_validation']))
+              summary.write('- EAM deployment: **NOT AUTHORIZED**\n')
+              summary.write('- Production: **HOLD**\n')
+              if report['template_findings']:
+                  summary.write('- Example fields still require customer input: **{}**\n'.format(
+                      len(report['template_findings'])))
+          print('CUSTOMER_READINESS_REPORTED_NOT_DEPLOYED')
+          PY
+
       - name: Check actual input cardinality and hold boundaries
         env:
           CUSTOMER_PROFILE: ${{ inputs.profile_path || 'config/customer.json' }}
@@ -110,4 +154,5 @@ jobs:
           path: |
             evidence/customer-config-plan.json
             evidence/customer-release-manifest.json
+            evidence/customer-readiness.json
           if-no-files-found: error

@@ -9,6 +9,8 @@ permissions:
 
 jobs:
   framework-validation:
+    # LAB-only fixture suite; customer forks use customer-config-ci.yml.
+    if: github.repository == 'tomha85/ignition-cicd'
     name: Generic factory schema, source and regression tests
     runs-on: ubuntu-latest
     timeout-minutes: 10

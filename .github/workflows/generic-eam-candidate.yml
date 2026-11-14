@@ -23,6 +23,8 @@ permissions:
   contents: read
 jobs:
   qualify:
+    # LAB-only fixture suite; customer forks use customer-config-ci.yml.
+    if: github.repository == 'tomha85/ignition-cicd'
     name: Read-only generic EAM planning and regression
     runs-on: ubuntu-latest
     timeout-minutes: 8

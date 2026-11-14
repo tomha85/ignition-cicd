@@ -34,6 +34,8 @@ permissions:
 
 jobs:
   validate:
+    # LAB-only fixture suite; customer forks use customer-config-ci.yml.
+    if: github.repository == 'tomha85/ignition-cicd'
     name: Validate Factory + Project (Gateway auto-resolved)
     runs-on: ubuntu-latest
     timeout-minutes: 12
