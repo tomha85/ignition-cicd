@@ -80,6 +80,15 @@ Hosted workflow: [Customer Framework - Multi-Factory TEST Lab Demo](.github/work
 any Gateway. Real approved EAM transfer is still qualified only on this repo's
 Factory A TEST Lab; arbitrary customer live deployment is **not yet supported**.
 
+**Two supported customer configuration scenarios (one CI engine):**
+
+- **One factory, many workshops:** `same_site` links using trusted routed LAN/VLANs.
+- **Many factories, different locations:** `cross_site` links using private VPN/WAN/overlay.
+
+Both support an on-prem or private-cloud EAM Controller. Real network
+connectivity, EAM Agent trust, commissioning and runtime deployment remain
+separate from the read-only source plan.
+
 **Multi-site/workshop configuration:** A company can use on-prem and
 private-cloud EAM Controllers, multiple remote locations, and multiple
 workshops under one site in a single versioned profile.
