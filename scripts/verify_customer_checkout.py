@@ -27,6 +27,7 @@ def verify_checkout(root: Path, sha: str, *, runner=subprocess.run) -> dict:
         dirty = runner([
             "git", "-C", str(root), "status", "--porcelain=v1",
             "--untracked-files=all", "--", "factories", "config",
+            "scripts", "reusable_cicd", "framework", "shared", ".github/workflows",
         ], capture_output=True, text=True, check=True)
     except (OSError, subprocess.CalledProcessError) as exc:
         raise FrameworkError("CHECKOUT_HOLD: cannot inspect trusted Git source") from exc
@@ -50,8 +51,8 @@ def main():
     parser.add_argument("--sha", required=True)
     args = parser.parse_args()
     try:
-        print("CUSTOMER_SOURCE_CHECKOUT_VERIFIED_NOT_DEPLOYED")
         verify_checkout(ROOT, args.sha)
+        print("CUSTOMER_SOURCE_CHECKOUT_VERIFIED_NOT_DEPLOYED")
         return 0
     except FrameworkError as exc:
         print(str(exc))
