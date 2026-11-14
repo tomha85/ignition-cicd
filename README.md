@@ -20,6 +20,28 @@ The Controller's existing **EAM Send Project** task transfers it to the
 source code from GitHub. **\*EAM Send Project runs only for a commissioned TEST task.**
 **Dashed lines show a future architecture, not active deployment:** Factory B/C currently support validation only.
 
+## Multi-location factory architecture (reference design)
+
+```mermaid
+flowchart TB
+    GH["GitHub Main Repository"] --> CI["GitHub Actions CI/CD"]
+    CI --> EAM["Central EAM Controller Server"]
+
+    EAM <-->|"Secure VPN"| FA["Factory A - Atlanta<br/>Local Ignition Server + EAM Agent"]
+    EAM <-->|"Secure VPN"| FB["Factory B - Dallas<br/>Local Ignition Server + EAM Agent"]
+    EAM <-->|"Secure VPN"| FC["Factory C - Chicago<br/>Local Ignition Server + EAM Agent"]
+
+    FA --> PA["Local PLC / OPC UA / Database"]
+    FB --> PB["Local PLC / OPC UA / Database"]
+    FC --> PC["Local PLC / OPC UA / Database"]
+```
+
+**Reference architecture only:** Atlanta, Dallas, and Chicago are example locations,
+not verified deployment sites. Each factory would keep its SCADA/PLC/database
+operations local, with a VPN-protected Gateway Network connection to central EAM.
+Factory B/C EAM Agents are **not commissioned** in this repository; current
+deployment remains isolated TEST-only and production remains on HOLD.
+
 ## Run the TEST deployment
 
 1. Commit your native Ignition project and factory manifest changes, open a PR, and pass CI.
