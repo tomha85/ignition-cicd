@@ -7,6 +7,7 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from unittest.mock import patch
 
 from reusable_cicd.core import FrameworkError
 from scripts.customer_plan import load_profile
@@ -65,6 +66,24 @@ class CustomerNativeReleaseTests(unittest.TestCase):
                               factory="unknown-plant")
             self.assertFalse(target.exists())
 
+    def test_release_builder_does_not_truncate_validated_101_targets(self):
+        # Test orchestration at scale without creating 101 real archives.
+        with tempfile.TemporaryDirectory() as temporary:
+            selections = [
+                {"factory_id": "factory-{}".format(i),
+                 "gateway_id": "gateway-{}".format(i),
+                 "project": "HMI{}".format(i),
+                 "source_sha256": {"project.json": SHA}}
+                for i in range(101)
+            ]
+            plan = {"status": "VALIDATED_NOT_DEPLOYED", "targets": selections}
+            with patch("scripts.customer_build_release.build_plan", return_value=plan), \
+                 patch("scripts.customer_build_release.build",
+                       return_value={"artifact_sha256": SHA}) as builder:
+                report = make_releases(ROOT, self.profile, SHA, Path(temporary))
+            self.assertEqual(report["release_count"], 101)
+            self.assertEqual(builder.call_count, 101)
+            self.assertEqual(report["production"], "HOLD")
     def test_invalid_git_sha_fails_before_output(self):
         with tempfile.TemporaryDirectory() as temp:
             with self.assertRaises(FrameworkError):
