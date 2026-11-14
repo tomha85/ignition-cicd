@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "customer_id": "example-operator",
+  "mode": "plan_only",
+  "targets": [
+    {
+      "factory_id": "lab-warehouse",
+      "gateway_id": "warehouse-main",
+      "project": "WarehouseHMI",
+      "eam": {
+        "controller_url": "https://eam-controller.example.invalid:8043",
+        "agent_name": "EAM-Agent",
+        "network": "private_vpn",
+        "api_token_secret": "IGNITION_GATEWAY_API_TOKEN",
+        "ca_file_variable": "IGNITION_CONTROLLER_CA_FILE"
+      }
+    },
+    {
+      "factory_id": "lab-assembly",
+      "gateway_id": "assembly-main",
+      "project": "ConveyorHMI",
+      "eam": {
+        "controller_url": "https://eam-controller.example.invalid:8043",
+        "agent_name": "FactoryB-Agent-EXAMPLE",
+        "network": "private_vpn",
+        "api_token_secret": "IGNITION_GATEWAY_API_TOKEN",
+        "ca_file_variable": "IGNITION_CONTROLLER_CA_FILE"
+      }
+    },
+    {
+      "factory_id": "lab-assembly",
+      "gateway_id": "utilities-main",
+      "project": "PackagingHMI",
+      "eam": {
+        "controller_url": "https://eam-controller.example.invalid:8043",
+        "agent_name": "FactoryB-Utilities-EXAMPLE",
+        "network": "private_vpn",
+        "api_token_secret": "IGNITION_GATEWAY_API_TOKEN",
+        "ca_file_variable": "IGNITION_CONTROLLER_CA_FILE"
+      }
+    },
+    {
+      "factory_id": "lab-packaging",
+      "gateway_id": "packaging-main",
+      "project": "PackagingLineHMI",
+      "eam": {
+        "controller_url": "https://eam-controller.example.invalid:8043",
+        "agent_name": "FactoryC-Agent-EXAMPLE",
+        "network": "private_vpn",
+        "api_token_secret": "IGNITION_GATEWAY_API_TOKEN",
+        "ca_file_variable": "IGNITION_CONTROLLER_CA_FILE"
+      }
+    }
+  ]
+}
