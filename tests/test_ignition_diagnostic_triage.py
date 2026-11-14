@@ -27,7 +27,7 @@ def plc(number, server="Ignition OPC UA Server"):
         "metrics": {
             "connected": metric(True),
             "bad_quality_tag_count": metric(0, source="tag_quality_inventory"),
-            "overload_factor_pct": metric(10, source="specific_sampling_group"),
+            "overload_factor_pct": metric(10, source="sampling_group:1000ms"),
             "response_mean_ms": metric(15, source="aggregate_lifetime_execution"),
             "requests_per_second_1m": metric(100, source="aggregate_execution_1m"),
         },
@@ -61,7 +61,7 @@ class IgnitionFleetDiagnosticsTests(unittest.TestCase):
 
     def test_sampling_overload_is_driver_not_plc_cpu(self):
         device = plc(1)
-        device["metrics"]["overload_factor_pct"] = metric(125)
+        device["metrics"]["overload_factor_pct"] = metric(125, source="sampling_group:1000ms")
         result = module.evaluate(sample([device]))
         finding = result["findings"][0]
         self.assertEqual(finding["code"], "SAMPLING_OVERLOAD")
@@ -82,6 +82,26 @@ class IgnitionFleetDiagnosticsTests(unittest.TestCase):
         self.assertEqual(result["devices"][0]["metric_status"]["overload_factor_pct"],
                          "STALE")
 
+    def test_overload_without_verified_group_is_not_actionable(self):
+        device = plc(1)
+        device["metrics"]["overload_factor_pct"] = metric(900)
+        result = module.evaluate(sample([device]))
+        self.assertEqual(result["finding_count"], 0)
+        self.assertIn("overload_factor_pct",
+                      result["devices"][0]["missing_required_builtin"])
+        self.assertEqual(
+            result["devices"][0]["metric_status"]["overload_factor_pct"],
+            "MISSING_SAMPLE_GROUP_PROVENANCE")
+
+    def test_missing_optional_write_and_quality_counters_not_fake_error(self):
+        device = plc(1)
+        device["metrics"].pop("bad_quality_tag_count")
+        result = module.evaluate(sample([device]))
+        self.assertEqual(result["devices"][0]["diagnostic_state"],
+                         "NO_ALERT_RULE_TRIGGERED")
+        self.assertIn("write_failure_count_1m",
+                      result["devices"][0]["missing_or_invalid"])
+        self.assertEqual(result["devices"][0]["missing_required_builtin"], [])
     def test_read_response_lifetime_mean_not_mislabeled_as_spike(self):
         device = plc(1)
         device["metrics"]["response_mean_ms"] = metric(100000)
