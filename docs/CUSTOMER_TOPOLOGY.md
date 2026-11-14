@@ -102,6 +102,14 @@ to run the same source validation against the selected `config/*.json`
 without hardcoded numbers of factories, sites, workshops or Agents.
 Only actual customers' data controls the plan; no EAM task is executed.
 
+## Two copyable configuration examples
+
+- [Single factory, multiple workshops](../config/example-single-factory-workshops.json): one Site, two workshops, two Gateways, one on-prem Controller, same-site LAN.
+- [Multiple factories in different locations](../config/example-multi-factory-locations.json): three Sites, three factory Gateways, one private-cloud Controller, protected remote VPN/overlay links.
+
+Each example uses **exactly the same v2 validator and native Ignition release builder**.
+Choose either example or combine both layouts in one customer profile.
+
 ## Validate a multi-site customer configuration
 
 ```bash
