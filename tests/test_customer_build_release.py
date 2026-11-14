@@ -13,7 +13,7 @@ from scripts.customer_plan import load_profile
 from scripts.customer_build_release import make_releases
 
 ROOT = Path(__file__).resolve().parents[1]
-PROFILE = ROOT / "config/customer.json"
+PROFILE = ROOT / "config/example-company-multi-site.json"
 SHA = "b" * 40
 
 
