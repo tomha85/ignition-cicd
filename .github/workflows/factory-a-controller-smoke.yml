@@ -22,6 +22,8 @@ permissions:
 
 jobs:
   validate:
+    # LAB-only workflow; never target customer-owned GitHub forks.
+    if: github.repository == 'tomha85/ignition-cicd'
     name: Validate Factory A native project and regression tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
