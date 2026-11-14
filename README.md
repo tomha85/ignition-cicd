@@ -88,6 +88,13 @@ See [portable customer topology](docs/CUSTOMER_TOPOLOGY.md) and
 Only read-only planning and optional TLS reachability have been implemented
 for arbitrary customers; **generic EAM deployment is not yet verified**.
 
+**Customer-specific CI:** Update [`config/customer.json`](config/customer.json)
+with your company's sites, workshops, EAM Controllers and exact Agent targets;
+then run [Customer CI - Validate Configured Sites](.github/workflows/customer-config-ci.yml).
+This workflow reads the selected profile dynamically (no fixed demo site count).
+It validates native project hashes and produces a read-only plan, **not** an
+EAM deployment or proof of network/PLC connectivity.
+
 ## Run the TEST deployment
 
 1. Commit your native Ignition project and factory manifest changes, open a PR, and pass CI.
