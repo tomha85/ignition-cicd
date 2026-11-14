@@ -5,7 +5,9 @@ on:
     paths:
       - 'config/**'
       - 'scripts/customer_plan.py'
+      - 'scripts/sync_workflow_choices.py'
       - 'tests/test_customer_plan.py'
+      - 'tests/test_workflow_choice_sync.py'
       - '.github/workflows/customer-framework-demo.yml'
       - 'factories/**'
       - 'reusable_cicd/**'
@@ -30,6 +32,8 @@ jobs:
         run: |
           python -m compileall -q scripts/customer_plan.py tests/test_customer_plan.py
           python -m unittest discover -s tests -p 'test_customer_plan.py' -v
+          python -m unittest discover -s tests -p 'test_workflow_choice_sync.py' -v
+          python scripts/sync_workflow_choices.py --check
           python framework/cli/check_repo.py
       - name: Simulate three customer factories without network or secrets
         run: |
